@@ -15,10 +15,11 @@ Documento de sintaxis, funcionalidades y semántica del lenguaje de programació
 7. [Sentencias de control](#7-sentencias-de-control)
 8. [Funciones](#8-funciones)
 9. [Registros (estructuras)](#9-registros-estructuras)
-10. [Entrada y salida](#10-entrada-y-salida)
-11. [Memoria neuronal](#11-memoria-neuronal)
-12. [Llamadas de sistema](#12-llamadas-de-sistema)
-13. [Módulos y bibliotecas](#13-módulos-y-bibliotecas)
+10. [Clases y Herencia](#10-clases-y-herencia)
+11. [Entrada y salida](#11-entrada-y-salida)
+12. [Memoria neuronal](#12-memoria-neuronal)
+13. [Llamadas de sistema](#13-llamadas-de-sistema)
+14. [Módulos y bibliotecas](#14-módulos-y-bibliotecas)
 
 ---
 
@@ -442,7 +443,62 @@ fin_principal
 
 ---
 
-## 10. Entrada y salida
+## 10. Clases y Herencia
+
+Jasboot soporta un sistema de clases que permite organizar el código mediante objetos y herencia. Las clases son similares a los registros pero con capacidades adicionales.
+
+Para una documentación detallada de la arquitectura de clases, consulte [IMPLEMENTACION_CLASES.md](IMPLEMENTACION_CLASES.md).
+
+### Definición y Herencia
+
+```jasb
+clase Persona
+    texto nombre
+    entero edad
+fin_clase
+
+clase Empleado extiende Persona
+    entero salario
+fin_clase
+```
+
+### Métodos Nativos
+
+Las clases pueden contener funciones internas que operan sobre sus campos usando la palabra clave `este`.
+
+```jasb
+clase Contador
+    entero valor
+    
+    funcion incrementar() retorna
+        este.valor = este.valor + 1
+    fin_funcion
+fin_clase
+```
+
+### Polimorfismo
+
+Los métodos pueden ser sobrescritos en clases derivadas para cambiar su comportamiento.
+
+```jasb
+clase Animal
+    funcion sonido() retorna
+        imprimir "Sonido"
+    fin_funcion
+fin_clase
+
+clase Perro extiende Animal
+    funcion sonido() retorna
+        imprimir "Guao"
+    fin_funcion
+fin_clase
+```
+
+**Internamente:** `StructDefNode` con `extends_name` y una lista de `methods`. El compilador inyecta un parámetro implícito `este` a cada método. El despacho de métodos se resuelve en tiempo de ejecución buscando en la jerarquía de la clase.
+
+---
+
+## 11. Entrada y salida
 
 ### imprimir
 
@@ -514,7 +570,7 @@ ingresar_texto respuesta
 
 ---
 
-## 11. Memoria neuronal
+## 12. Memoria neuronal
 
 La memoria neuronal (JMN) guarda conceptos y asociaciones para razonamiento tipo IA.
 
@@ -654,7 +710,7 @@ Elegir un elemento de una **lista** (colecciones RAM) según la **fuerza** en el
 
 ---
 
-## 12. Llamadas de sistema
+## 13. Llamadas de sistema
 
 Las llamadas de sistema son funciones predefinidas. Sintaxis: `nombre(argumentos)` o `nombre argumento` (un solo argumento sin paréntesis).
 
@@ -803,7 +859,7 @@ En `sistema_llamadas.c` aparecen nombres como `n_abrir_grafo`, `n_recordar`, `n_
 
 ---
 
-## 13. Módulos y bibliotecas
+## 14. Módulos y bibliotecas
 
 ### activar_modulo / usar
 
