@@ -1,0 +1,53 @@
+usar todas de "..\\..\\stdlib\\forja\\forja.jasb"
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+funcion api(texto solicitud) retorna texto
+    si estructura_es_get(solicitud, "/api/info") entonces
+        retornar forja_json("{\"framework\":\"Estructa\",\"modo\":\"jasboot\"}")
+    fin_si
+
+    si estructura_es_get(solicitud, "/salud") entonces
+        retornar forja_salud_ok()
+    fin_si
+
+    retornar forja_no_encontrado()
+fin_funcion
+
+funcion pantalla_inicio(texto solicitud) retorna texto
+    entero contador = estructura_estado_entero(solicitud, "contador", 0)
+    texto nombre = estructura_estado_texto(solicitud, "nombre", "programador hispanohablante")
+
+    texto tarjeta = estructura_titulo("Crear apps web con solo Jasboot")
+    tarjeta = concatenar(tarjeta, estructura_texto("Hola, ${nombre}"))
+    tarjeta = concatenar(tarjeta, estructura_texto("Contador: ${contador}"))
+    tarjeta = concatenar(tarjeta, estructura_boton_entero("/", "contador", contador + 1, "Sumar"))
+    tarjeta = concatenar(tarjeta, estructura_boton_secundario("/api/info", "Ver API"))
+    tarjeta = concatenar(tarjeta, estructura_boton_secundario("/salud", "Estado"))
+    tarjeta = estructura_tarjeta("Pantalla principal", tarjeta)
+
+    texto formulario = estructura_entrada("nombre", nombre, "Escribe tu nombre")
+    formulario = concatenar(formulario, estructura_submit("Actualizar saludo"))
+    formulario = estructura_formulario_get("/", formulario)
+    formulario = estructura_tarjeta("Estado desde la solicitud", formulario)
+
+    texto cuerpo = concatenar(tarjeta, formulario)
+    cuerpo = estructura_columna(cuerpo)
+
+        retornar estructura_pagina("Estructa", "Apps web expresadas solo con Jasboot para programadores hispanohablantes.", cuerpo)
+fin_funcion
+
+funcion app(texto solicitud) retorna texto
+    si estructura_es_get(solicitud, "/") entonces
+        retornar pantalla_inicio(solicitud)
+    fin_si
+    retornar api(solicitud)
+fin_funcion
+
+principal
+    imprimir "Estructa"
+    imprimir "demo activa en http://127.0.0.1:18200"
+    imprimir "ui: /"
+    imprimir "api: /api/info"
+    imprimir "salud: /salud"
+    imprimir estructura_http_bucle("127.0.0.1", 18200, 100, app)
+fin_principal

@@ -1,0 +1,314 @@
+// Utilidades HTTP/HTTPS sincronas sobre la base nativa de red de Jasboot.
+// Esta primera version prioriza claridad: una solicitud por llamada y respuestas completas en memoria.
+
+// Construye una respuesta HTTP de texto plano con cierre explicito de conexion.
+// Se centraliza aqui para evitar duplicar concatenaciones costosas en cada variante de servidor.
+enviar funcion http_crear_respuesta_texto(texto cuerpo) retorna texto
+    texto largo = str_desde_numero(longitud_texto(cuerpo))
+    texto respuesta = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\nContent-Length: "
+    respuesta = concatenar(respuesta, largo)
+    respuesta = concatenar(respuesta, "\r\n\r\n")
+    retornar concatenar(respuesta, cuerpo)
+fin_funcion
+
+// Devuelve la cabecera HTTP completa, sin incluir el cuerpo.
+enviar funcion http_extraer_encabezados(texto respuesta) retorna texto
+    si contiene_texto(respuesta, "\r\n\r\n") entonces
+        retornar extraer_antes_de(respuesta, "\r\n\r\n")
+    fin_si
+    si contiene_texto(respuesta, "\n\n") entonces
+        retornar extraer_antes_de(respuesta, "\n\n")
+    fin_si
+    retornar extraer_antes_de(respuesta, "\r\n\r\n")
+fin_funcion
+
+// Devuelve solo el cuerpo de la respuesta HTTP.
+enviar funcion http_extraer_cuerpo(texto respuesta) retorna texto
+    si contiene_texto(respuesta, "\r\n\r\n") entonces
+        retornar extraer_despues_de(respuesta, "\r\n\r\n")
+    fin_si
+    si contiene_texto(respuesta, "\n\n") entonces
+        retornar extraer_despues_de(respuesta, "\n\n")
+    fin_si
+    retornar extraer_despues_de(respuesta, "\r\n\r\n")
+fin_funcion
+
+// Extrae el codigo de estado de la primera linea HTTP.
+enviar funcion http_extraer_estado(texto respuesta) retorna entero
+    texto linea = extraer_antes_de(respuesta, "\r")
+    texto resto = extraer_despues_de(linea, " ")
+    texto codigo = extraer_antes_de(resto, " ")
+    retornar str_a_entero(codigo)
+fin_funcion
+
+// Devuelve la primera linea de una solicitud o respuesta HTTP.
+enviar funcion http_extraer_linea_inicial(texto respuesta) retorna texto
+    texto linea = extraer_antes_de(respuesta, "\r")
+    si longitud_texto(linea) == longitud_texto(respuesta) entonces
+        linea = extraer_antes_de(respuesta, "\n")
+    fin_si
+    retornar linea
+fin_funcion
+
+// Metodo HTTP desde la primera linea ya extraida (evita re-escanear el buffer completo).
+enviar funcion http_metodo_desde_linea(texto linea) retorna texto
+    retornar extraer_antes_de(linea, " ")
+fin_funcion
+
+// Ruta solicitada desde la primera linea (p. ej. GET /api/x HTTP/1.1 -> /api/x).
+enviar funcion http_ruta_desde_linea(texto linea) retorna texto
+    texto resto = extraer_despues_de(linea, " ")
+    retornar extraer_antes_de(resto, " ")
+fin_funcion
+
+// Extrae la ruta de una solicitud HTTP cruda, por ejemplo `/api/salud`.
+enviar funcion http_extraer_ruta(texto solicitud) retorna texto
+    retornar http_ruta_desde_linea(http_extraer_linea_inicial(solicitud))
+fin_funcion
+
+// Longitud del cuerpo tras cabeceras sin copiar el cuerpo entero (mejor que http_extraer_cuerpo + longitud en POST grandes).
+enviar funcion http_longitud_cuerpo(texto solicitud) retorna entero
+    entero n = longitud_texto(solicitud)
+    si contiene_texto(solicitud, "\r\n\r\n") == 1 entonces
+        texto pref = extraer_antes_de(solicitud, "\r\n\r\n")
+        retornar n - longitud_texto(pref) - 4
+    fin_si
+    si contiene_texto(solicitud, "\n\n") == 1 entonces
+        texto pref2 = extraer_antes_de(solicitud, "\n\n")
+        retornar n - longitud_texto(pref2) - 2
+    fin_si
+    retornar 0
+fin_funcion
+
+// Cliente HTTP simple para GET sin cabeceras personalizadas.
+enviar funcion http_obtener_texto(texto host, entero puerto, texto ruta) retorna texto
+    socket s = tcp_conectar(host, puerto)
+    si s == 0 entonces
+        retornar ""
+    fin_si
+
+    texto solicitud = concatenar("GET ", ruta)
+    solicitud = concatenar(solicitud, " HTTP/1.1\r\nHost: ")
+    solicitud = concatenar(solicitud, host)
+    solicitud = concatenar(solicitud, "\r\nConnection: close\r\nContent-Length: 0\r\n\r\n")
+
+    bytes solicitud_bytes = bytes_desde_texto(solicitud)
+    tcp_enviar(s, solicitud_bytes)
+    bytes bruto = tcp_recibir(s, 65536)
+    tcp_cerrar(s)
+    retornar bytes_a_texto(bruto)
+fin_funcion
+
+// Cliente HTTP simple para POST de cuerpo textual.
+enviar funcion http_publicar_texto(texto host, entero puerto, texto ruta, texto cuerpo) retorna texto
+    socket s = tcp_conectar(host, puerto)
+    si s == 0 entonces
+        retornar ""
+    fin_si
+
+    texto solicitud = concatenar("POST ", ruta)
+    solicitud = concatenar(solicitud, " HTTP/1.1\r\nHost: ")
+    solicitud = concatenar(solicitud, host)
+    solicitud = concatenar(solicitud, "\r\nConnection: close\r\nContent-Length: ")
+    solicitud = concatenar(solicitud, str_desde_numero(longitud_texto(cuerpo)))
+    solicitud = concatenar(solicitud, "\r\n\r\n")
+    solicitud = concatenar(solicitud, cuerpo)
+
+    bytes solicitud_bytes = bytes_desde_texto(solicitud)
+    tcp_enviar(s, solicitud_bytes)
+    bytes bruto = tcp_recibir(s, 65536)
+    tcp_cerrar(s)
+    retornar bytes_a_texto(bruto)
+fin_funcion
+
+// Cliente HTTPS simple para GET.
+// El handshake TLS se realiza despues de abrir el socket TCP.
+enviar funcion https_obtener_texto(texto host, entero puerto, texto ruta) retorna texto
+    socket s = tcp_conectar(host, puerto)
+    si s == 0 entonces
+        retornar ""
+    fin_si
+
+    tls canal = tls_cliente(s, host)
+    si canal == 0 entonces
+        tcp_cerrar(s)
+        retornar ""
+    fin_si
+
+    texto solicitud = concatenar("GET ", ruta)
+    solicitud = concatenar(solicitud, " HTTP/1.1\r\nHost: ")
+    solicitud = concatenar(solicitud, host)
+    solicitud = concatenar(solicitud, "\r\nConnection: close\r\nContent-Length: 0\r\n\r\n")
+
+    bytes solicitud_bytes = bytes_desde_texto(solicitud)
+    tls_enviar(canal, solicitud_bytes)
+    bytes acum = bytes_crear(8)
+    entero parte = 0
+    mientras parte < 128 hacer
+        bytes pedazo = tls_recibir(canal, 65536)
+        si bytes_tamano(pedazo) == 0 entonces
+            romper
+        fin_si
+        acum = bytes_anexar(acum, pedazo)
+        parte = parte + 1
+    fin_mientras
+    tls_cerrar(canal)
+    tcp_cerrar(s)
+    retornar bytes_a_texto(acum)
+fin_funcion
+
+// Cliente HTTPS simple para POST de cuerpo textual.
+enviar funcion https_publicar_texto(texto host, entero puerto, texto ruta, texto cuerpo) retorna texto
+    socket s = tcp_conectar(host, puerto)
+    si s == 0 entonces
+        retornar ""
+    fin_si
+
+    tls canal = tls_cliente(s, host)
+    si canal == 0 entonces
+        tcp_cerrar(s)
+        retornar ""
+    fin_si
+
+    texto solicitud = concatenar("POST ", ruta)
+    solicitud = concatenar(solicitud, " HTTP/1.1\r\nHost: ")
+    solicitud = concatenar(solicitud, host)
+    solicitud = concatenar(solicitud, "\r\nConnection: close\r\nContent-Length: ")
+    solicitud = concatenar(solicitud, str_desde_numero(longitud_texto(cuerpo)))
+    solicitud = concatenar(solicitud, "\r\n\r\n")
+    solicitud = concatenar(solicitud, cuerpo)
+
+    bytes solicitud_bytes = bytes_desde_texto(solicitud)
+    tls_enviar(canal, solicitud_bytes)
+    bytes acum = bytes_crear(8)
+    entero parte = 0
+    mientras parte < 128 hacer
+        bytes pedazo = tls_recibir(canal, 65536)
+        si bytes_tamano(pedazo) == 0 entonces
+            romper
+        fin_si
+        acum = bytes_anexar(acum, pedazo)
+        parte = parte + 1
+    fin_mientras
+    tls_cerrar(canal)
+    tcp_cerrar(s)
+    retornar bytes_a_texto(acum)
+fin_funcion
+
+// Cliente HTTPS generico: metodo (GET, POST, PATCH, DELETE), ruta absoluta en el servidor (p. ej. /rest/v1/tabla),
+// cabeceras_extra sin Content-Length ni Connection (cada linea termina en \r\n), y cuerpo (puede ser vacio).
+// Buffer de lectura amplio para respuestas JSON grandes.
+enviar funcion https_solicitud_texto(texto host, entero puerto, texto metodo, texto ruta, texto cabeceras_extra, texto cuerpo) retorna texto
+    socket s = tcp_conectar(host, puerto)
+    si s == 0 entonces
+        retornar ""
+    fin_si
+    tls canal = tls_cliente(s, host)
+    si canal == 0 entonces
+        tcp_cerrar(s)
+        retornar ""
+    fin_si
+    texto solicitud = concatenar(metodo, " ")
+    solicitud = concatenar(solicitud, ruta)
+    solicitud = concatenar(solicitud, " HTTP/1.1\r\nHost: ")
+    solicitud = concatenar(solicitud, host)
+    solicitud = concatenar(solicitud, "\r\n")
+    solicitud = concatenar(solicitud, cabeceras_extra)
+    solicitud = concatenar(solicitud, "Content-Length: ")
+    solicitud = concatenar(solicitud, str_desde_numero(longitud_texto(cuerpo)))
+    solicitud = concatenar(solicitud, "\r\nConnection: close\r\n\r\n")
+    solicitud = concatenar(solicitud, cuerpo)
+    bytes solicitud_bytes = bytes_desde_texto(solicitud)
+    tls_enviar(canal, solicitud_bytes)
+    bytes acum = bytes_crear(8)
+    entero parte = 0
+    mientras parte < 128 hacer
+        bytes pedazo = tls_recibir(canal, 65536)
+        si bytes_tamano(pedazo) == 0 entonces
+            romper
+        fin_si
+        acum = bytes_anexar(acum, pedazo)
+        parte = parte + 1
+    fin_mientras
+    tls_cerrar(canal)
+    tcp_cerrar(s)
+    retornar bytes_a_texto(acum)
+fin_funcion
+
+// Servidor HTTP minimo para responder una sola conexion con un cuerpo fijo.
+// Es util para smoke tests o demos de loopback.
+enviar funcion http_responder_texto_una_vez(texto host, entero puerto, texto cuerpo) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    si srv == 0 entonces
+        retornar 0
+    fin_si
+
+    socket cli = tcp_aceptar(srv)
+    si cli == 0 entonces
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    bytes solicitud = tcp_recibir(cli, 8192)
+    bytes respuesta_bytes = bytes_desde_texto(http_crear_respuesta_texto(cuerpo))
+    tcp_enviar(cli, respuesta_bytes)
+    tcp_cerrar(cli)
+    tcp_cerrar(srv)
+    retornar bytes_tamano(solicitud)
+fin_funcion
+
+// Servidor HTTP minimo con handler Jasboot.
+// El handler recibe la solicitud cruda y devuelve el cuerpo textual de la respuesta.
+enviar funcion http_escuchar_una_vez(texto host, entero puerto, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    si srv == 0 entonces
+        retornar 0
+    fin_si
+
+    socket cli = tcp_aceptar(srv)
+    si cli == 0 entonces
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    bytes bruto = tcp_recibir(cli, 8192)
+    texto solicitud = bytes_a_texto(bruto)
+    texto cuerpo = handler(solicitud)
+    bytes respuesta = bytes_desde_texto(http_crear_respuesta_texto(cuerpo))
+    tcp_enviar(cli, respuesta)
+    tcp_cerrar(cli)
+    tcp_cerrar(srv)
+    retornar bytes_tamano(bruto)
+fin_funcion
+
+// Servidor HTTPS minimo con certificado y clave PEM locales.
+// Igual que la variante HTTP, atiende una sola conexion y delega el cuerpo al handler.
+enviar funcion https_escuchar_una_vez(texto host, entero puerto, texto cert, texto key, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    si srv == 0 entonces
+        retornar 0
+    fin_si
+
+    socket cli = tcp_aceptar(srv)
+    si cli == 0 entonces
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    tls canal = tls_servidor(cli, cert, key)
+    si canal == 0 entonces
+        tcp_cerrar(cli)
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    bytes bruto = tls_recibir(canal, 8192)
+    texto solicitud = bytes_a_texto(bruto)
+    texto cuerpo = handler(solicitud)
+    bytes respuesta = bytes_desde_texto(http_crear_respuesta_texto(cuerpo))
+    tls_enviar(canal, respuesta)
+    tls_cerrar(canal)
+    tcp_cerrar(cli)
+    tcp_cerrar(srv)
+    retornar bytes_tamano(bruto)
+fin_funcion

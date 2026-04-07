@@ -1,0 +1,204 @@
+// JASML Core - Funciones fundamentales
+// Operaciones matemáticas básicas y utilidades
+
+// ==========================================================
+// FUNCIONES MATEMÁTICAS BÁSICAS
+// ==========================================================
+
+// Crea un vector de ceros del tamaño especificado
+enviar funcion crear_vector(entero tamano) retorna lista
+    lista vector = crear_lista()
+    entero i = 0
+    mientras i < tamano hacer
+        mem_lista_agregar(vector, "0.0")
+        i = i + 1
+    fin_mientras
+    retornar vector
+fin_funcion
+
+// Crea una matriz de ceros (lista de listas)
+enviar funcion crear_matriz(entero filas, entero columnas) retorna lista
+    lista matriz = crear_lista()
+    entero i = 0
+    mientras i < filas hacer
+        lista fila = crear_vector(columnas)
+        mem_lista_agregar(matriz, fila)
+        i = i + 1
+    fin_mientras
+    retornar matriz
+fin_funcion
+
+// Suma dos vectores elemento por elemento
+enviar funcion vector_suma(lista vector1, lista vector2) retorna lista
+    entero tamano = lista_tamano(vector1)
+    lista resultado = crear_vector(tamano)
+    entero i = 0
+    mientras i < tamano hacer
+        flotante val1 = str_a_entero(lista_obtener(vector1, i))
+        flotante val2 = str_a_entero(lista_obtener(vector2, i))
+        mem_lista_agregar(resultado, str_desde_numero(val1 + val2))
+        i = i + 1
+    fin_mientras
+    retornar resultado
+fin_funcion
+
+// Multiplica un vector por un escalar
+enviar funcion vector_multiplicar_escalar(lista vector, flotante escalar) retorna lista
+    entero tamano = lista_tamano(vector)
+    lista resultado = crear_vector(tamano)
+    entero i = 0
+    mientras i < tamano hacer
+        flotante val = str_a_entero(lista_obtener(vector, i))
+        mem_lista_agregar(resultado, str_desde_numero(val * escalar))
+        i = i + 1
+    fin_mientras
+    retornar resultado
+fin_funcion
+
+// Calcula el producto punto de dos vectores
+enviar funcion vector_producto_punto(lista vector1, lista vector2) retorna flotante
+    entero tamano = lista_tamano(vector1)
+    flotante resultado = 0.0
+    entero i = 0
+    mientras i < tamano hacer
+        flotante val1 = str_a_entero(lista_obtener(vector1, i))
+        flotante val2 = str_a_entero(lista_obtener(vector2, i))
+        resultado = resultado + (val1 * val2)
+        i = i + 1
+    fin_mientras
+    retornar resultado
+fin_funcion
+
+// Calcula la magnitud (norma) de un vector
+enviar funcion vector_magnitud(lista vector) retorna flotante
+    flotante suma_cuadrados = 0.0
+    entero tamano = lista_tamano(vector)
+    entero i = 0
+    mientras i < tamano hacer
+        flotante val = str_a_entero(lista_obtener(vector, i))
+        suma_cuadrados = suma_cuadrados + (val * val)
+        i = i + 1
+    fin_mientras
+    retornar raiz_cuadrada(suma_cuadrados)
+fin_funcion
+
+// Normaliza un vector a magnitud unitaria
+enviar funcion vector_normalizar(lista vector) retorna lista
+    flotante magnitud = vector_magnitud(vector)
+    si magnitud == 0.0 entonces
+        retornar vector
+    fin_si
+    retornar vector_multiplicar_escalar(vector, 1.0 / magnitud)
+fin_funcion
+
+// Distancia euclidiana entre dos puntos
+enviar funcion distancia_euclidiana(lista punto1, lista punto2) retorna flotante
+    flotante suma_cuadrados = 0.0
+    entero dimensiones = lista_tamano(punto1)
+    entero i = 0
+    
+    mientras i < dimensiones hacer
+        flotante val1 = str_a_entero(lista_obtener(punto1, i))
+        flotante val2 = str_a_entero(lista_obtener(punto2, i))
+        flotante diferencia = val1 - val2
+        suma_cuadrados = suma_cuadrados + (diferencia * diferencia)
+        i = i + 1
+    fin_mientras
+    
+    retornar raiz_cuadrada(suma_cuadrados)
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE DATOS
+// ==========================================================
+
+// Convierte texto a número de forma segura
+enviar funcion texto_a_numero(texto txt) retorna flotante
+    si longitud(txt) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    // Verificar si es numérico primero
+    si es_numero(txt) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    retornar str_a_entero(txt)
+fin_funcion
+
+// Verifica si un valor es numérico
+enviar funcion es_numero(texto txt) retorna entero
+    si longitud(txt) == 0 entonces
+        retornar 0
+    fin_si
+    
+    entero i = 0
+    entero n = longitud(txt)
+    entero puntos = 0
+    
+    mientras i < n hacer
+        texto char_texto = extraer_subtexto(txt, i, i + 1)
+        
+        si char_texto == "." entonces
+            puntos = puntos + 1
+            si puntos > 1 entonces
+                retornar 0
+            fin_si
+        si_no
+            si (char_texto < "0" o char_texto > "9") y char_texto != "-" entonces
+                retornar 0
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar 1
+fin_funcion
+
+// Clona una lista (copia superficial)
+enviar funcion clonar_lista(lista original) retorna lista
+    lista copia = crear_lista()
+    entero tamano = lista_tamano(original)
+    entero i = 0
+    
+    mientras i < tamano hacer
+        mem_lista_agregar(copia, lista_obtener(original, i))
+        i = i + 1
+    fin_mientras
+    
+    retornar copia
+fin_funcion
+
+// Calcula raíz cuadrada usando el método de Newton-Raphson
+enviar funcion raiz_cuadrada(flotante numero) retorna flotante
+    si numero < 0.0 entonces
+        retornar 0.0  // Raíz de negativo no es real
+    fin_si
+    
+    si numero == 0.0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante x = numero
+    flotante epsilon = 0.0001
+    entero iteraciones = 0
+    entero max_iteraciones = 100
+    
+    mientras iteraciones < max_iteraciones hacer
+        flotante x_anterior = x
+        x = 0.5 * (x_anterior + numero / x_anterior)
+        
+        flotante diferencia = x - x_anterior
+        si diferencia < 0.0 entonces
+            diferencia = diferencia * -1.0
+        fin_si
+        
+        si diferencia < epsilon entonces
+            romper
+        fin_si
+        
+        iteraciones = iteraciones + 1
+    fin_mientras
+    
+    retornar x
+fin_funcion

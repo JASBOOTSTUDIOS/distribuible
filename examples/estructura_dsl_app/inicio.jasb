@@ -1,0 +1,15 @@
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+enviar funcion pagina_inicio() retorna texto
+    texto cabecera = estructura_titulo("Inicio")
+    cabecera = concatenar(cabecera, estructura_texto("Bienvenido al camino principal de Estructa en Jasboot puro."))
+    cabecera = concatenar(cabecera, estructura_texto("Esta app ya navega usando helpers oficiales de la libreria."))
+    cabecera = estructura_tarjeta_visual("Base estable", "primaria", cabecera)
+
+    texto acciones = estructura_boton_ruta("/productos", "Ver productos")
+    acciones = concatenar(acciones, estructura_boton_secundario("/equipo", "Conocer equipo"))
+    acciones = concatenar(acciones, estructura_boton_secundario("/contacto", "Ir a contacto"))
+    acciones = estructura_tarjeta("Navegacion", acciones)
+
+    retornar estructura_columna(concatenar(cabecera, acciones))
+fin_funcion

@@ -1,0 +1,4 @@
+# Programa minimo Jasboot — el compilador produce hola_mundo.jbo (IR binario).
+principal
+    imprimir "hola mundo"
+fin_principal

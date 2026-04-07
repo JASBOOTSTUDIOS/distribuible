@@ -1,0 +1,22 @@
+principal
+    texto s = "x"
+    entero i = 0
+    mientras i < 800 hacer
+        s = concatenar(s, "ab")
+        i = i + 1
+    fin_mientras
+
+    entero acc = 0
+    entero j = 0
+    mientras j < 5000 hacer
+        acc = acc + contiene_texto(s, "ab")
+        acc = acc + buscar_en_texto(s, "ab")
+        acc = acc + termina_con(s, "b")
+        j = j + 1
+    fin_mientras
+
+    imprimir longitud_texto(s)
+    imprimir ""
+    imprimir acc
+    imprimir ""
+fin_principal

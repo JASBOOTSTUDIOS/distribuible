@@ -1,0 +1,21 @@
+principal
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 100 hacer
+        socket s = tcp_conectar("127.0.0.1", 18083)
+        si s == 0 entonces
+            imprimir 0
+            i = 100
+        sino
+            bytes solicitud = bytes_desde_texto("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+            tcp_enviar(s, solicitud)
+            bytes raw = tcp_recibir(s, 4096)
+            tcp_cerrar(s)
+            acc = acc + bytes_tamano(raw)
+            i = i + 1
+        fin_si
+    fin_mientras
+
+    imprimir acc
+fin_principal

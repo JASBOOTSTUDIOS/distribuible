@@ -1,0 +1,21 @@
+principal
+    texto linea = "usuario=42|accion=abrir|estado=ok\n"
+    texto s = ""
+    entero i = 0
+
+    mientras i < 2500 hacer
+        s = concatenar(s, linea)
+        i = i + 1
+    fin_mientras
+
+    lista<texto> partes = dividir_texto(s, "\n")
+    texto primera = mem_lista_obtener(partes, 0)
+    texto despues = extraer_despues_de(primera, "accion=")
+    texto accion = extraer_antes_de(despues, "|")
+    entero acc = longitud_texto(s)
+    acc = acc + contiene_texto(s, "estado=ok")
+    acc = acc + termina_con(primera, "ok")
+    acc = acc + longitud_texto(accion)
+
+    imprimir acc
+fin_principal

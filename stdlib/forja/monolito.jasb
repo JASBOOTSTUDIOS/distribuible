@@ -1,0 +1,49 @@
+usar todas de ".\\forja.jasb"
+usar todas de ".\\frontend.jasb"
+
+// Fachada monolitica de Forja: frontend y backend dentro de una sola aplicacion.
+// El handler de dominio se ejecuta para rutas de API; la portada y salud se resuelven aqui.
+
+enviar funcion forja_monolito_handler(texto solicitud, funcion api_app) retorna texto
+    si forja_es_get(solicitud, "/favicon.ico") entonces
+        retornar forja_favicon()
+    fin_si
+
+    si forja_es_front(solicitud) entonces
+        retornar forja_landing()
+    fin_si
+
+    si forja_es_get(solicitud, "/salud") entonces
+        retornar forja_salud_ok()
+    fin_si
+
+    retornar api_app(solicitud)
+fin_funcion
+
+enviar funcion forja_monolito_http(texto host, entero puerto, funcion api_app) retorna entero
+    funcion app = (texto solicitud) => {
+        retornar forja_monolito_handler(solicitud, api_app)
+    }
+    retornar forja_http(host, puerto, app)
+fin_funcion
+
+enviar funcion forja_monolito_http_bucle(texto host, entero puerto, entero max_solicitudes, funcion api_app) retorna entero
+    funcion app = (texto solicitud) => {
+        retornar forja_monolito_handler(solicitud, api_app)
+    }
+    retornar forja_http_bucle(host, puerto, max_solicitudes, app)
+fin_funcion
+
+enviar funcion forja_monolito_https(texto host, entero puerto, texto cert, texto key, funcion api_app) retorna entero
+    funcion app = (texto solicitud) => {
+        retornar forja_monolito_handler(solicitud, api_app)
+    }
+    retornar forja_https(host, puerto, cert, key, app)
+fin_funcion
+
+enviar funcion forja_monolito_https_bucle(texto host, entero puerto, texto cert, texto key, entero max_solicitudes, funcion api_app) retorna entero
+    funcion app = (texto solicitud) => {
+        retornar forja_monolito_handler(solicitud, api_app)
+    }
+    retornar forja_https_bucle(host, puerto, cert, key, max_solicitudes, app)
+fin_funcion

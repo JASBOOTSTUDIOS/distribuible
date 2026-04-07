@@ -1,0 +1,14 @@
+usar todas de "..\\..\\stdlib\\http\\http_basico.jasb"
+
+principal
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 100 hacer
+        texto respuesta = https_obtener_texto("127.0.0.1", 18444, "/")
+        acc = acc + longitud_texto(respuesta)
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

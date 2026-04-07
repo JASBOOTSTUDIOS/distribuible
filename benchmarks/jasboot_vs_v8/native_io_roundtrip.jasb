@@ -1,0 +1,13 @@
+principal
+    entero fh = abrir_archivo("v8_io_roundtrip.txt", "wb")
+    entero i = 0
+
+    mientras i < 600 hacer
+        escribir_archivo("fila\n", fh)
+        i = i + 1
+    fin_mientras
+    cerrar_archivo(fh)
+
+    texto contenido = fs_leer_texto("v8_io_roundtrip.txt")
+    imprimir longitud_texto(contenido)
+fin_principal

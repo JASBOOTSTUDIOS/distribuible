@@ -1,0 +1,19 @@
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+enviar funcion pagina_contacto() retorna texto
+    texto panel = estructura_titulo("Contacto")
+    panel = concatenar(panel, estructura_texto("Correo: equipo@jasboot.local"))
+    panel = concatenar(panel, estructura_texto("La misma libreria puede servir front, rutas y estado simple."))
+    panel = estructura_tarjeta("Canales", panel)
+
+    texto accion = estructura_boton_alerta("Mostrar estado", "Estructa sigue evolucionando sobre Jasboot puro")
+    accion = concatenar(accion, estructura_boton_alternar("panel-seguro-contacto", "Alternar panel seguro"))
+    accion = estructura_tarjeta("Accion", accion)
+
+    texto detalle = estructura_texto("Este panel solo puede mostrarse u ocultarse mediante acciones permitidas por Estructa.")
+    detalle = concatenar(detalle, estructura_texto("No expone manipulacion libre del DOM al programador."))
+    detalle = estructura_tarjeta_visual("Panel seguro", "primaria", detalle)
+    detalle = estructura_panel_seguro_oculto("panel-seguro-contacto", detalle)
+
+    retornar estructura_columna(concatenar(concatenar(panel, accion), detalle))
+fin_funcion

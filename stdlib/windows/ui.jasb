@@ -1,0 +1,160 @@
+enviar funcion windows_rgb(entero rojo, entero verde, entero azul) retorna entero
+    retornar rojo + verde * 256 + azul * 65536
+fin_funcion
+
+enviar funcion windows_app_crear(texto titulo, entero ancho, entero alto) retorna entero
+    bytes titulo_bytes = bytes_desde_texto(titulo)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_ventana_crear")
+    retornar ffi_llamar(fn, bytes_puntero(titulo_bytes), bytes_tamano(titulo_bytes), ancho, alto)
+fin_funcion
+
+enviar funcion windows_panel(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_panel_crear")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion
+
+enviar funcion windows_texto(entero app, texto contenido) retorna entero
+    bytes contenido_bytes = bytes_desde_texto(contenido)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_etiqueta_crear")
+    retornar ffi_llamar(fn, app, bytes_puntero(contenido_bytes), bytes_tamano(contenido_bytes), 0)
+fin_funcion
+
+enviar funcion windows_boton(entero app, texto etiqueta) retorna entero
+    bytes etiqueta_bytes = bytes_desde_texto(etiqueta)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_boton_crear")
+    retornar ffi_llamar(fn, app, bytes_puntero(etiqueta_bytes), bytes_tamano(etiqueta_bytes), 0)
+fin_funcion
+
+enviar funcion windows_entrada(entero app, texto valor_inicial) retorna entero
+    bytes valor_bytes = bytes_desde_texto(valor_inicial)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_entrada_crear")
+    retornar ffi_llamar(fn, app, bytes_puntero(valor_bytes), bytes_tamano(valor_bytes), 0)
+fin_funcion
+
+// WebView2 (Edge). Requiere runtime WebView2 y WebView2Loader.dll junto a jasboot_win32_bridge.dll.
+enviar funcion windows_webview(entero app, texto direccion_url) retorna entero
+    bytes url_bytes = bytes_desde_texto(direccion_url)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_webview_crear")
+    retornar ffi_llamar(fn, app, bytes_puntero(url_bytes), bytes_tamano(url_bytes), 0)
+fin_funcion
+
+enviar funcion windows_fondo_app(entero app, entero color_rgb) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_app_color_fondo")
+    retornar ffi_llamar(fn, app, color_rgb, 0, 0)
+fin_funcion
+
+enviar funcion windows_marco(entero control, entero pos_x, entero pos_y, entero ancho, entero alto) retorna entero
+    entero tam = ancho + alto * 65536
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_marco")
+    retornar ffi_llamar(fn, control, pos_x, pos_y, tam)
+fin_funcion
+
+enviar funcion windows_responsivo(entero control, entero pos_x_pct, entero pos_y_pct, entero ancho_pct, entero alto_pct) retorna entero
+    entero tam = ancho_pct + alto_pct * 65536
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_responsivo")
+    retornar ffi_llamar(fn, control, pos_x_pct, pos_y_pct, tam)
+fin_funcion
+
+enviar funcion windows_limites(entero control, entero min_ancho, entero min_alto, entero max_ancho, entero max_alto) retorna entero
+    entero tam = max_ancho + max_alto * 65536
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_limites")
+    retornar ffi_llamar(fn, control, min_ancho, min_alto, tam)
+fin_funcion
+
+enviar funcion windows_color_fondo(entero control, entero color_rgb) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_color_fondo")
+    retornar ffi_llamar(fn, control, color_rgb, 0, 0)
+fin_funcion
+
+enviar funcion windows_color_texto(entero control, entero color_rgb) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_color_texto")
+    retornar ffi_llamar(fn, control, color_rgb, 0, 0)
+fin_funcion
+
+enviar funcion windows_color_borde(entero control, entero color_rgb) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_color_borde")
+    retornar ffi_llamar(fn, control, color_rgb, 0, 0)
+fin_funcion
+
+enviar funcion windows_borde(entero control, entero grosor, entero radio) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_borde")
+    retornar ffi_llamar(fn, control, grosor, radio, 0)
+fin_funcion
+
+enviar funcion windows_sombra(entero control, entero tamano, entero color_rgb) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_sombra")
+    retornar ffi_llamar(fn, control, tamano, color_rgb, 0)
+fin_funcion
+
+enviar funcion windows_fuente(entero control, entero tamano, entero grosor_fuente) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_fuente")
+    retornar ffi_llamar(fn, control, tamano, grosor_fuente, 0)
+fin_funcion
+
+enviar funcion windows_padding(entero control, entero horizontal, entero vertical) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_padding")
+    retornar ffi_llamar(fn, control, horizontal, vertical, 0)
+fin_funcion
+
+enviar funcion windows_texto_establecer(entero control, texto contenido) retorna entero
+    bytes contenido_bytes = bytes_desde_texto(contenido)
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_texto")
+    retornar ffi_llamar(fn, control, bytes_puntero(contenido_bytes), bytes_tamano(contenido_bytes), 0)
+fin_funcion
+
+// mostrar_distinto_cero = 1 para mostrar, 0 para ocultar (orden Z: los ultimos controles creados quedan encima).
+enviar funcion windows_visible(entero control, entero mostrar_distinto_cero) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_control_visible")
+    retornar ffi_llamar(fn, control, mostrar_distinto_cero, 0, 0)
+fin_funcion
+
+enviar funcion windows_mostrar(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_mostrar")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion
+
+enviar funcion windows_ejecutar(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_bucle")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion
+
+// Un mensaje por iteracion: 1 = sigue vivo, 0 = WM_QUIT (cerrar ventana).
+enviar funcion windows_ejecutar_paso(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_ejecutar_paso")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion
+
+// Tras cada paso con exito: handle del boton pulsado o 0 (consume el ultimo clic).
+enviar funcion windows_boton_pulsado(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_boton_pulsado")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion
+
+enviar funcion windows_destruir(entero app) retorna entero
+    entero dll = ffi_cargar("sdk-dependiente/jasboot-win32-bridge/bin/jasboot_win32_bridge.dll")
+    entero fn = ffi_simbolo(dll, "jbw_destruir")
+    retornar ffi_llamar(fn, app, 0, 0, 0)
+fin_funcion

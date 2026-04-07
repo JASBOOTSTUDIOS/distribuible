@@ -1,0 +1,16 @@
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+enviar funcion layout_nav() retorna texto
+    retornar estructura_nav_simple("Inicio", "Productos", "Equipo", "Contacto")
+fin_funcion
+
+enviar funcion layout_titulo_app() retorna texto
+    retornar "Estructa"
+fin_funcion
+
+enviar funcion pagina_404_cuerpo() retorna texto
+    texto cuerpo = estructura_titulo("404")
+    cuerpo = concatenar(cuerpo, estructura_texto("Ruta no encontrada"))
+    cuerpo = concatenar(cuerpo, estructura_boton("/", "Volver al inicio"))
+    retornar estructura_tarjeta_visual("Ruta", "primaria", cuerpo)
+fin_funcion

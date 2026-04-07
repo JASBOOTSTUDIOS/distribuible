@@ -1,0 +1,32 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "*.jasb": "jasboot"
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Jasboot: ejecutar .jasb (jbc)",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "args": [
+          "${file}"
+        ],
+        "cwd": "${workspaceFolder}",
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": [
+          "<node_internals>/**"
+        ]
+      }
+    ]
+  }
+}

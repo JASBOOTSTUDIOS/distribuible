@@ -1,0 +1,19 @@
+principal
+    texto payload = "{\"user\":\"ana\",\"hits\":[1,2,3,4],\"ok\":true,\"value\":12}"
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 2000 hacer
+        entero root = json_parse(payload)
+        entero hits = json_objeto_obtener(root, "hits")
+        acc = acc + json_a_entero(json_lista_obtener(hits, 0))
+        acc = acc + json_a_entero(json_lista_obtener(hits, 3))
+        acc = acc + json_a_bool(json_objeto_obtener(root, "ok"))
+        acc = acc + json_a_entero(json_objeto_obtener(root, "value"))
+        acc = acc + longitud_texto(json_a_texto(json_objeto_obtener(root, "user")))
+        acc = acc + longitud_texto(json_stringify(root))
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

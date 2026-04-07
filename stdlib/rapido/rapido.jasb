@@ -1,0 +1,573 @@
+usar todas de "..\\api\\api_basica.jasb"
+
+// =============================================================================
+// rapido — modelo alineado con Express (en español), optimizado para Jasboot
+// =============================================================================
+//
+// Express                          | rapido (español)           | estilo Express (alias)
+// ---------------------------------+----------------------------+---------------------------
+// express() → app                  | (estado global)            | express() — no-op marcador
+// app.use(fn)                      | aplicacion_usar(fn)        | app_use(fn)
+// app.get/post/put/delete(path,fn) | aplicacion_obtener/...     | app_get, app_post, …
+// app.listen(puerto)             | aplicacion_escuchar        | app_listen(puerto)
+// app.use(express.json())          | aplicacion_parsear_json()  | express_json() — registra ya
+// app.use(cors())                  | aplicacion_permitir_cors() | express_cors()
+// res.json({})                     | respuesta_cuerpo_json      | res_json(texto)
+// req.params.id                    | peticion_parametro         | req_param
+// next()                           | intermediario_continuar    | express_next
+// Router en /api                   | montar_rutas … desmontar  | router_montar / router_fin
+//
+// Limites de Jasboot: no hay app.metodo con punto; no hay (req,res)=> ni express.json() que
+// devuelva una funcion — los *middleware* reales son intermediario_* para pasarlos a app_use.
+//
+// Intermediario (middleware): funcion (texto solicitud) retorna texto.
+//   Cadena vacía = pasar al siguiente (equivalente a next()).
+//   Texto no vacío = respuesta HTTP completa (fin de la cadena).
+//
+// Rendimiento: una lectura de la línea inicial por petición, rutas exactas sin dividir_texto,
+// lectura de cuerpo POST sin copiar el cuerpo entero solo para medir longitud (api_basica).
+// =============================================================================
+
+// Prefijo activo para registrar rutas (estilo app.use("/api", router) de Express).
+enviar texto rapido_prefijo_montaje = ""
+
+enviar lista rapido_lst_metodo = mem_lista_crear()
+enviar lista rapido_lst_patron = mem_lista_crear()
+enviar mapa rapido_m_rutas = mapa_crear()
+enviar entero rapido_n_mw = 0
+enviar mapa rapido_m_mw = mapa_crear()
+enviar lista rapido_lst_cap_nom = mem_lista_crear()
+enviar lista rapido_lst_cap_val = mem_lista_crear()
+enviar entero rapido_j_doc = 0
+enviar entero rapido_j_listo = 0
+// Primera linea HTTP de la peticion actual; la rellena rapido_dispatch antes del middleware.
+enviar texto rapido_linea_cache = ""
+
+enviar funcion rapido_nombre() retorna texto
+    retornar "rapido"
+fin_funcion
+
+enviar funcion rapido_ruta_limpia(texto ruta) retorna texto
+    si contiene_texto(ruta, "?") == 1 entonces
+        retornar extraer_antes_de(ruta, "?")
+    fin_si
+    retornar ruta
+fin_funcion
+
+enviar funcion rapido_solicitud_metodo(texto sol) retorna texto
+    retornar api_metodo(sol)
+fin_funcion
+
+enviar funcion rapido_solicitud_ruta(texto sol) retorna texto
+    retornar api_ruta(sol)
+fin_funcion
+
+enviar funcion rapido_limpiar() retorna entero
+    mem_lista_limpiar(rapido_lst_metodo)
+    mem_lista_limpiar(rapido_lst_patron)
+    rapido_m_rutas = mapa_crear()
+    rapido_n_mw = 0
+    rapido_m_mw = mapa_crear()
+    mem_lista_limpiar(rapido_lst_cap_nom)
+    mem_lista_limpiar(rapido_lst_cap_val)
+    rapido_j_doc = 0
+    rapido_j_listo = 0
+    rapido_prefijo_montaje = ""
+    retornar 1
+fin_funcion
+
+// Une prefijo de montaje y subruta como hace Express (p. ej. "/api" + "/salud" -> "/api/salud").
+enviar funcion rapido_unir_ruta_montaje(texto prefijo, texto sub) retorna texto
+    si longitud_texto(prefijo) == 0 entonces
+        retornar sub
+    fin_si
+    si longitud_texto(sub) == 0 entonces
+        retornar prefijo
+    fin_si
+    texto p = prefijo
+    texto s = sub
+    si termina_con(p, "/") == 1 y longitud_texto(s) > 0 y extraer_subtexto(s, 0, 1) == "/" entonces
+        s = extraer_despues_de(s, "/")
+        retornar concatenar(p, s)
+    fin_si
+    si extraer_subtexto(s, 0, 1) == "/" entonces
+        retornar concatenar(p, s)
+    fin_si
+    si termina_con(p, "/") == 1 entonces
+        retornar concatenar(p, s)
+    fin_si
+    retornar concatenar(concatenar(p, "/"), s)
+fin_funcion
+
+// Activa prefijo para siguientes aplicacion_obtener / publicar / ... (bloque estilo Router montado).
+enviar funcion montar_rutas(texto prefijo) retorna entero
+    rapido_prefijo_montaje = prefijo
+    retornar 1
+fin_funcion
+
+// Desactiva el prefijo de montaje (cerrar bloque de rutas anidadas).
+enviar funcion desmontar_rutas() retorna entero
+    rapido_prefijo_montaje = ""
+    retornar 1
+fin_funcion
+
+enviar funcion rapido_patron_coincide(texto path, texto patron) retorna entero
+    mem_lista_limpiar(rapido_lst_cap_nom)
+    mem_lista_limpiar(rapido_lst_cap_val)
+    // Sin ruta no hay coincidencia (evita que "" y "/" queden ambos con 0 segmentos tras dividir_texto
+    // y se acepte la primera ruta GET "/" para cualquier peticion mal parseada).
+    si longitud_texto(path) == 0 entonces
+        retornar 0
+    fin_si
+    // Misma ruta exacta: coincidencia sin trocear (evita bug de VM: dividir_texto reusa id de lista
+    // por hash(texto); patron y path iguales pisaban la misma lista y mem_lista_obtener fallaba).
+    si patron == path entonces
+        retornar 1
+    fin_si
+    lista pp = dividir_texto(patron, "/")
+    lista ps = dividir_texto(path, "/")
+    entero np = mem_lista_tamano(pp)
+    entero ns = mem_lista_tamano(ps)
+    // "/" solo produce 0 tokens con dividir_texto; eso ya cubre patron == path arriba. Cualquier otro
+    // np==ns==0 es ambiguo: no coincidir.
+    si np == 0 y ns == 0 entonces
+        mem_lista_liberar(pp)
+        mem_lista_liberar(ps)
+        retornar 0
+    fin_si
+    si np != ns entonces
+        mem_lista_liberar(pp)
+        mem_lista_liberar(ps)
+        retornar 0
+    fin_si
+    entero i = 0
+    mientras i < np hacer
+        texto pseg = mem_lista_obtener(pp, i)
+        texto sseg = mem_lista_obtener(ps, i)
+        si longitud_texto(pseg) == 0 entonces
+            si longitud_texto(sseg) == 0 entonces
+                i = i + 1
+            fin_si
+            si longitud_texto(sseg) > 0 entonces
+                mem_lista_liberar(pp)
+                mem_lista_liberar(ps)
+                retornar 0
+            fin_si
+        fin_si
+        si longitud_texto(pseg) > 0 entonces
+            texto c0 = extraer_subtexto(pseg, 0, 1)
+            si c0 == ":" entonces
+                texto nm = extraer_despues_de(pseg, ":")
+                mem_lista_agregar(rapido_lst_cap_nom, nm)
+                mem_lista_agregar(rapido_lst_cap_val, sseg)
+                i = i + 1
+            fin_si
+            si c0 != ":" entonces
+                si pseg != sseg entonces
+                    mem_lista_liberar(pp)
+                    mem_lista_liberar(ps)
+                    retornar 0
+                fin_si
+                i = i + 1
+            fin_si
+        fin_si
+    fin_mientras
+    mem_lista_liberar(pp)
+    mem_lista_liberar(ps)
+    retornar 1
+fin_funcion
+
+enviar funcion rapido_param(texto nombre) retorna texto
+    entero n = mem_lista_tamano(rapido_lst_cap_nom)
+    entero i = 0
+    mientras i < n hacer
+        si mem_lista_obtener(rapido_lst_cap_nom, i) == nombre entonces
+            retornar mem_lista_obtener(rapido_lst_cap_val, i)
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar ""
+fin_funcion
+
+enviar funcion rapido_respuesta_opciones_cors() retorna texto
+    retornar "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nAccess-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\nAccess-Control-Allow-Headers: Content-Type\r\nConnection: close\r\n\r\n"
+fin_funcion
+
+enviar funcion rapido_json(texto cuerpo_json) retorna texto
+    texto largo = str_desde_numero(longitud_texto(cuerpo_json))
+    texto r = "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json; charset=utf-8\r\nConnection: close\r\nContent-Length: "
+    r = concatenar(r, largo)
+    r = concatenar(r, "\r\n\r\n")
+    retornar concatenar(r, cuerpo_json)
+fin_funcion
+
+enviar funcion rapido_json_valor(entero doc_json) retorna texto
+    retornar rapido_json(json_stringify(doc_json))
+fin_funcion
+
+enviar funcion rapido_json_codigo(texto linea_estado, texto cuerpo_json) retorna texto
+    texto largo = str_desde_numero(longitud_texto(cuerpo_json))
+    texto r = "HTTP/1.1 "
+    r = concatenar(r, linea_estado)
+    r = concatenar(r, "\r\nAccess-Control-Allow-Origin: *\r\nContent-Type: application/json; charset=utf-8\r\nConnection: close\r\nContent-Length: ")
+    r = concatenar(r, largo)
+    r = concatenar(r, "\r\n\r\n")
+    retornar concatenar(r, cuerpo_json)
+fin_funcion
+
+enviar funcion rapido_no_encontrado_respuesta() retorna texto
+    retornar rapido_json_codigo("404 Not Found", "{\"error\":\"no_encontrado\"}")
+fin_funcion
+
+enviar funcion rapido_cuerpo_json() retorna entero
+    retornar rapido_j_doc
+fin_funcion
+
+enviar funcion rapido_tiene_cuerpo_json() retorna entero
+    retornar rapido_j_listo
+fin_funcion
+
+enviar funcion rapido_mw_json(texto sol) retorna texto
+    rapido_j_doc = 0
+    rapido_j_listo = 0
+    texto c = api_cuerpo(sol)
+    si longitud_texto(c) == 0 entonces
+        retornar ""
+    fin_si
+    rapido_j_doc = json_parse(c)
+    rapido_j_listo = 1
+    retornar ""
+fin_funcion
+
+enviar funcion rapido_mw_cors(texto sol) retorna texto
+    si http_metodo_desde_linea(rapido_linea_cache) == "OPTIONS" entonces
+        retornar rapido_respuesta_opciones_cors()
+    fin_si
+    retornar ""
+fin_funcion
+
+enviar funcion rapido_usar(funcion mw) retorna entero
+    rapido_n_mw = rapido_n_mw + 1
+    mapa_poner(rapido_m_mw, rapido_n_mw, mw)
+    retornar rapido_n_mw
+fin_funcion
+
+enviar funcion rapido_usar_json() retorna entero
+    retornar rapido_usar(rapido_mw_json)
+fin_funcion
+
+enviar funcion rapido_usar_cors() retorna entero
+    retornar rapido_usar(rapido_mw_cors)
+fin_funcion
+
+enviar funcion rapido_registrar_ruta(texto metodo, texto patron, funcion manejador) retorna entero
+    texto patron_efectivo = patron
+    si longitud_texto(rapido_prefijo_montaje) > 0 entonces
+        patron_efectivo = rapido_unir_ruta_montaje(rapido_prefijo_montaje, patron)
+    fin_si
+    mem_lista_agregar(rapido_lst_metodo, metodo)
+    mem_lista_agregar(rapido_lst_patron, patron_efectivo)
+    entero k = mem_lista_tamano(rapido_lst_patron)
+    mapa_poner(rapido_m_rutas, k, manejador)
+    retornar k
+fin_funcion
+
+enviar funcion rapido_get(texto patron, funcion manejador) retorna entero
+    retornar rapido_registrar_ruta("GET", patron, manejador)
+fin_funcion
+
+enviar funcion rapido_post(texto patron, funcion manejador) retorna entero
+    retornar rapido_registrar_ruta("POST", patron, manejador)
+fin_funcion
+
+enviar funcion rapido_put(texto patron, funcion manejador) retorna entero
+    retornar rapido_registrar_ruta("PUT", patron, manejador)
+fin_funcion
+
+enviar funcion rapido_borrar(texto patron, funcion manejador) retorna entero
+    retornar rapido_registrar_ruta("DELETE", patron, manejador)
+fin_funcion
+
+enviar funcion rapido_dispatch(texto sol) retorna texto
+    rapido_linea_cache = http_extraer_linea_inicial(sol)
+    rapido_j_doc = 0
+    rapido_j_listo = 0
+    entero mwi = 1
+    mientras mwi <= rapido_n_mw hacer
+        funcion mw_fn = mapa_obtener(rapido_m_mw, mwi)
+        texto res_mw = mw_fn(sol)
+        si longitud_texto(res_mw) > 0 entonces
+            retornar res_mw
+        fin_si
+        mwi = mwi + 1
+    fin_mientras
+    texto met = http_metodo_desde_linea(rapido_linea_cache)
+    texto path = rapido_ruta_limpia(http_ruta_desde_linea(rapido_linea_cache))
+    entero n = mem_lista_tamano(rapido_lst_metodo)
+    entero ri = 0
+    mientras ri < n hacer
+        si mem_lista_obtener(rapido_lst_metodo, ri) == met entonces
+            texto pat = mem_lista_obtener(rapido_lst_patron, ri)
+            si pat == path entonces
+                funcion h0 = mapa_obtener(rapido_m_rutas, ri + 1)
+                retornar h0(sol)
+            fin_si
+            si rapido_patron_coincide(path, pat) == 1 entonces
+                funcion h = mapa_obtener(rapido_m_rutas, ri + 1)
+                retornar h(sol)
+            fin_si
+        fin_si
+        ri = ri + 1
+    fin_mientras
+    retornar rapido_no_encontrado_respuesta()
+fin_funcion
+
+// Servidor secuencial: una peticion en vuelo a la vez; el handler no debe bloquear minutos
+// (p. ej. cliente HTTPS con timeouts razonables) o las demas conexiones esperan en cola.
+enviar funcion rapido_escuchar(texto host, entero puerto, entero max_solicitudes) retorna entero
+    retornar api_http_bucle(host, puerto, max_solicitudes, rapido_dispatch)
+fin_funcion
+
+// Varias instancias del mismo .jbo en puertos consecutivos (maestro en puerto_base, hijos en +1..+N-1).
+// Cada instancia es un proceso VM independiente (mismo paralelismo que varios workers de Node).
+// El hijo debe arrancarse con argv: ... <puerto> jasboot_cluster_worker (evita recursión).
+// En Windows hace falta que sys_argv(0) sea el ejecutable de la VM (no "node" vía wrapper).
+enviar funcion rapido_escuchar_cluster(texto host, entero puerto_base, entero num_workers, entero max_solicitudes) retorna entero
+    si sys_argc() >= 4 entonces
+        si sys_argv(3) == "jasboot_cluster_worker" entonces
+            retornar rapido_escuchar(host, puerto_base, max_solicitudes)
+        fin_si
+    fin_si
+    si num_workers <= 1 entonces
+        retornar rapido_escuchar(host, puerto_base, max_solicitudes)
+    fin_si
+    texto exe = sys_argv(0)
+    texto jbo = sys_argv(1)
+    entero w = 1
+    mientras w < num_workers hacer
+        entero p = puerto_base + w
+        texto cmd = ""
+        si contiene_texto(exe, ".exe") == 1 o contiene_texto(exe, ".EXE") == 1 entonces
+            cmd = "start /B \"\" \""
+            cmd = concatenar(cmd, exe)
+            cmd = concatenar(cmd, "\" \"")
+            cmd = concatenar(cmd, jbo)
+            cmd = concatenar(cmd, "\" ")
+            cmd = concatenar(cmd, str_desde_numero(p))
+            cmd = concatenar(cmd, " jasboot_cluster_worker")
+        sino
+            cmd = "\""
+            cmd = concatenar(cmd, exe)
+            cmd = concatenar(cmd, "\" \"")
+            cmd = concatenar(cmd, jbo)
+            cmd = concatenar(cmd, "\" ")
+            cmd = concatenar(cmd, str_desde_numero(p))
+            cmd = concatenar(cmd, " jasboot_cluster_worker &")
+        fin_si
+        sistema_ejecutar(cmd)
+        w = w + 1
+    fin_mientras
+    retornar rapido_escuchar(host, puerto_base, max_solicitudes)
+fin_funcion
+
+// -----------------------------------------------------------------------------
+// API pública en español (clon conceptual de Express). Los rapido_* siguen igual.
+// -----------------------------------------------------------------------------
+
+// Equivale a next() sin argumentos: seguir la cadena de intermediarios / rutas.
+enviar funcion intermediario_continuar() retorna texto
+    retornar ""
+fin_funcion
+
+enviar funcion aplicacion_reiniciar() retorna entero
+    retornar rapido_limpiar()
+fin_funcion
+
+enviar funcion aplicacion_usar(funcion intermediario) retorna entero
+    retornar rapido_usar(intermediario)
+fin_funcion
+
+enviar funcion aplicacion_obtener(texto patron, funcion manejador) retorna entero
+    retornar rapido_get(patron, manejador)
+fin_funcion
+
+enviar funcion aplicacion_publicar(texto patron, funcion manejador) retorna entero
+    retornar rapido_post(patron, manejador)
+fin_funcion
+
+enviar funcion aplicacion_establecer(texto patron, funcion manejador) retorna entero
+    retornar rapido_put(patron, manejador)
+fin_funcion
+
+enviar funcion aplicacion_eliminar(texto patron, funcion manejador) retorna entero
+    retornar rapido_borrar(patron, manejador)
+fin_funcion
+
+enviar funcion aplicacion_parsear_json() retorna entero
+    retornar rapido_usar_json()
+fin_funcion
+
+enviar funcion aplicacion_permitir_cors() retorna entero
+    retornar rapido_usar_cors()
+fin_funcion
+
+enviar funcion aplicacion_escuchar(texto anfitrion, entero puerto, entero max_peticiones) retorna entero
+    retornar rapido_escuchar(anfitrion, puerto, max_peticiones)
+fin_funcion
+
+enviar funcion aplicacion_escuchar_replicas(texto anfitrion, entero puerto_base, entero replicas, entero max_peticiones) retorna entero
+    retornar rapido_escuchar_cluster(anfitrion, puerto_base, replicas, max_peticiones)
+fin_funcion
+
+enviar funcion aplicacion_procesar_peticion(texto solicitud_cruda) retorna texto
+    retornar rapido_dispatch(solicitud_cruda)
+fin_funcion
+
+enviar funcion respuesta_cuerpo_json(texto json_texto) retorna texto
+    retornar rapido_json(json_texto)
+fin_funcion
+
+enviar funcion respuesta_valor_json(entero documento_json) retorna texto
+    retornar rapido_json_valor(documento_json)
+fin_funcion
+
+enviar funcion respuesta_json_con_codigo(texto linea_estado_http, texto json_texto) retorna texto
+    retornar rapido_json_codigo(linea_estado_http, json_texto)
+fin_funcion
+
+enviar funcion respuesta_no_encontrado() retorna texto
+    retornar rapido_no_encontrado_respuesta()
+fin_funcion
+
+enviar funcion respuesta_cors_opciones() retorna texto
+    retornar rapido_respuesta_opciones_cors()
+fin_funcion
+
+enviar funcion peticion_parametro(texto nombre) retorna texto
+    retornar rapido_param(nombre)
+fin_funcion
+
+enviar funcion peticion_leer_metodo(texto solicitud) retorna texto
+    retornar rapido_solicitud_metodo(solicitud)
+fin_funcion
+
+enviar funcion peticion_leer_ruta(texto solicitud) retorna texto
+    retornar rapido_solicitud_ruta(solicitud)
+fin_funcion
+
+// Solo válida durante intermediario o manejador (tras iniciar el despacho de esa petición).
+enviar funcion peticion_linea_actual() retorna texto
+    retornar rapido_linea_cache
+fin_funcion
+
+enviar funcion ruta_sin_query(texto ruta) retorna texto
+    retornar rapido_ruta_limpia(ruta)
+fin_funcion
+
+enviar funcion ruta_coincide_patron(texto ruta, texto patron) retorna entero
+    retornar rapido_patron_coincide(ruta, patron)
+fin_funcion
+
+enviar funcion documento_json_cuerpo() retorna entero
+    retornar rapido_cuerpo_json()
+fin_funcion
+
+enviar funcion documento_json_listo() retorna entero
+    retornar rapido_tiene_cuerpo_json()
+fin_funcion
+
+enviar funcion intermediario_leer_json(texto sol) retorna texto
+    retornar rapido_mw_json(sol)
+fin_funcion
+
+enviar funcion intermediario_cors(texto sol) retorna texto
+    retornar rapido_mw_cors(sol)
+fin_funcion
+
+// =============================================================================
+// Sintaxis cercana a Express (nombres en inglés, guion bajo en lugar de punto)
+// =============================================================================
+
+// Llama al inicio del programa si quieres el mismo ritual que const app = express().
+enviar funcion express() retorna entero
+    retornar 1
+fin_funcion
+
+enviar funcion app_use(funcion mw) retorna entero
+    retornar rapido_usar(mw)
+fin_funcion
+
+enviar funcion app_get(texto ruta, funcion manejador) retorna entero
+    retornar rapido_get(ruta, manejador)
+fin_funcion
+
+enviar funcion app_post(texto ruta, funcion manejador) retorna entero
+    retornar rapido_post(ruta, manejador)
+fin_funcion
+
+enviar funcion app_put(texto ruta, funcion manejador) retorna entero
+    retornar rapido_put(ruta, manejador)
+fin_funcion
+
+enviar funcion app_delete(texto ruta, funcion manejador) retorna entero
+    retornar rapido_borrar(ruta, manejador)
+fin_funcion
+
+// Equivale a app.use(express.json()): en Rapido el JSON ya se registra en la pila (no devuelve fn).
+enviar funcion express_json() retorna entero
+    retornar rapido_usar_json()
+fin_funcion
+
+// Equivale a app.use(cors(...)) con la politica CORS fija del stdlib.
+enviar funcion express_cors() retorna entero
+    retornar rapido_usar_cors()
+fin_funcion
+
+// app.listen(3000) — anfitrion 127.0.0.1 y maximo de peticiones amplio.
+enviar funcion app_listen(entero puerto) retorna entero
+    retornar rapido_escuchar("127.0.0.1", puerto, 999999999)
+fin_funcion
+
+enviar funcion app_listen_en(texto anfitrion, entero puerto) retorna entero
+    retornar rapido_escuchar(anfitrion, puerto, 999999999)
+fin_funcion
+
+enviar funcion app_listen_en_con_limite(texto anfitrion, entero puerto, entero max_peticiones) retorna entero
+    retornar rapido_escuchar(anfitrion, puerto, max_peticiones)
+fin_funcion
+
+// Variante cluster (process fork style): varias VM en puertos consecutivos.
+enviar funcion app_listen_cluster(texto anfitrion, entero puerto_base, entero workers) retorna entero
+    retornar rapido_escuchar_cluster(anfitrion, puerto_base, workers, 999999999)
+fin_funcion
+
+// express.Router() montado en prefijo: abre/cierra bloque de rutas relativas.
+enviar funcion router_montar(texto prefijo) retorna entero
+    retornar montar_rutas(prefijo)
+fin_funcion
+
+enviar funcion router_fin() retorna entero
+    retornar desmontar_rutas()
+fin_funcion
+
+// res.json(...) — el cuerpo ya es JSON serializado en texto.
+enviar funcion res_json(texto cuerpo_json) retorna texto
+    retornar rapido_json(cuerpo_json)
+fin_funcion
+
+enviar funcion res_json_val(entero doc) retorna texto
+    retornar rapido_json_valor(doc)
+fin_funcion
+
+enviar funcion res_status_json(texto linea_estado, texto cuerpo_json) retorna texto
+    retornar rapido_json_codigo(linea_estado, cuerpo_json)
+fin_funcion
+
+// req.params.nombre
+enviar funcion req_param(texto nombre) retorna texto
+    retornar rapido_param(nombre)
+fin_funcion
+
+enviar funcion express_next() retorna texto
+    retornar ""
+fin_funcion

@@ -1,0 +1,18 @@
+principal
+    lista datos = crear_lista()
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 2048 hacer
+        mem_lista_agregar(datos, (i * 7) % 997)
+        i = i + 1
+    fin_mientras
+
+    i = 0
+    mientras i < 300000 hacer
+        acc = acc + (mem_lista_obtener(datos, i % 2048) * 3) + (i % 11)
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

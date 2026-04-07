@@ -1,0 +1,700 @@
+usar todas de "..\\..\\api\\api_basica.jasb"
+usar todas de ".\\identidad.jasb"
+
+enviar funcion estructura_escapar(texto contenido) retorna texto
+    entero i = 0
+    texto salida = ""
+    mientras i < longitud_texto(contenido) hacer
+        texto parte = extraer_subtexto(contenido, i, 1)
+        texto reemplazo = parte
+        si parte == "&" entonces
+            reemplazo = "&amp;"
+        fin_si
+        si parte == "<" entonces
+            reemplazo = "&lt;"
+        fin_si
+        si parte == ">" entonces
+            reemplazo = "&gt;"
+        fin_si
+        si parte == `"` entonces
+            reemplazo = "&quot;"
+        fin_si
+        si parte == "'" entonces
+            reemplazo = "&#39;"
+        fin_si
+        salida = concatenar(salida, reemplazo)
+        i = i + 1
+    fin_mientras
+    retornar salida
+fin_funcion
+
+// Escape explicito para atributos HTML. Mantiene el mismo contrato seguro por defecto.
+enviar funcion estructura_escapar_atributo(texto contenido) retorna texto
+    retornar estructura_escapar(contenido)
+fin_funcion
+
+enviar funcion estructura_texto_seguro(texto contenido, texto por_defecto) retorna texto
+    si longitud_texto(contenido) == 0 entonces
+        retornar por_defecto
+    fin_si
+    retornar contenido
+fin_funcion
+
+enviar funcion estructura_id_seguro(texto entrada_id, texto por_defecto) retorna texto
+    texto id = estructura_texto_seguro(entrada_id, por_defecto)
+    entero i = 0
+    texto salida = ""
+    mientras i < longitud_texto(id) hacer
+        texto c = extraer_subtexto(id, i, 1)
+        si contiene_texto("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_", c) entonces
+            salida = concatenar(salida, c)
+        fin_si
+        i = i + 1
+    fin_mientras
+    si longitud_texto(salida) == 0 entonces
+        retornar por_defecto
+    fin_si
+    retornar salida
+fin_funcion
+
+enviar funcion estructura_ruta_segura(texto ruta) retorna texto
+    texto base = estructura_texto_seguro(ruta, "/")
+    si longitud_texto(base) == 0 entonces
+        retornar "/"
+    fin_si
+    si extraer_subtexto(base, 0, 1) != "/" entonces
+        retornar "/"
+    fin_si
+    retornar base
+fin_funcion
+
+enviar funcion estructura_mensaje_accion_seguro(texto mensaje) retorna texto
+    texto limpio = estructura_texto_seguro(mensaje, "")
+    si longitud_texto(limpio) > 240 entonces
+        retornar extraer_subtexto(limpio, 0, 240)
+    fin_si
+    retornar limpio
+fin_funcion
+
+// Punto de escape manual e intencional. Solo usar cuando el programador acepta el riesgo.
+enviar funcion estructura_html_crudo_inseguro(texto html) retorna texto
+    retornar html
+fin_funcion
+
+enviar funcion estructura_estilos_base() retorna texto
+    texto css = ":root{--es-color-primario:#2563eb;--es-color-secundario:#0f172a;--es-color-fondo:#f8fafc;--es-color-superficie:#ffffff;--es-color-texto:#0f172a;--es-color-borde:#dbe4f0;--es-radio:16px;--es-espacio:16px;--es-sombra:0 18px 45px rgba(15,23,42,.08)}"
+    css = concatenar(css, "body{margin:0;background:var(--es-color-fondo);color:var(--es-color-texto);font:16px Segoe UI,Arial,sans-serif}")
+    css = concatenar(css, ".es-shell{max-width:1120px;margin:0 auto;padding:32px 20px 48px 20px}")
+    css = concatenar(css, ".es-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;padding:18px 20px;background:var(--es-color-superficie);border:1px solid var(--es-color-borde);border-radius:var(--es-radio);box-shadow:var(--es-sombra)}")
+    css = concatenar(css, ".es-marca{font-size:20px;font-weight:700;color:var(--es-color-secundario)}")
+    css = concatenar(css, ".es-nav-links{display:flex;flex-wrap:wrap;gap:10px}")
+    css = concatenar(css, ".es-nav-links a,.fui-boton,.fui-submit{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:12px;border:1px solid transparent;text-decoration:none;font-weight:600;transition:all .2s ease}")
+    css = concatenar(css, ".es-nav-links a,.fui-boton,.fui-submit{background:var(--es-color-primario);color:#fff}")
+    css = concatenar(css, ".es-nav-links a:hover,.fui-boton:hover,.fui-submit:hover{filter:brightness(.96);transform:translateY(-1px)}")
+    css = concatenar(css, ".fui-boton-sec{background:transparent;color:var(--es-color-secundario);border-color:var(--es-color-borde)}")
+    css = concatenar(css, ".fui-boton-sec:hover{background:#eef4ff}")
+    css = concatenar(css, ".es-contenido{display:block}")
+    css = concatenar(css, "section{display:grid;gap:16px}")
+    css = concatenar(css, "article{background:var(--es-color-superficie);border:1px solid var(--es-color-borde);border-radius:var(--es-radio);padding:20px;box-shadow:var(--es-sombra)}")
+    css = concatenar(css, "h1,h2,h3,p{margin:0}h1,h2,h3{color:var(--es-color-secundario)}p{line-height:1.6}")
+    css = concatenar(css, ".fui-campo{display:grid;gap:8px}.fui-etiqueta-campo{font-weight:600;color:var(--es-color-secundario)}")
+    css = concatenar(css, ".fui-entrada{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid var(--es-color-borde);background:#fff}")
+    css = concatenar(css, "hr{border:none;border-top:1px solid var(--es-color-borde);margin:8px 0}")
+    css = concatenar(css, "[hidden]{display:none!important}")
+    retornar css
+fin_funcion
+
+enviar funcion estructura_texto(texto contenido) retorna texto
+    retornar concatenar("<p>", concatenar(estructura_escapar(contenido), "</p>"))
+fin_funcion
+
+enviar funcion estructura_titulo(texto contenido) retorna texto
+    retornar concatenar("<h2>", concatenar(estructura_escapar(contenido), "</h2>"))
+fin_funcion
+
+enviar funcion estructura_subtitulo(texto contenido) retorna texto
+    retornar concatenar("<p>", concatenar(estructura_escapar(contenido), "</p>"))
+fin_funcion
+
+enviar funcion estructura_etiqueta(texto contenido) retorna texto
+    retornar concatenar("<span class=\"fui-etiqueta\">", concatenar(estructura_escapar(contenido), "</span>"))
+fin_funcion
+
+enviar funcion estructura_boton(texto ruta, texto etiqueta) retorna texto
+    texto href = estructura_escapar_atributo(estructura_ruta_segura(ruta))
+    texto texto_boton = estructura_escapar(etiqueta)
+    retornar concatenar("<a class=\"fui-boton\" href=\"", concatenar(href, concatenar("\">", concatenar(texto_boton, "</a>"))))
+fin_funcion
+
+enviar funcion estructura_boton_alerta(texto etiqueta, texto mensaje) retorna texto
+    texto html = "<button class=\"fui-boton\" type=\"button\" data-estructa-accion=\"alerta\" data-estructa-mensaje=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_mensaje_accion_seguro(mensaje)))
+    html = concatenar(html, "\">")
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</button>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_boton_secundario(texto ruta, texto etiqueta) retorna texto
+    texto href = estructura_escapar_atributo(estructura_ruta_segura(ruta))
+    texto texto_boton = estructura_escapar(etiqueta)
+    retornar concatenar("<a class=\"fui-boton fui-boton-sec\" href=\"", concatenar(href, concatenar("\">", concatenar(texto_boton, "</a>"))))
+fin_funcion
+
+enviar funcion estructura_enlace_ruta(texto ruta, texto etiqueta) retorna texto
+    texto ruta_segura = estructura_escapar_atributo(estructura_ruta_segura(ruta))
+    texto texto_enlace = estructura_escapar(etiqueta)
+    texto html = "<a data-estructa-ruta=\""
+    html = concatenar(html, ruta_segura)
+    html = concatenar(html, "\" href=\"")
+    html = concatenar(html, ruta_segura)
+    html = concatenar(html, "\">")
+    html = concatenar(html, texto_enlace)
+    html = concatenar(html, "</a>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_boton_ruta(texto ruta, texto etiqueta) retorna texto
+    retornar estructura_enlace_ruta(ruta, etiqueta)
+fin_funcion
+
+enviar funcion estructura_submit(texto etiqueta) retorna texto
+    retornar concatenar("<button class=\"fui-submit\" type=\"submit\">", concatenar(estructura_escapar(etiqueta), "</button>"))
+fin_funcion
+
+enviar funcion estructura_entrada(texto nombre, texto contenido, texto marcador) retorna texto
+    texto html = "<input class=\"fui-entrada\" type=\"text\" name=\""
+    html = concatenar(html, estructura_escapar_atributo(nombre))
+    html = concatenar(html, "\" value=\"")
+    html = concatenar(html, estructura_escapar_atributo(contenido))
+    html = concatenar(html, "\" placeholder=\"")
+    html = concatenar(html, estructura_escapar_atributo(marcador))
+    html = concatenar(html, "\">")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_boton_mostrar(texto destino_id, texto etiqueta) retorna texto
+    texto html = "<button class=\"fui-boton\" type=\"button\" data-estructa-accion=\"mostrar\" data-estructa-destino=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_id_seguro(destino_id, "panel")))
+    html = concatenar(html, "\">")
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</button>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_boton_ocultar(texto destino_id, texto etiqueta) retorna texto
+    texto html = "<button class=\"fui-boton fui-boton-sec\" type=\"button\" data-estructa-accion=\"ocultar\" data-estructa-destino=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_id_seguro(destino_id, "panel")))
+    html = concatenar(html, "\">")
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</button>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_boton_alternar(texto destino_id, texto etiqueta) retorna texto
+    texto html = "<button class=\"fui-boton\" type=\"button\" data-estructa-accion=\"alternar\" data-estructa-destino=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_id_seguro(destino_id, "panel")))
+    html = concatenar(html, "\">")
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</button>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_panel_seguro(texto panel_id, texto hijos) retorna texto
+    texto html = "<section data-estructa-id=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_id_seguro(panel_id, "panel")))
+    html = concatenar(html, "\">")
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_panel_seguro_oculto(texto panel_id, texto hijos) retorna texto
+    texto html = "<section data-estructa-id=\""
+    html = concatenar(html, estructura_escapar_atributo(estructura_id_seguro(panel_id, "panel")))
+    html = concatenar(html, "\" hidden>")
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_campo(texto etiqueta, texto control) retorna texto
+    texto html = "<label class=\"fui-campo\"><span class=\"fui-etiqueta-campo\">"
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</span>")
+    html = concatenar(html, control)
+    html = concatenar(html, "</label>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_columna(texto hijos) retorna texto
+    retornar concatenar("<section class=\"es-columna\">", concatenar(hijos, "</section>"))
+fin_funcion
+
+enviar funcion estructura_columna_visual(texto espacio, texto alineacion, texto hijos) retorna texto
+    texto estilo = ""
+    si longitud_texto(espacio) > 0 entonces
+        estilo = concatenar(estilo, "gap:")
+        estilo = concatenar(estilo, estructura_escapar(espacio))
+        estilo = concatenar(estilo, ";")
+    fin_si
+    si longitud_texto(alineacion) > 0 entonces
+        estilo = concatenar(estilo, "align-items:")
+        estilo = concatenar(estilo, estructura_escapar(alineacion))
+        estilo = concatenar(estilo, ";")
+    fin_si
+
+    texto html = "<section class=\"es-columna\""
+    si longitud_texto(estilo) > 0 entonces
+        html = concatenar(html, " style=\"")
+        html = concatenar(html, estilo)
+        html = concatenar(html, "\"")
+    fin_si
+    html = concatenar(html, ">")
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_fila(texto hijos) retorna texto
+    retornar concatenar("<section class=\"es-fila\" style=\"display:flex;flex-wrap:wrap;gap:16px\">", concatenar(hijos, "</section>"))
+fin_funcion
+
+enviar funcion estructura_fila_visual(texto espacio, texto alineacion, texto hijos) retorna texto
+    texto estilo = "display:flex;flex-wrap:wrap;"
+    si longitud_texto(espacio) > 0 entonces
+        estilo = concatenar(estilo, "gap:")
+        estilo = concatenar(estilo, estructura_escapar(espacio))
+        estilo = concatenar(estilo, ";")
+    sino
+        estilo = concatenar(estilo, "gap:16px;")
+    fin_si
+    si longitud_texto(alineacion) > 0 entonces
+        estilo = concatenar(estilo, "align-items:")
+        estilo = concatenar(estilo, estructura_escapar(alineacion))
+        estilo = concatenar(estilo, ";")
+    fin_si
+    texto html = "<section class=\"es-fila\" style=\""
+    html = concatenar(html, estilo)
+    html = concatenar(html, "\">")
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tarjeta(texto titulo, texto hijos) retorna texto
+    texto html = "<article>"
+    si longitud_texto(titulo) > 0 entonces
+        html = concatenar(html, "<h3>")
+        html = concatenar(html, estructura_escapar(titulo))
+        html = concatenar(html, "</h3>")
+    fin_si
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</article>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tarjeta_visual(texto titulo, texto variante, texto hijos) retorna texto
+    texto html = "<article"
+    si longitud_texto(variante) > 0 entonces
+        si variante == "primaria" entonces
+            html = concatenar(html, " style=\"background:#eff6ff;border-color:#bfdbfe\"")
+        fin_si
+        si variante == "oscura" entonces
+            html = concatenar(html, " style=\"background:#0f172a;color:#f8fafc;border-color:#1e293b\"")
+        fin_si
+    fin_si
+    html = concatenar(html, ">")
+    si longitud_texto(titulo) > 0 entonces
+        html = concatenar(html, "<h3>")
+        html = concatenar(html, estructura_escapar(titulo))
+        html = concatenar(html, "</h3>")
+    fin_si
+    html = concatenar(html, hijos)
+    html = concatenar(html, "</article>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tema(texto color_primario, texto color_secundario, texto color_fondo, texto color_texto, texto radio_base, texto espacio_base) retorna texto
+    texto css = ":root{"
+    css = concatenar(css, "--es-color-primario:")
+    css = concatenar(css, color_primario)
+    css = concatenar(css, ";--es-color-secundario:")
+    css = concatenar(css, color_secundario)
+    css = concatenar(css, ";--es-color-fondo:")
+    css = concatenar(css, color_fondo)
+    css = concatenar(css, ";--es-color-superficie:#ffffff;--es-color-texto:")
+    css = concatenar(css, color_texto)
+    css = concatenar(css, ";--es-color-borde:#dbe4f0;--es-radio:")
+    css = concatenar(css, radio_base)
+    css = concatenar(css, ";--es-espacio:")
+    css = concatenar(css, espacio_base)
+    css = concatenar(css, ";}")
+    retornar css
+fin_funcion
+
+enviar funcion estructura_formulario_get(texto accion, texto hijos) retorna texto
+    retornar concatenar("<form method=\"GET\" action=\"", concatenar(estructura_escapar_atributo(estructura_ruta_segura(accion)), concatenar("\">", concatenar(hijos, "</form>"))))
+fin_funcion
+
+enviar funcion estructura_divisor() retorna texto
+    retornar "<hr>"
+fin_funcion
+
+enviar funcion estructura_lista_textos(lista items) retorna texto
+    entero i = 0
+    texto html = "<section>"
+    mientras i < mem_lista_tamano(items) hacer
+        texto item = mem_lista_obtener(items, i)
+        html = concatenar(html, "<div>")
+        html = concatenar(html, estructura_escapar(item))
+        html = concatenar(html, "</div>")
+        i = i + 1
+    fin_mientras
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_ruta_sin_query(texto solicitud) retorna texto
+    texto ruta = api_ruta(solicitud)
+    si contiene_texto(ruta, "?") entonces
+        retornar extraer_antes_de(ruta, "?")
+    fin_si
+    retornar ruta
+fin_funcion
+
+enviar funcion estructura_estado_texto(texto solicitud, texto clave, texto por_defecto) retorna texto
+    texto ruta = api_ruta(solicitud)
+    si contiene_texto(ruta, "?") entonces
+        texto query = extraer_despues_de(ruta, "?")
+        mientras longitud_texto(query) > 0 hacer
+            texto parte = query
+            si contiene_texto(query, "&") entonces
+                parte = extraer_antes_de(query, "&")
+                query = extraer_despues_de(query, "&")
+            sino
+                query = ""
+            fin_si
+            si contiene_texto(parte, "=") entonces
+                texto nombre = extraer_antes_de(parte, "=")
+                texto dato = extraer_despues_de(parte, "=")
+                si nombre == clave entonces
+                    retornar dato
+                fin_si
+            fin_si
+        fin_mientras
+    fin_si
+    retornar por_defecto
+fin_funcion
+
+enviar funcion estructura_estado_entero(texto solicitud, texto clave, entero por_defecto) retorna entero
+    texto dato = estructura_estado_texto(solicitud, clave, "")
+    si longitud_texto(dato) == 0 entonces
+        retornar por_defecto
+    fin_si
+    retornar str_a_entero(dato)
+fin_funcion
+
+enviar funcion estructura_boton_entero(texto ruta_base, texto clave, entero numero, texto etiqueta) retorna texto
+    texto ruta = concatenar(estructura_ruta_segura(ruta_base), "?")
+    ruta = concatenar(ruta, clave)
+    ruta = concatenar(ruta, "=")
+    ruta = concatenar(ruta, str_desde_numero(numero))
+    retornar estructura_boton(ruta, etiqueta)
+fin_funcion
+
+enviar funcion estructura_layout_base(texto titulo, texto navegacion, texto cuerpo) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, estructura_estilos_base())
+    html = concatenar(html, "</style></head><body><div class=\"es-shell\">")
+    html = concatenar(html, "<nav class=\"es-nav\"><div class=\"es-marca\">")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</div><div class=\"es-nav-links\">")
+    html = concatenar(html, navegacion)
+    html = concatenar(html, "</div></nav><main class=\"es-contenido\">")
+    html = concatenar(html, cuerpo)
+    html = concatenar(html, "</main>")
+    html = concatenar(html, estructura_router_script())
+    html = concatenar(html, "</div></body></html>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_layout_base_tema(texto titulo, texto navegacion, texto cuerpo, texto tema_css) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, tema_css)
+    html = concatenar(html, estructura_estilos_base())
+    html = concatenar(html, "</style></head><body><div class=\"es-shell\">")
+    html = concatenar(html, "<nav class=\"es-nav\"><div class=\"es-marca\">")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</div><div class=\"es-nav-links\">")
+    html = concatenar(html, navegacion)
+    html = concatenar(html, "</div></nav><main class=\"es-contenido\">")
+    html = concatenar(html, cuerpo)
+    html = concatenar(html, "</main>")
+    html = concatenar(html, estructura_router_script())
+    html = concatenar(html, "</div></body></html>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_nav_simple(texto etiqueta_inicio, texto etiqueta_productos, texto etiqueta_equipo, texto etiqueta_contacto) retorna texto
+    texto nav = estructura_enlace_ruta("/", etiqueta_inicio)
+    nav = concatenar(nav, estructura_enlace_ruta("/productos", etiqueta_productos))
+    nav = concatenar(nav, estructura_enlace_ruta("/equipo", etiqueta_equipo))
+    nav = concatenar(nav, estructura_enlace_ruta("/contacto", etiqueta_contacto))
+    retornar nav
+fin_funcion
+
+enviar funcion estructura_responder(texto titulo, texto navegacion, texto cuerpo) retorna texto
+    retornar api_respuesta("200 OK", "text/html; charset=utf-8", estructura_layout_base(titulo, navegacion, cuerpo))
+fin_funcion
+
+enviar funcion estructura_responder_tema(texto titulo, texto navegacion, texto cuerpo, texto tema_css) retorna texto
+    retornar api_respuesta("200 OK", "text/html; charset=utf-8", estructura_layout_base_tema(titulo, navegacion, cuerpo, tema_css))
+fin_funcion
+
+enviar funcion estructura_no_encontrado(texto titulo, texto navegacion) retorna texto
+    texto cuerpo = estructura_titulo("404")
+    cuerpo = concatenar(cuerpo, estructura_texto("Ruta no encontrada"))
+    retornar estructura_responder(titulo, navegacion, cuerpo)
+fin_funcion
+
+enviar funcion estructura_estado_vacio(texto titulo, texto mensaje) retorna texto
+    texto cuerpo = "<article>"
+    cuerpo = concatenar(cuerpo, "<h3>")
+    cuerpo = concatenar(cuerpo, estructura_escapar(titulo))
+    cuerpo = concatenar(cuerpo, "</h3>")
+    cuerpo = concatenar(cuerpo, estructura_texto(mensaje))
+    cuerpo = concatenar(cuerpo, "</article>")
+    retornar cuerpo
+fin_funcion
+
+enviar funcion estructura_responder_error(texto titulo, texto navegacion, texto mensaje) retorna texto
+    texto cuerpo = estructura_titulo("Error")
+    cuerpo = concatenar(cuerpo, estructura_texto(mensaje))
+    retornar api_respuesta("400 Bad Request", "text/html; charset=utf-8", estructura_layout_base(titulo, navegacion, cuerpo))
+fin_funcion
+
+enviar funcion estructura_badge(texto etiqueta) retorna texto
+    texto html = "<span class=\"fui-etiqueta\" style=\"display:inline-flex;padding:6px 10px;border-radius:999px;background:#e2e8f0;color:#0f172a;font-size:12px;font-weight:700\">"
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</span>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_kpi(texto etiqueta, texto dato, texto ayuda) retorna texto
+    texto html = "<article><p style=\"font-size:13px;color:#475569\">"
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</p><h3 style=\"font-size:28px;margin-top:8px\">")
+    html = concatenar(html, estructura_escapar(dato))
+    html = concatenar(html, "</h3>")
+    si longitud_texto(ayuda) > 0 entonces
+        html = concatenar(html, estructura_texto(ayuda))
+    fin_si
+    html = concatenar(html, "</article>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_seccion_titulo(texto titulo, texto subtitulo) retorna texto
+    texto html = "<section class=\"es-columna\">"
+    html = concatenar(html, estructura_titulo(titulo))
+    si longitud_texto(subtitulo) > 0 entonces
+        html = concatenar(html, estructura_texto(subtitulo))
+    fin_si
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tabla_simple(texto encabezados, texto filas) retorna texto
+    texto html = "<article style=\"overflow:auto\"><table style=\"width:100%;border-collapse:collapse\">"
+    html = concatenar(html, "<thead><tr>")
+    html = concatenar(html, encabezados)
+    html = concatenar(html, "</tr></thead><tbody>")
+    html = concatenar(html, filas)
+    html = concatenar(html, "</tbody></table></article>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tabla_encabezado(texto etiqueta) retorna texto
+    texto html = "<th style=\"text-align:left;padding:10px;border-bottom:1px solid #dbe4f0\">"
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</th>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tabla_celda(texto dato) retorna texto
+    texto html = "<td style=\"padding:10px;border-bottom:1px solid #e2e8f0\">"
+    html = concatenar(html, estructura_escapar(dato))
+    html = concatenar(html, "</td>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_tabla_fila(texto celdas) retorna texto
+    retornar concatenar("<tr>", concatenar(celdas, "</tr>"))
+fin_funcion
+
+enviar funcion estructura_panel_shell(texto barra_lateral, texto contenido) retorna texto
+    texto html = "<section class=\"es-fila\" style=\"display:grid;grid-template-columns:260px 1fr;gap:20px\">"
+    html = concatenar(html, "<aside>")
+    html = concatenar(html, barra_lateral)
+    html = concatenar(html, "</aside><section>")
+    html = concatenar(html, contenido)
+    html = concatenar(html, "</section></section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_menu_lateral_item(texto ruta, texto etiqueta, texto solicitud) retorna texto
+    texto segura = estructura_ruta_segura(ruta)
+    texto activa = ""
+    si estructura_ruta_sin_query(solicitud) == segura entonces
+        activa = " style=\"box-shadow:inset 0 0 0 2px #bfdbfe\""
+    fin_si
+    texto html = "<div"
+    html = concatenar(html, activa)
+    html = concatenar(html, ">")
+    html = concatenar(html, estructura_boton_secundario(segura, etiqueta))
+    html = concatenar(html, "</div>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_no_encontrado_tema(texto titulo, texto navegacion, texto tema_css) retorna texto
+    texto cuerpo = estructura_titulo("404")
+    cuerpo = concatenar(cuerpo, estructura_texto("Ruta no encontrada"))
+    retornar estructura_responder_tema(titulo, navegacion, cuerpo, tema_css)
+fin_funcion
+
+enviar funcion estructura_resolver_ruta_simple(texto solicitud, texto r0, funcion v0, texto r1, funcion v1, texto r2, funcion v2, texto r3, funcion v3, texto titulo, texto navegacion) retorna texto
+    texto ruta = estructura_ruta_sin_query(solicitud)
+    si api_metodo(solicitud) == "GET" entonces
+        si ruta == r0 entonces
+            retornar estructura_responder(titulo, navegacion, v0(solicitud))
+        fin_si
+        si ruta == r1 entonces
+            retornar estructura_responder(titulo, navegacion, v1(solicitud))
+        fin_si
+        si ruta == r2 entonces
+            retornar estructura_responder(titulo, navegacion, v2(solicitud))
+        fin_si
+        si ruta == r3 entonces
+            retornar estructura_responder(titulo, navegacion, v3(solicitud))
+        fin_si
+    fin_si
+    retornar estructura_no_encontrado(titulo, navegacion)
+fin_funcion
+
+// Camino estable de V1: resuelve rutas sobre cuerpos ya construidos, sin pasar vistas como funciones.
+// Esto evita varios problemas del runtime actual con funciones de orden superior y respuestas compuestas.
+enviar funcion estructura_resolver_ruta_cuerpos(texto solicitud, texto r0, texto c0, texto r1, texto c1, texto r2, texto c2, texto r3, texto c3, texto titulo, texto navegacion) retorna texto
+    texto ruta = estructura_ruta_sin_query(solicitud)
+    si api_metodo(solicitud) == "GET" entonces
+        si ruta == r0 entonces
+            retornar estructura_responder(titulo, navegacion, c0)
+        fin_si
+        si ruta == r1 entonces
+            retornar estructura_responder(titulo, navegacion, c1)
+        fin_si
+        si ruta == r2 entonces
+            retornar estructura_responder(titulo, navegacion, c2)
+        fin_si
+        si ruta == r3 entonces
+            retornar estructura_responder(titulo, navegacion, c3)
+        fin_si
+    fin_si
+    retornar estructura_no_encontrado(titulo, navegacion)
+fin_funcion
+
+enviar funcion estructura_es_get(texto solicitud, texto ruta) retorna entero
+    si api_metodo(solicitud) == "GET" entonces
+        si estructura_ruta_sin_query(solicitud) == ruta entonces
+            retornar 1
+        fin_si
+    fin_si
+    retornar 0
+fin_funcion
+
+enviar funcion estructura_vista_ruta(texto ruta, texto titulo, texto subtitulo, texto cuerpo) retorna texto
+    texto html = "<section data-estructa-vista=\""
+    html = concatenar(html, estructura_escapar(ruta))
+    html = concatenar(html, "\" hidden><h1>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</h1>")
+    si longitud_texto(subtitulo) > 0 entonces
+        html = concatenar(html, "<p>")
+        html = concatenar(html, estructura_escapar(subtitulo))
+        html = concatenar(html, "</p>")
+    fin_si
+    html = concatenar(html, cuerpo)
+    html = concatenar(html, "</section>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_router_script() retorna texto
+    retornar "<script>(function(){function g(){return location.pathname||'/'}function a(){var x=g(),v=document.querySelectorAll('[data-estructa-vista]'),l=document.querySelectorAll('[data-estructa-ruta]'),i,o=document.querySelector('[data-estructa-vista=\"'+x+'\"]')||document.querySelector('[data-estructa-vista=\"/\"]');for(i=0;i<v.length;i++)v[i].hidden=1;if(o)o.hidden=0;for(i=0;i<l.length;i++)l[i].style.fontWeight=l[i].getAttribute('data-estructa-ruta')==x?'700':'400'}function p(id){if(!id)return null;return document.querySelector('[data-estructa-id=\"'+id+'\"]')}document.addEventListener('click',function(e){var t=e.target.closest('[data-estructa-ruta],[data-estructa-accion]');if(!t)return;if(t.hasAttribute('data-estructa-ruta')){e.preventDefault();history.pushState({},'',t.getAttribute('data-estructa-ruta')||'/');a();return}var accion=t.getAttribute('data-estructa-accion')||'';var destino=t.getAttribute('data-estructa-destino')||'';var nodo=p(destino);if(accion==='alerta'){alert(t.getAttribute('data-estructa-mensaje')||'');return}if(!nodo)return;if(accion==='mostrar')nodo.hidden=false;else if(accion==='ocultar')nodo.hidden=true;else if(accion==='alternar')nodo.hidden=!nodo.hidden});addEventListener('popstate',a);a()})();</script>"
+fin_funcion
+
+enviar funcion estructura_app_rutas(texto titulo, texto navegacion, texto vistas) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, estructura_estilos_base())
+    html = concatenar(html, "</style></head><body><nav>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, " ")
+    html = concatenar(html, navegacion)
+    html = concatenar(html, "</nav><main>")
+    html = concatenar(html, vistas)
+    html = concatenar(html, "</main>")
+    html = concatenar(html, estructura_router_script())
+    html = concatenar(html, "</body></html>")
+    retornar api_respuesta("200 OK", "text/html; charset=utf-8", html)
+fin_funcion
+
+enviar funcion estructura_documento(texto titulo, texto subtitulo, texto cuerpo) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>"
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, estructura_estilos_base())
+    html = concatenar(html, "</style></head><body><h1>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</h1><p>")
+    html = concatenar(html, estructura_escapar(subtitulo))
+    html = concatenar(html, "</p>")
+    html = concatenar(html, cuerpo)
+    html = concatenar(html, estructura_router_script())
+    html = concatenar(html, "</body></html>")
+    retornar html
+fin_funcion
+
+enviar funcion estructura_pagina(texto titulo, texto subtitulo, texto cuerpo) retorna texto
+    texto documento = estructura_documento(titulo, subtitulo, cuerpo)
+    texto respuesta = api_respuesta("200 OK", "text/html; charset=utf-8", documento)
+    retornar respuesta
+fin_funcion
+
+enviar funcion estructura_http_bucle(texto host, entero puerto, entero max_solicitudes, funcion app) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    entero i = 0
+    entero acc = 0
+    si srv == 0 entonces
+        retornar api_alerta_puerto_en_uso(host, puerto, "HTTP")
+    fin_si
+
+    mientras i < max_solicitudes hacer
+        socket cli = tcp_aceptar(srv)
+        si cli == 0 entonces
+        sino
+            texto solicitud = api_leer_solicitud_http(cli)
+            texto respuesta = app(solicitud)
+            api_tcp_enviar_texto_completo(cli, respuesta)
+            tcp_cerrar(cli)
+            acc = acc + longitud_texto(solicitud)
+            i = i + 1
+        fin_si
+    fin_mientras
+
+    tcp_cerrar(srv)
+    retornar acc
+fin_funcion

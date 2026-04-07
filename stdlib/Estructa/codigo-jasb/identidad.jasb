@@ -1,0 +1,15 @@
+// Identidad oficial de Estructa.
+
+enviar constante texto estructura_logo_ruta = "file:///C:/src/jasboot/stdlib/Estructa/img/Estructa-icono.png"
+
+enviar funcion estructura_logo() retorna texto
+    retornar estructura_logo_ruta
+fin_funcion
+
+enviar funcion estructura_nombre() retorna texto
+    retornar "Estructa"
+fin_funcion
+
+enviar funcion estructura_lema() retorna texto
+    retornar "Estructa: interfaces web declarativas en Jasboot"
+fin_funcion

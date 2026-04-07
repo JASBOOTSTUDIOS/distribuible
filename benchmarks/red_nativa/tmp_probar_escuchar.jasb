@@ -1,0 +1,7 @@
+principal
+    socket srv = tcp_escuchar("127.0.0.1", 18082)
+    imprimir srv
+    si srv != 0 entonces
+        tcp_cerrar(srv)
+    fin_si
+fin_principal

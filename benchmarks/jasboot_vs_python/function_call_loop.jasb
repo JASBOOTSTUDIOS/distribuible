@@ -1,0 +1,11 @@
+funcion inc(entero u) retorna entero
+    retornar u + 1
+fin_funcion
+
+principal
+    entero i = 0
+    mientras i < 5000 hacer
+        i = inc(i)
+    fin_mientras
+    imprimir i
+fin_principal

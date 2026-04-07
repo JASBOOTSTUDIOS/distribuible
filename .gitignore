@@ -1,0 +1,27 @@
+# Salida del script de exportacion a repos independientes (regenerable)
+export/github-ready/
+
+# Artefactos de compilacion en la raiz del monorepo
+*.o
+*.obj
+*.exe
+*.dll
+*.pdb
+*.jbo
+*.jmn
+*.bak
+*.vsix
+
+
+# Datos / artefactos en bin (no subir cerebros ni paquetes)
+bin/*.jmn
+/cerebro_texto.jmn
+
+# Node (extension VS Code u otras herramientas)
+node_modules/
+
+# IDE / OS
+.vs/
+.idea/
+.DS_Store
+Thumbs.db

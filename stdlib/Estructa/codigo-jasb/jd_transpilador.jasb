@@ -1,0 +1,551 @@
+usar todas de ".\\estructura.jasb"
+
+funcion jd_trim_izquierda(texto txt) retorna texto
+    entero i = 0
+    mientras i < longitud_texto(txt) hacer
+        texto c = extraer_subtexto(txt, i, 1)
+        si c == " " o c == "\t" o c == "\r" entonces
+            i = i + 1
+        sino
+            romper
+        fin_si
+    fin_mientras
+    retornar extraer_subtexto(txt, i, longitud_texto(txt) - i)
+fin_funcion
+
+funcion jd_trim_derecha(texto txt) retorna texto
+    entero i = longitud_texto(txt) - 1
+    mientras i >= 0 hacer
+        texto c = extraer_subtexto(txt, i, 1)
+        si c == " " o c == "\t" o c == "\r" entonces
+            i = i - 1
+        sino
+            romper
+        fin_si
+    fin_mientras
+    si i < 0 entonces
+        retornar ""
+    fin_si
+    retornar extraer_subtexto(txt, 0, i + 1)
+fin_funcion
+
+funcion jd_trim(texto txt) retorna texto
+    retornar jd_trim_derecha(jd_trim_izquierda(txt))
+fin_funcion
+
+funcion jd_empieza_con(texto txt, texto prefijo) retorna entero
+    si longitud_texto(prefijo) > longitud_texto(txt) entonces
+        retornar 0
+    fin_si
+    si extraer_subtexto(txt, 0, longitud_texto(prefijo)) == prefijo entonces
+        retornar 1
+    fin_si
+    retornar 0
+fin_funcion
+
+funcion jd_termina_con(texto txt, texto sufijo) retorna entero
+    si longitud_texto(sufijo) > longitud_texto(txt) entonces
+        retornar 0
+    fin_si
+    si extraer_subtexto(txt, longitud_texto(txt) - longitud_texto(sufijo), longitud_texto(sufijo)) == sufijo entonces
+        retornar 1
+    fin_si
+    retornar 0
+fin_funcion
+
+funcion jd_contar_char(texto txt, texto buscado) retorna entero
+    entero i = 0
+    entero n = 0
+    mientras i < longitud_texto(txt) hacer
+        si extraer_subtexto(txt, i, 1) == buscado entonces
+            n = n + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar n
+fin_funcion
+
+funcion jd_resultado2(texto texto_a, entero entero_b) retorna lista
+    lista r = mem_lista_crear()
+    mem_lista_agregar(r, texto_a)
+    mem_lista_agregar(r, str_desde_numero(entero_b))
+    retornar r
+fin_funcion
+
+funcion jd_emitir_linea(entero fh, texto linea) retorna entero
+    fs_escribir(linea, fh)
+    fs_escribir("\n", fh)
+    retornar 1
+fin_funcion
+
+funcion jd_extraer_nombre(texto linea, texto palabra) retorna texto
+    texto resto = jd_trim(extraer_despues_de(linea, palabra))
+    si contiene_texto(resto, "(") entonces
+        retornar jd_trim(extraer_antes_de(resto, "("))
+    fin_si
+    si contiene_texto(resto, "{") entonces
+        retornar jd_trim(extraer_antes_de(resto, "{"))
+    fin_si
+    retornar jd_trim(resto)
+fin_funcion
+
+funcion jd_literal_1(texto linea) retorna texto
+    lista partes = dividir_texto(linea, "\"")
+    si mem_lista_tamano(partes) > 1 entonces
+        retornar mem_lista_obtener(partes, 1)
+    fin_si
+    retornar ""
+fin_funcion
+
+funcion jd_literal_2(texto linea) retorna texto
+    lista partes = dividir_texto(linea, "\"")
+    si mem_lista_tamano(partes) > 3 entonces
+        retornar mem_lista_obtener(partes, 3)
+    fin_si
+    retornar ""
+fin_funcion
+
+funcion jd_capturar_bloque(lista lineas, entero inicio) retorna lista
+    entero i = inicio + 1
+    entero profundidad = 1
+    texto cuerpo = ""
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = mem_lista_obtener(lineas, i)
+        texto limpia = jd_trim(linea)
+        si limpia == "}" y profundidad == 1 entonces
+            i = i + 1
+            romper
+        fin_si
+        cuerpo = concatenar(cuerpo, linea)
+        cuerpo = concatenar(cuerpo, "\n")
+        profundidad = profundidad + jd_contar_char(limpia, "{")
+        profundidad = profundidad - jd_contar_char(limpia, "}")
+        i = i + 1
+    fin_mientras
+    retornar jd_resultado2(cuerpo, i)
+fin_funcion
+
+funcion jd_separar_jasb(texto cuerpo) retorna lista
+    lista lineas = dividir_texto(cuerpo, "\n")
+    entero i = 0
+    texto seguro = ""
+    texto jasb = ""
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = mem_lista_obtener(lineas, i)
+        texto limpia = jd_trim(linea)
+        si jd_empieza_con(limpia, "jasb {") entonces
+            lista bloque = jd_capturar_bloque(lineas, i)
+            jasb = concatenar(jasb, mem_lista_obtener(bloque, 0))
+            texto idx_bloque = mem_lista_obtener(bloque, 1)
+            i = str_a_entero(idx_bloque)
+        sino
+            seguro = concatenar(seguro, linea)
+            seguro = concatenar(seguro, "\n")
+            i = i + 1
+        fin_si
+    fin_mientras
+    lista r = mem_lista_crear()
+    mem_lista_agregar(r, seguro)
+    mem_lista_agregar(r, jasb)
+    retornar r
+fin_funcion
+
+funcion jd_tema_desde_cuerpo(texto cuerpo) retorna texto
+    texto primario = "#2563eb"
+    texto secundario = "#0f172a"
+    texto fondo = "#f8fafc"
+    texto texto_color = "#0f172a"
+    texto radio = "16px"
+    texto espacio = "16px"
+    lista lineas = dividir_texto(cuerpo, "\n")
+    entero i = 0
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = jd_trim(mem_lista_obtener(lineas, i))
+        si jd_empieza_con(linea, "primario:") entonces
+            primario = jd_literal_1(linea)
+        fin_si
+        si jd_empieza_con(linea, "secundario:") entonces
+            secundario = jd_literal_1(linea)
+        fin_si
+        si jd_empieza_con(linea, "fondo:") entonces
+            fondo = jd_literal_1(linea)
+        fin_si
+        si jd_empieza_con(linea, "texto:") entonces
+            texto_color = jd_literal_1(linea)
+        fin_si
+        si jd_empieza_con(linea, "radio:") entonces
+            radio = jd_literal_1(linea)
+        fin_si
+        si jd_empieza_con(linea, "espacio:") entonces
+            espacio = jd_literal_1(linea)
+        fin_si
+        i = i + 1
+    fin_mientras
+    texto expr = "estructura_tema(\""
+    expr = concatenar(expr, primario)
+    expr = concatenar(expr, "\", \"")
+    expr = concatenar(expr, secundario)
+    expr = concatenar(expr, "\", \"")
+    expr = concatenar(expr, fondo)
+    expr = concatenar(expr, "\", \"")
+    expr = concatenar(expr, texto_color)
+    expr = concatenar(expr, "\", \"")
+    expr = concatenar(expr, radio)
+    expr = concatenar(expr, "\", \"")
+    expr = concatenar(expr, espacio)
+    expr = concatenar(expr, "\")")
+    retornar expr
+fin_funcion
+
+funcion jd_app_tema(texto cuerpo) retorna texto
+    lista lineas = dividir_texto(cuerpo, "\n")
+    entero i = 0
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = jd_trim(mem_lista_obtener(lineas, i))
+        si jd_empieza_con(linea, "usar tema ") entonces
+            retornar jd_trim(extraer_despues_de(linea, "usar tema "))
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar ""
+fin_funcion
+
+funcion jd_app_puerto(texto cuerpo) retorna entero
+    lista lineas = dividir_texto(cuerpo, "\n")
+    entero i = 0
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = jd_trim(mem_lista_obtener(lineas, i))
+        si jd_empieza_con(linea, "puerto:") entonces
+            retornar str_a_entero(jd_trim(extraer_despues_de(linea, "puerto:")))
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar 18230
+fin_funcion
+
+funcion jd_emitir_vista(entero fh, texto nombre, texto cuerpo) retorna entero
+    imprimir "jd:emitir-vista"
+    lista partes = jd_separar_jasb(cuerpo)
+    imprimir "jd:emitir-vista-partes"
+    texto seguro = mem_lista_obtener(partes, 0)
+    imprimir "jd:emitir-vista-seguro"
+    imprimir extraer_subtexto(seguro, 0, 120)
+    texto codigo = mem_lista_obtener(partes, 1)
+    imprimir "jd:emitir-vista-codigo"
+    texto bt = caracter_a_texto(96)
+    imprimir "jd:emitir-vista-bt"
+
+    texto firma = "funcion jd_vista_"
+    firma = concatenar(firma, nombre)
+    firma = concatenar(firma, "(texto solicitud) retorna texto")
+    jd_emitir_linea(fh, firma)
+    imprimir "jd:emitir-vista-firma"
+    texto cuerpo_linea = "    texto cuerpo = jd_renderizar_vista("
+    cuerpo_linea = concatenar(cuerpo_linea, bt)
+    cuerpo_linea = concatenar(cuerpo_linea, seguro)
+    cuerpo_linea = concatenar(cuerpo_linea, bt)
+    cuerpo_linea = concatenar(cuerpo_linea, ", solicitud)")
+    jd_emitir_linea(fh, cuerpo_linea)
+    imprimir "jd:emitir-vista-cuerpo"
+    lista jasb_lineas = dividir_texto(codigo, "\n")
+    entero i = 0
+    mientras i < mem_lista_tamano(jasb_lineas) hacer
+        texto linea = mem_lista_obtener(jasb_lineas, i)
+        si longitud_texto(jd_trim(linea)) > 0 entonces
+            jd_emitir_linea(fh, concatenar("    ", linea))
+        fin_si
+        i = i + 1
+    fin_mientras
+    jd_emitir_linea(fh, "    retornar cuerpo")
+    jd_emitir_linea(fh, "fin_funcion")
+    jd_emitir_linea(fh, "")
+    retornar 1
+fin_funcion
+
+funcion jd_emitir_app(entero fh, texto nombre, texto cuerpo_app, texto tema_var, entero puerto) retorna entero
+    imprimir "jd:emitir-app"
+    jd_emitir_linea(fh, "funcion jd_app(texto solicitud) retorna texto")
+    jd_emitir_linea(fh, "    texto nav = \"\"")
+    lista rutas_lineas = dividir_texto(cuerpo_app, "\n")
+    texto ruta1 = ""
+    texto vista1 = ""
+    texto ruta2 = ""
+    texto vista2 = ""
+    texto ruta3 = ""
+    texto vista3 = ""
+    texto ruta4 = ""
+    texto vista4 = ""
+    entero cuenta_rutas = 0
+    entero i = 0
+    mientras i < mem_lista_tamano(rutas_lineas) hacer
+        texto linea_ruta = jd_trim(mem_lista_obtener(rutas_lineas, i))
+        si contiene_texto(linea_ruta, "=>") entonces
+            texto ruta = jd_literal_1(linea_ruta)
+            texto vista = jd_trim(extraer_despues_de(linea_ruta, "=>"))
+            si cuenta_rutas == 0 entonces
+                ruta1 = ruta
+                vista1 = vista
+            fin_si
+            si cuenta_rutas == 1 entonces
+                ruta2 = ruta
+                vista2 = vista
+            fin_si
+            si cuenta_rutas == 2 entonces
+                ruta3 = ruta
+                vista3 = vista
+            fin_si
+            si cuenta_rutas == 3 entonces
+                ruta4 = ruta
+                vista4 = vista
+            fin_si
+            cuenta_rutas = cuenta_rutas + 1
+        texto linea_nav = "    nav = concatenar(nav, estructura_enlace_ruta(\""
+        linea_nav = concatenar(linea_nav, ruta)
+        linea_nav = concatenar(linea_nav, "\", \"")
+        linea_nav = concatenar(linea_nav, vista)
+        linea_nav = concatenar(linea_nav, "\"))")
+        jd_emitir_linea(fh, linea_nav)
+        imprimir "jd:emitir-app-nav"
+        fin_si
+        i = i + 1
+    fin_mientras
+    jd_emitir_linea(fh, "    texto ruta = estructura_ruta_sin_query(solicitud)")
+    jd_emitir_linea(fh, "    si api_metodo(solicitud) == \"GET\" entonces")
+    imprimir "jd:emitir-app-rutas"
+    imprimir ruta1
+    imprimir vista1
+    si longitud_texto(ruta1) > 0 entonces
+        jd_emitir_linea(fh, concatenar("        si ruta == \"", concatenar(ruta1, "\" entonces")))
+        si longitud_texto(tema_var) > 0 entonces
+            texto linea_ok = "            retornar estructura_responder_tema(\""
+            linea_ok = concatenar(linea_ok, nombre)
+            linea_ok = concatenar(linea_ok, "\", nav, jd_vista_")
+            linea_ok = concatenar(linea_ok, vista1)
+            linea_ok = concatenar(linea_ok, "(solicitud), ")
+            linea_ok = concatenar(linea_ok, tema_var)
+            linea_ok = concatenar(linea_ok, ")")
+            jd_emitir_linea(fh, linea_ok)
+        sino
+            texto linea_ok_simple = "            retornar estructura_responder(\""
+            linea_ok_simple = concatenar(linea_ok_simple, nombre)
+            linea_ok_simple = concatenar(linea_ok_simple, "\", nav, jd_vista_")
+            linea_ok_simple = concatenar(linea_ok_simple, vista1)
+            linea_ok_simple = concatenar(linea_ok_simple, "(solicitud))")
+            jd_emitir_linea(fh, linea_ok_simple)
+        fin_si
+        jd_emitir_linea(fh, "        fin_si")
+    fin_si
+    si longitud_texto(ruta2) > 0 entonces
+        jd_emitir_linea(fh, concatenar("        si ruta == \"", concatenar(ruta2, "\" entonces")))
+        si longitud_texto(tema_var) > 0 entonces
+            texto linea_ok2 = "            retornar estructura_responder_tema(\""
+            linea_ok2 = concatenar(linea_ok2, nombre)
+            linea_ok2 = concatenar(linea_ok2, "\", nav, jd_vista_")
+            linea_ok2 = concatenar(linea_ok2, vista2)
+            linea_ok2 = concatenar(linea_ok2, "(solicitud), ")
+            linea_ok2 = concatenar(linea_ok2, tema_var)
+            linea_ok2 = concatenar(linea_ok2, ")")
+            jd_emitir_linea(fh, linea_ok2)
+        sino
+            texto linea_ok_simple2 = "            retornar estructura_responder(\""
+            linea_ok_simple2 = concatenar(linea_ok_simple2, nombre)
+            linea_ok_simple2 = concatenar(linea_ok_simple2, "\", nav, jd_vista_")
+            linea_ok_simple2 = concatenar(linea_ok_simple2, vista2)
+            linea_ok_simple2 = concatenar(linea_ok_simple2, "(solicitud))")
+            jd_emitir_linea(fh, linea_ok_simple2)
+        fin_si
+        jd_emitir_linea(fh, "        fin_si")
+    fin_si
+    si longitud_texto(ruta3) > 0 entonces
+        jd_emitir_linea(fh, concatenar("        si ruta == \"", concatenar(ruta3, "\" entonces")))
+        si longitud_texto(tema_var) > 0 entonces
+            texto linea_ok3 = "            retornar estructura_responder_tema(\""
+            linea_ok3 = concatenar(linea_ok3, nombre)
+            linea_ok3 = concatenar(linea_ok3, "\", nav, jd_vista_")
+            linea_ok3 = concatenar(linea_ok3, vista3)
+            linea_ok3 = concatenar(linea_ok3, "(solicitud), ")
+            linea_ok3 = concatenar(linea_ok3, tema_var)
+            linea_ok3 = concatenar(linea_ok3, ")")
+            jd_emitir_linea(fh, linea_ok3)
+        sino
+            texto linea_ok_simple3 = "            retornar estructura_responder(\""
+            linea_ok_simple3 = concatenar(linea_ok_simple3, nombre)
+            linea_ok_simple3 = concatenar(linea_ok_simple3, "\", nav, jd_vista_")
+            linea_ok_simple3 = concatenar(linea_ok_simple3, vista3)
+            linea_ok_simple3 = concatenar(linea_ok_simple3, "(solicitud))")
+            jd_emitir_linea(fh, linea_ok_simple3)
+        fin_si
+        jd_emitir_linea(fh, "        fin_si")
+    fin_si
+    si longitud_texto(ruta4) > 0 entonces
+        jd_emitir_linea(fh, concatenar("        si ruta == \"", concatenar(ruta4, "\" entonces")))
+        si longitud_texto(tema_var) > 0 entonces
+            texto linea_ok4 = "            retornar estructura_responder_tema(\""
+            linea_ok4 = concatenar(linea_ok4, nombre)
+            linea_ok4 = concatenar(linea_ok4, "\", nav, jd_vista_")
+            linea_ok4 = concatenar(linea_ok4, vista4)
+            linea_ok4 = concatenar(linea_ok4, "(solicitud), ")
+            linea_ok4 = concatenar(linea_ok4, tema_var)
+            linea_ok4 = concatenar(linea_ok4, ")")
+            jd_emitir_linea(fh, linea_ok4)
+        sino
+            texto linea_ok_simple4 = "            retornar estructura_responder(\""
+            linea_ok_simple4 = concatenar(linea_ok_simple4, nombre)
+            linea_ok_simple4 = concatenar(linea_ok_simple4, "\", nav, jd_vista_")
+            linea_ok_simple4 = concatenar(linea_ok_simple4, vista4)
+            linea_ok_simple4 = concatenar(linea_ok_simple4, "(solicitud))")
+            jd_emitir_linea(fh, linea_ok_simple4)
+        fin_si
+        jd_emitir_linea(fh, "        fin_si")
+    fin_si
+    jd_emitir_linea(fh, "    fin_si")
+    si longitud_texto(tema_var) > 0 entonces
+        texto linea_404 = "    retornar estructura_no_encontrado_tema(\""
+        linea_404 = concatenar(linea_404, nombre)
+        linea_404 = concatenar(linea_404, "\", nav, ")
+        linea_404 = concatenar(linea_404, tema_var)
+        linea_404 = concatenar(linea_404, ")")
+        jd_emitir_linea(fh, linea_404)
+    sino
+        jd_emitir_linea(fh, concatenar("    retornar estructura_no_encontrado(\"", concatenar(nombre, "\", nav)")))
+    fin_si
+    jd_emitir_linea(fh, "fin_funcion")
+    jd_emitir_linea(fh, "")
+    jd_emitir_linea(fh, "principal")
+    jd_emitir_linea(fh, concatenar("    socket srv = tcp_escuchar(\"127.0.0.1\", ", concatenar(str_desde_numero(puerto), ")")))
+    jd_emitir_linea(fh, "    entero i = 0")
+    jd_emitir_linea(fh, concatenar("    imprimir \"", concatenar(nombre, "\"")))
+    jd_emitir_linea(fh, concatenar("    imprimir \"app jd activa en http://127.0.0.1:", concatenar(str_desde_numero(puerto), "\"")))
+    jd_emitir_linea(fh, "    si srv == 0 entonces")
+    jd_emitir_linea(fh, concatenar("        imprimir api_alerta_puerto_en_uso(\"127.0.0.1\", ", concatenar(str_desde_numero(puerto), ", \"HTTP\")")))
+    jd_emitir_linea(fh, "    sino")
+    jd_emitir_linea(fh, "        mientras i < 100 hacer")
+    jd_emitir_linea(fh, "            socket cli = tcp_aceptar(srv)")
+    jd_emitir_linea(fh, "            si cli == 0 entonces")
+    jd_emitir_linea(fh, "            sino")
+    jd_emitir_linea(fh, "                texto solicitud_http = api_leer_solicitud_http(cli)")
+    jd_emitir_linea(fh, "                texto respuesta = jd_app(solicitud_http)")
+    jd_emitir_linea(fh, "                api_tcp_enviar_texto_completo(cli, respuesta)")
+    jd_emitir_linea(fh, "                tcp_cerrar(cli)")
+    jd_emitir_linea(fh, "                i = i + 1")
+    jd_emitir_linea(fh, "            fin_si")
+    jd_emitir_linea(fh, "        fin_mientras")
+    jd_emitir_linea(fh, "        tcp_cerrar(srv)")
+    jd_emitir_linea(fh, "    fin_si")
+    jd_emitir_linea(fh, "fin_principal")
+    retornar 1
+fin_funcion
+
+principal
+    si sys_argc() < 7 entonces
+        imprimir "uso: jd_transpilador <origen.jd> <salida.jasb> <estructura.jasb> <jd_runtime.jasb> <api_basica.jasb>"
+    sino
+        texto origen = sys_argv(2)
+        texto salida = sys_argv(3)
+        texto estructura_path = sys_argv(4)
+        texto runtime_path = sys_argv(5)
+        texto api_path = sys_argv(6)
+        imprimir "jd:args"
+        texto fuente = fs_leer_texto(origen)
+        imprimir "jd:fuente"
+        lista lineas = dividir_texto(fuente, "\n")
+        imprimir "jd:lineas"
+        entero fh = fs_abrir(salida, "wb")
+        imprimir "jd:fh"
+
+        texto app_nombre = "EstructaJD"
+        texto tema_nombre = ""
+        texto tema_expr = ""
+        texto app_cuerpo = ""
+        entero puerto = 18230
+
+        texto l0 = "usar todas de \""
+        l0 = concatenar(l0, api_path)
+        l0 = concatenar(l0, "\"")
+        jd_emitir_linea(fh, l0)
+
+        texto l1 = "usar todas de \""
+        l1 = concatenar(l1, estructura_path)
+        l1 = concatenar(l1, "\"")
+        jd_emitir_linea(fh, l1)
+
+        texto l2 = "usar todas de \""
+        l2 = concatenar(l2, runtime_path)
+        l2 = concatenar(l2, "\"")
+        jd_emitir_linea(fh, l2)
+        jd_emitir_linea(fh, "")
+        imprimir "jd:header"
+
+        entero i = 0
+        mientras i < mem_lista_tamano(lineas) hacer
+            texto linea = jd_trim(mem_lista_obtener(lineas, i))
+            entero manejado = 0
+            si longitud_texto(linea) == 0 entonces
+                i = i + 1
+                manejado = 1
+            fin_si
+            si manejado == 0 y jd_empieza_con(linea, "#") entonces
+                i = i + 1
+                manejado = 1
+            fin_si
+            si manejado == 0 y jd_empieza_con(linea, "usar estructa") entonces
+                i = i + 1
+                manejado = 1
+            fin_si
+            si manejado == 0 y jd_empieza_con(linea, "tema ") entonces
+                imprimir "jd:tema"
+                tema_nombre = jd_extraer_nombre(linea, "tema")
+                lista bloque_t = jd_capturar_bloque(lineas, i)
+                imprimir "jd:tema-bloque"
+                tema_expr = jd_tema_desde_cuerpo(mem_lista_obtener(bloque_t, 0))
+                imprimir "jd:tema-expr"
+                texto idx_tema = mem_lista_obtener(bloque_t, 1)
+                imprimir idx_tema
+                i = str_a_entero(idx_tema)
+                manejado = 1
+            fin_si
+            si manejado == 0 y jd_empieza_con(linea, "vista ") entonces
+                imprimir "jd:vista"
+                texto vista_nombre = jd_extraer_nombre(linea, "vista")
+                lista bloque_v = jd_capturar_bloque(lineas, i)
+                jd_emitir_vista(fh, vista_nombre, mem_lista_obtener(bloque_v, 0))
+                texto idx_vista = mem_lista_obtener(bloque_v, 1)
+                i = str_a_entero(idx_vista)
+                manejado = 1
+            fin_si
+            si manejado == 0 y jd_empieza_con(linea, "app ") entonces
+                imprimir "jd:app"
+                app_nombre = jd_extraer_nombre(linea, "app")
+                lista bloque_a = jd_capturar_bloque(lineas, i)
+                app_cuerpo = mem_lista_obtener(bloque_a, 0)
+                puerto = jd_app_puerto(app_cuerpo)
+                texto tema_usado = jd_app_tema(app_cuerpo)
+                si longitud_texto(tema_usado) == 0 entonces
+                    tema_expr = ""
+                fin_si
+                si longitud_texto(tema_usado) > 0 entonces
+                    si tema_usado == tema_nombre entonces
+                        puerto = puerto
+                    sino
+                        tema_expr = ""
+                    fin_si
+                fin_si
+                texto idx_app = mem_lista_obtener(bloque_a, 1)
+                i = str_a_entero(idx_app)
+                manejado = 1
+            fin_si
+            si manejado == 0 entonces
+                i = i + 1
+            fin_si
+        fin_mientras
+
+        si longitud_texto(tema_expr) > 0 entonces
+            jd_emitir_linea(fh, concatenar("texto jd_tema_activo = ", tema_expr))
+            jd_emitir_linea(fh, "")
+            jd_emitir_app(fh, app_nombre, app_cuerpo, "jd_tema_activo", puerto)
+        sino
+            jd_emitir_app(fh, app_nombre, app_cuerpo, "", puerto)
+        fin_si
+        fs_cerrar(fh)
+    fin_si
+fin_principal

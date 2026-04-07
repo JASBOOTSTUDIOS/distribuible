@@ -1,0 +1,128 @@
+// Carga variables desde un archivo .env (formato KEY=VAL, lineas # comentario).
+// Valores pueden ir entre comillas dobles. Prefijo opcional "export ".
+// Si la misma clave aparece varias veces, dotenv_obtener devuelve la ultima.
+
+enviar lista dotenv_lista_claves = mem_lista_crear()
+enviar lista dotenv_lista_vals = mem_lista_crear()
+
+enviar funcion dotenv_sin_cr(texto s) retorna texto
+    si contiene_texto(s, "\r") == 1 entonces
+        retornar extraer_antes_de(s, "\r")
+    fin_si
+    retornar s
+fin_funcion
+
+enviar funcion dotenv_trim_izq(texto s) retorna texto
+    mientras longitud_texto(s) > 0 hacer
+        si extraer_subtexto(s, 0, 1) == " " entonces
+            entero Lrest = longitud_texto(s) - 1
+            s = extraer_subtexto(s, 1, Lrest)
+        sino
+            romper
+        fin_si
+    fin_mientras
+    retornar s
+fin_funcion
+
+enviar funcion dotenv_trim_der(texto s) retorna texto
+    mientras longitud_texto(s) > 0 hacer
+        entero ult = longitud_texto(s) - 1
+        si extraer_subtexto(s, ult, 1) == " " entonces
+            s = extraer_subtexto(s, 0, ult)
+        sino
+            romper
+        fin_si
+    fin_mientras
+    retornar s
+fin_funcion
+
+enviar funcion dotenv_trim(texto s) retorna texto
+    retornar dotenv_trim_der(dotenv_trim_izq(s))
+fin_funcion
+
+enviar funcion dotenv_valor_sin_comillas(texto v) retorna texto
+    entero L = longitud_texto(v)
+    si L >= 2 entonces
+        si extraer_subtexto(v, 0, 1) == "\"" entonces
+            si extraer_subtexto(v, L - 1, 1) == "\"" entonces
+                retornar extraer_subtexto(v, 1, L - 2)
+            fin_si
+        fin_si
+    fin_si
+    retornar v
+fin_funcion
+
+enviar funcion dotenv_procesar_linea(texto linea) retorna entero
+    texto lin = dotenv_trim(dotenv_sin_cr(linea))
+    si longitud_texto(lin) == 0 entonces
+        retornar 0
+    fin_si
+    si extraer_subtexto(lin, 0, 1) == "#" entonces
+        retornar 0
+    fin_si
+    si longitud_texto(lin) >= 7 entonces
+        si extraer_subtexto(lin, 0, 7) == "export " entonces
+            lin = dotenv_trim(extraer_despues_de(lin, "export "))
+        fin_si
+    fin_si
+    si contiene_texto(lin, "=") == 0 entonces
+        retornar 0
+    fin_si
+    texto clave = dotenv_trim(extraer_antes_de(lin, "="))
+    texto val = dotenv_trim(extraer_despues_de(lin, "="))
+    val = dotenv_valor_sin_comillas(val)
+    si longitud_texto(clave) == 0 entonces
+        retornar 0
+    fin_si
+    mem_lista_agregar(dotenv_lista_claves, clave)
+    mem_lista_agregar(dotenv_lista_vals, val)
+    retornar 1
+fin_funcion
+
+// Carga .env desde ruta (p. ej. ".env"). Retorna numero de pares cargados, o -1 si no existe el archivo.
+enviar funcion dotenv_cargar(texto ruta) retorna entero
+    si existe_archivo(ruta) == 0 entonces
+        retornar -1
+    fin_si
+    texto raw = fs_leer_texto(ruta)
+    mem_lista_limpiar(dotenv_lista_claves)
+    mem_lista_limpiar(dotenv_lista_vals)
+    lista lineas = dividir_texto(raw, "\n")
+    entero n = mem_lista_tamano(lineas)
+    entero cargados = 0
+    entero i = 0
+    mientras i < n hacer
+        si dotenv_procesar_linea(mem_lista_obtener(lineas, i)) == 1 entonces
+            cargados = cargados + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    mem_lista_liberar(lineas)
+    retornar cargados
+fin_funcion
+
+// Ultima aparicion de la clave en el archivo gana.
+enviar funcion dotenv_obtener(texto clave) retorna texto
+    entero n = mem_lista_tamano(dotenv_lista_claves)
+    entero idx = n - 1
+    mientras idx >= 0 hacer
+        si mem_lista_obtener(dotenv_lista_claves, idx) == clave entonces
+            retornar mem_lista_obtener(dotenv_lista_vals, idx)
+        fin_si
+        idx = idx - 1
+    fin_mientras
+    retornar ""
+fin_funcion
+
+// Verdadero si la clave aparece en el .env (aunque el valor sea cadena vacia).
+enviar funcion dotenv_clave_existe(texto clave) retorna entero
+    entero n = mem_lista_tamano(dotenv_lista_claves)
+    entero idx = n - 1
+    mientras idx >= 0 hacer
+        si mem_lista_obtener(dotenv_lista_claves, idx) == clave entonces
+            retornar 1
+        fin_si
+        idx = idx - 1
+    fin_mientras
+    retornar 0
+fin_funcion

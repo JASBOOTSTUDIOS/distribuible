@@ -1,0 +1,13 @@
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+enviar funcion pagina_productos() retorna texto
+    texto panel = estructura_titulo("Productos")
+    panel = concatenar(panel, estructura_texto("Estructa ofrece bloques simples para construir catalogos y paneles."))
+    panel = concatenar(panel, estructura_texto("Producto A, Producto B y Producto C estan listos para tus pruebas."))
+    panel = estructura_tarjeta("Catalogo", panel)
+
+    texto nota = estructura_texto("La libreria ya puede resolver vistas multi-pagina con un layout comun.")
+    nota = estructura_tarjeta_visual("Estado", "oscura", nota)
+
+    retornar estructura_columna(concatenar(panel, nota))
+fin_funcion

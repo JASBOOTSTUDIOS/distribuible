@@ -1,0 +1,40 @@
+usar todas de "../../stdlib/forja/forja.jasb"
+usar todas de "../../stdlib/forja/frontend.jasb"
+usar {forja_react_respuesta_assets, forja_js, forja_css} de "../../stdlib/forja/react.jasb"
+
+funcion app(texto solicitud) retorna texto
+    si forja_es_get(solicitud, "/favicon.ico") entonces
+        retornar forja_favicon()
+    fin_si
+
+    si forja_es_get(solicitud, "/assets/app.css") entonces
+        retornar forja_css(fs_leer_texto("assets/app.css"))
+    fin_si
+
+    si forja_es_get(solicitud, "/assets/app.js") entonces
+        retornar forja_js(fs_leer_texto("assets/app.js"))
+    fin_si
+
+    si forja_es_get(solicitud, "/api/salud") entonces
+        retornar forja_json("{\"estado\":\"ok\",\"framework\":\"Forja\",\"ui\":\"React\"}")
+    fin_si
+
+    si forja_es_get(solicitud, "/api/mensaje") entonces
+        retornar forja_json("{\"mensaje\":\"React esta corriendo sobre Forja y Jasboot.\"}")
+    fin_si
+
+    si forja_es_get(solicitud, "/api/rutas") entonces
+        retornar forja_json("{\"rutas\":[\"GET /\",\"GET /assets/app.css\",\"GET /assets/app.js\",\"GET /api/salud\",\"GET /api/mensaje\",\"GET /api/rutas\"]}")
+    fin_si
+
+    si forja_es_get(solicitud, "/") entonces
+        retornar forja_react_respuesta_assets("Forja React App", "React servido por Forja dentro del mismo monolito Jasboot.", "/assets/app.css", "/assets/app.js")
+    fin_si
+
+    retornar forja_no_encontrado()
+fin_funcion
+
+principal
+    imprimir "Forja React App activa en http://127.0.0.1:18312"
+    imprimir forja_http_bucle("127.0.0.1", 18312, 100, app)
+fin_principal

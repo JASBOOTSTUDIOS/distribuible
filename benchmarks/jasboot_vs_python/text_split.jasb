@@ -1,0 +1,11 @@
+principal
+    texto s = "a"
+    entero i = 0
+    mientras i < 3000 hacer
+        s = concatenar(s, ",a")
+        i = i + 1
+    fin_mientras
+    lista<texto> partes = dividir_texto(s, ",")
+    imprimir mem_lista_tamano(partes)
+    imprimir ""
+fin_principal

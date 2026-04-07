@@ -1,0 +1,294 @@
+usar todas de "..\\http\\http_basico.jasb"
+
+enviar funcion api_alerta_puerto_en_uso(texto host, entero puerto, texto protocolo) retorna entero
+    imprimir "Error: puerto en uso o no disponible."
+    imprimir puerto
+    imprimir host
+    imprimir protocolo
+    retornar 0
+fin_funcion
+
+// Capa base para construir APIs HTTP/HTTPS sobre la red nativa de Jasboot.
+// Esta libreria se enfoca en lo esencial: parsear la solicitud, rutear por metodo+ruta
+// y devolver respuestas de texto o JSON con formato HTTP completo.
+//
+// Importante: api_http_bucle y api_https_bucle son monohilo — aceptan una conexion, ejecutan
+// el manejador completo (incluidas llamadas de red salientes) y solo entonces aceptan la siguiente.
+// Una peticion lenta bloquea al resto hasta que termine; use timeouts en clientes HTTP salientes.
+
+// Devuelve el metodo HTTP de la primera linea de la solicitud.
+enviar funcion api_metodo(texto solicitud) retorna texto
+    retornar http_metodo_desde_linea(http_extraer_linea_inicial(solicitud))
+fin_funcion
+
+// Devuelve la ruta solicitada sin modificarla.
+enviar funcion api_ruta(texto solicitud) retorna texto
+    retornar http_extraer_ruta(solicitud)
+fin_funcion
+
+// Devuelve el cuerpo crudo de la solicitud HTTP.
+enviar funcion api_cuerpo(texto solicitud) retorna texto
+    retornar http_extraer_cuerpo(solicitud)
+fin_funcion
+
+// Devuelve verdadero si la solicitud coincide exactamente con metodo y ruta.
+enviar funcion api_coincide(texto solicitud, texto metodo, texto ruta) retorna entero
+    texto linea = http_extraer_linea_inicial(solicitud)
+    si http_metodo_desde_linea(linea) != metodo entonces
+        retornar 0
+    fin_si
+    si http_ruta_desde_linea(linea) != ruta entonces
+        retornar 0
+    fin_si
+    retornar 1
+fin_funcion
+
+// Construye una respuesta HTTP completa con codigo, tipo de contenido y cuerpo.
+enviar funcion api_respuesta(texto codigo, texto tipo_contenido, texto cuerpo) retorna texto
+    texto largo = str_desde_numero(longitud_texto(cuerpo))
+    texto respuesta = "HTTP/1.1 "
+    respuesta = concatenar(respuesta, codigo)
+    respuesta = concatenar(respuesta, "\r\nContent-Type: ")
+    respuesta = concatenar(respuesta, tipo_contenido)
+    respuesta = concatenar(respuesta, "\r\nConnection: close\r\nContent-Length: ")
+    respuesta = concatenar(respuesta, largo)
+    respuesta = concatenar(respuesta, "\r\n\r\n")
+    retornar concatenar(respuesta, cuerpo)
+fin_funcion
+
+enviar funcion api_content_length_solicitud(texto solicitud) retorna entero
+    texto encabezados = http_extraer_encabezados(solicitud)
+    si contiene_texto(encabezados, "Content-Length: ") entonces
+        texto resto = extraer_despues_de(encabezados, "Content-Length: ")
+        texto numero = extraer_antes_de(resto, "\r")
+        si longitud_texto(numero) == 0 entonces
+            numero = extraer_antes_de(resto, "\n")
+        fin_si
+        si longitud_texto(numero) == 0 entonces
+            retornar 0
+        fin_si
+        retornar str_a_entero(numero)
+    fin_si
+    si contiene_texto(encabezados, "content-length: ") entonces
+        texto resto_min = extraer_despues_de(encabezados, "content-length: ")
+        texto numero_min = extraer_antes_de(resto_min, "\r")
+        si longitud_texto(numero_min) == 0 entonces
+            numero_min = extraer_antes_de(resto_min, "\n")
+        fin_si
+        si longitud_texto(numero_min) == 0 entonces
+            retornar 0
+        fin_si
+        retornar str_a_entero(numero_min)
+    fin_si
+    retornar 0
+fin_funcion
+
+enviar funcion api_leer_solicitud_http(socket cli) retorna texto
+    texto solicitud = ""
+    entero encabezados_listos = 0
+    entero cuerpo_esperado = 0
+    entero primera_lectura = 1
+    mientras 1 hacer
+        // Buffer amplio: una sola lectura suele traer cabecera + cuerpo (GET/POST tipicos) y evita vueltas extra.
+        bytes bruto = tcp_recibir(cli, 65536)
+        si bytes_tamano(bruto) == 0 entonces
+            retornar solicitud
+        fin_si
+        si primera_lectura == 1 entonces
+            solicitud = bytes_a_texto(bruto)
+            primera_lectura = 0
+        sino
+            solicitud = concatenar(solicitud, bytes_a_texto(bruto))
+        fin_si
+        si encabezados_listos == 0 entonces
+            // Fin de cabeceras: CRLFCRLF (estandar) o LFLF (algunos clientes); sin esto el bucle lee para siempre.
+            si contiene_texto(solicitud, "\r\n\r\n") == 1 o contiene_texto(solicitud, "\n\n") == 1 entonces
+                encabezados_listos = 1
+                cuerpo_esperado = api_content_length_solicitud(solicitud)
+                si cuerpo_esperado == 0 entonces
+                    retornar solicitud
+                fin_si
+            fin_si
+        fin_si
+        si encabezados_listos == 1 entonces
+            si http_longitud_cuerpo(solicitud) >= cuerpo_esperado entonces
+                retornar solicitud
+            fin_si
+        fin_si
+    fin_mientras
+    retornar solicitud
+fin_funcion
+
+enviar funcion api_leer_solicitud_https(tls canal) retorna texto
+    texto solicitud = ""
+    entero encabezados_listos = 0
+    entero cuerpo_esperado = 0
+    entero primera_lectura = 1
+    mientras 1 hacer
+        bytes bruto = tls_recibir(canal, 65536)
+        si bytes_tamano(bruto) == 0 entonces
+            retornar solicitud
+        fin_si
+        si primera_lectura == 1 entonces
+            solicitud = bytes_a_texto(bruto)
+            primera_lectura = 0
+        sino
+            solicitud = concatenar(solicitud, bytes_a_texto(bruto))
+        fin_si
+        si encabezados_listos == 0 entonces
+            si contiene_texto(solicitud, "\r\n\r\n") == 1 o contiene_texto(solicitud, "\n\n") == 1 entonces
+                encabezados_listos = 1
+                cuerpo_esperado = api_content_length_solicitud(solicitud)
+                si cuerpo_esperado == 0 entonces
+                    retornar solicitud
+                fin_si
+            fin_si
+        fin_si
+        si encabezados_listos == 1 entonces
+            si http_longitud_cuerpo(solicitud) >= cuerpo_esperado entonces
+                retornar solicitud
+            fin_si
+        fin_si
+    fin_mientras
+    retornar solicitud
+fin_funcion
+
+enviar funcion api_http_servir_cliente(socket cli, funcion handler) retorna entero
+    texto solicitud = api_leer_solicitud_http(cli)
+    texto respuesta = handler(solicitud)
+    bytes respuesta_bytes = bytes_desde_texto(respuesta)
+    tcp_enviar(cli, respuesta_bytes)
+    tcp_cerrar(cli)
+    retornar longitud_texto(solicitud)
+fin_funcion
+
+enviar funcion api_https_servir_cliente(socket cli, texto cert, texto key, funcion handler) retorna entero
+    tls canal = tls_servidor(cli, cert, key)
+    si canal == 0 entonces
+        tcp_cerrar(cli)
+        retornar 0
+    fin_si
+    texto solicitud = api_leer_solicitud_https(canal)
+    texto respuesta = handler(solicitud)
+    bytes respuesta_bytes = bytes_desde_texto(respuesta)
+    tls_enviar(canal, respuesta_bytes)
+    tls_cerrar(canal)
+    tcp_cerrar(cli)
+    retornar longitud_texto(solicitud)
+fin_funcion
+
+// Envia todo el texto por TCP aunque el runtime lo escriba en varias tandas.
+enviar funcion api_tcp_enviar_texto_completo(socket cli, texto contenido) retorna entero
+    bytes contenido_bytes = bytes_desde_texto(contenido)
+    retornar tcp_enviar(cli, contenido_bytes)
+fin_funcion
+
+// Respuesta exitosa de texto plano.
+enviar funcion api_texto_ok(texto cuerpo) retorna texto
+    retornar api_respuesta("200 OK", "text/plain; charset=utf-8", cuerpo)
+fin_funcion
+
+// Respuesta exitosa JSON. El cuerpo ya debe venir serializado.
+enviar funcion api_json_ok(texto cuerpo_json) retorna texto
+    retornar api_respuesta("200 OK", "application/json; charset=utf-8", cuerpo_json)
+fin_funcion
+
+// Serializa un valor JSON Jasboot (handle entero) y lo devuelve con 200 OK.
+enviar funcion api_json_valor_ok(entero dato_json) retorna texto
+    retornar api_json_ok(json_stringify(dato_json))
+fin_funcion
+
+// Respuesta de error cliente.
+enviar funcion api_error_cliente(texto cuerpo) retorna texto
+    retornar api_respuesta("400 Bad Request", "text/plain; charset=utf-8", cuerpo)
+fin_funcion
+
+// Respuesta de recurso inexistente.
+enviar funcion api_no_encontrado() retorna texto
+    retornar api_respuesta("404 Not Found", "text/plain; charset=utf-8", "no_encontrado")
+fin_funcion
+
+// Respuesta de error interno simple.
+enviar funcion api_error_interno() retorna texto
+    retornar api_respuesta("500 Internal Server Error", "text/plain; charset=utf-8", "error_interno")
+fin_funcion
+
+// Ejecuta una solicitud HTTP unica usando un handler Jasboot que devuelve la respuesta HTTP completa.
+enviar funcion api_http_una_vez(texto host, entero puerto, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    si srv == 0 entonces
+        retornar api_alerta_puerto_en_uso(host, puerto, "HTTP")
+    fin_si
+
+    socket cli = tcp_aceptar(srv)
+    si cli == 0 entonces
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    entero total = api_http_servir_cliente(cli, handler)
+    tcp_cerrar(srv)
+    retornar total
+fin_funcion
+
+// Ejecuta una solicitud HTTPS unica usando un handler Jasboot que devuelve la respuesta HTTP completa.
+enviar funcion api_https_una_vez(texto host, entero puerto, texto cert, texto key, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    si srv == 0 entonces
+        retornar api_alerta_puerto_en_uso(host, puerto, "HTTPS")
+    fin_si
+
+    socket cli = tcp_aceptar(srv)
+    si cli == 0 entonces
+        tcp_cerrar(srv)
+        retornar 0
+    fin_si
+
+    entero total = api_https_servir_cliente(cli, cert, key, handler)
+    tcp_cerrar(srv)
+    retornar total
+fin_funcion
+
+// Ejecuta multiples solicitudes HTTP secuenciales con el mismo handler.
+enviar funcion api_http_bucle(texto host, entero puerto, entero max_solicitudes, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    entero i = 0
+    entero acc = 0
+    si srv == 0 entonces
+        retornar api_alerta_puerto_en_uso(host, puerto, "HTTP")
+    fin_si
+
+    mientras i < max_solicitudes hacer
+        socket cli = tcp_aceptar(srv)
+        si cli == 0 entonces
+        sino
+            acc = acc + api_http_servir_cliente(cli, handler)
+            i = i + 1
+        fin_si
+    fin_mientras
+
+    tcp_cerrar(srv)
+    retornar acc
+fin_funcion
+
+// Ejecuta multiples solicitudes HTTPS secuenciales con el mismo handler.
+enviar funcion api_https_bucle(texto host, entero puerto, texto cert, texto key, entero max_solicitudes, funcion handler) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    entero i = 0
+    entero acc = 0
+    si srv == 0 entonces
+        retornar api_alerta_puerto_en_uso(host, puerto, "HTTPS")
+    fin_si
+
+    mientras i < max_solicitudes hacer
+        socket cli = tcp_aceptar(srv)
+        si cli == 0 entonces
+        sino
+            acc = acc + api_https_servir_cliente(cli, cert, key, handler)
+            i = i + 1
+        fin_si
+    fin_mientras
+
+    tcp_cerrar(srv)
+    retornar acc
+fin_funcion

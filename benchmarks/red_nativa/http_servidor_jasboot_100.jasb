@@ -1,0 +1,29 @@
+usar todas de "..\\..\\stdlib\\http\\http_basico.jasb"
+
+funcion servir_100() retorna entero
+    socket srv = tcp_escuchar("127.0.0.1", 18082)
+    entero i = 0
+    entero acc = 0
+    bytes respuesta = bytes_desde_texto(http_crear_respuesta_texto("ruta=/hola"))
+    si srv == 0 entonces
+        retornar 0
+    sino
+        mientras i < 100 hacer
+            socket cli = tcp_aceptar(srv)
+            si cli == 0 entonces
+            sino
+                bytes bruto = tcp_recibir(cli, 8192)
+                tcp_enviar(cli, respuesta)
+                tcp_cerrar(cli)
+                acc = acc + bytes_tamano(bruto)
+                i = i + 1
+            fin_si
+        fin_mientras
+        tcp_cerrar(srv)
+    fin_si
+    retornar acc
+fin_funcion
+
+principal
+    imprimir servir_100()
+fin_principal

@@ -1,0 +1,23 @@
+﻿funcion inc(entero x) retorna entero
+    retornar x + 1
+fin_funcion
+
+funcion aplicar(funcion f, entero v) retorna entero
+    retornar f(v)
+fin_funcion
+
+principal
+    entero i
+    entero acc
+    funcion g
+
+    g = (entero t) => t + 1
+    acc = 0
+    i = 0
+    mientras i < 50 hacer
+        acc = aplicar(inc, acc)
+        acc = aplicar(g, acc)
+        i = i + 1
+    fin_mientras
+    imprimir acc
+fin_principal

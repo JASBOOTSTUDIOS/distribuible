@@ -1,0 +1,104 @@
+usar todas de "..\\..\\stdlib\\forja\\forja.jasb"
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+funcion api(texto solicitud) retorna texto
+    si estructura_es_get(solicitud, "/api/info") entonces
+        retornar forja_json("{\"framework\":\"Estructa\",\"ejemplo\":\"simple\"}")
+    fin_si
+
+    si estructura_es_get(solicitud, "/salud") entonces
+        retornar forja_salud_ok()
+    fin_si
+
+    retornar forja_no_encontrado()
+fin_funcion
+
+funcion vista_inicio(texto solicitud) retorna texto
+    entero contador = estructura_estado_entero(solicitud, "contador", 1)
+    texto nombre = estructura_estado_texto(solicitud, "nombre", "Jasboot")
+
+    texto saludo = "Hola, "
+    saludo = concatenar(saludo, nombre)
+    saludo = concatenar(saludo, ".")
+
+    texto texto_contador = "Visitas declaradas: "
+    texto_contador = concatenar(texto_contador, str_desde_numero(contador))
+
+    texto bloque_principal = estructura_titulo("App simple con Estructa")
+    bloque_principal = concatenar(bloque_principal, estructura_texto("Una pagina web escrita solo con Jasboot."))
+    bloque_principal = concatenar(bloque_principal, estructura_texto(saludo))
+    bloque_principal = concatenar(bloque_principal, estructura_texto(texto_contador))
+    bloque_principal = concatenar(bloque_principal, estructura_boton_entero("/", "contador", contador + 1, "Incrementar contador"))
+    bloque_principal = concatenar(bloque_principal, estructura_boton_secundario("/api/info", "Ver API"))
+    bloque_principal = concatenar(bloque_principal, estructura_boton_secundario("/salud", "Ver salud"))
+    bloque_principal = estructura_tarjeta("Inicio", bloque_principal)
+
+    texto formulario = estructura_campo("Tu nombre", estructura_entrada("nombre", nombre, "Escribe tu nombre"))
+    formulario = concatenar(formulario, estructura_submit("Actualizar saludo"))
+    formulario = estructura_formulario_get("/", formulario)
+    formulario = estructura_tarjeta("Estado", formulario)
+
+    texto cuerpo = concatenar(bloque_principal, formulario)
+    retornar estructura_columna(cuerpo)
+fin_funcion
+
+funcion vista_productos(texto solicitud) retorna texto
+    texto ruta_actual = estructura_ruta_sin_query(solicitud)
+    texto panel = estructura_titulo("Productos")
+    panel = concatenar(panel, estructura_texto("Estructa ya puede definir apps por rutas en Jasboot puro."))
+    panel = concatenar(panel, estructura_texto(ruta_actual))
+    panel = concatenar(panel, estructura_tarjeta("Bloques", estructura_texto("texto, boton, columna, fila y tarjeta.")))
+    retornar estructura_columna(panel)
+fin_funcion
+
+funcion vista_equipo(texto solicitud) retorna texto
+    texto ruta_actual = estructura_ruta_sin_query(solicitud)
+    texto cuerpo = estructura_titulo("Equipo")
+    cuerpo = concatenar(cuerpo, estructura_texto("La libreria ahora prioriza el camino principal en Jasboot."))
+    cuerpo = concatenar(cuerpo, estructura_texto(ruta_actual))
+    cuerpo = concatenar(cuerpo, estructura_tarjeta("Direccion", estructura_texto("API Jasboot primero, DSL solo como compatibilidad.")))
+    retornar estructura_columna(cuerpo)
+fin_funcion
+
+funcion vista_contacto(texto solicitud) retorna texto
+    texto ruta_actual = estructura_ruta_sin_query(solicitud)
+    texto cuerpo = estructura_titulo("Contacto")
+    cuerpo = concatenar(cuerpo, estructura_texto("La siguiente fase es llevar mas tooling del lenguaje a Jasboot."))
+    cuerpo = concatenar(cuerpo, estructura_texto(ruta_actual))
+    cuerpo = concatenar(cuerpo, estructura_boton_alerta("Mostrar estado", "Estructa 100% Jasboot como camino principal"))
+    retornar estructura_columna(cuerpo)
+fin_funcion
+
+funcion app(texto solicitud) retorna texto
+    texto nav = estructura_nav_simple("Inicio", "Productos", "Equipo", "Contacto")
+    texto cuerpo_inicio = vista_inicio(solicitud)
+    texto cuerpo_productos = vista_productos(solicitud)
+    texto cuerpo_equipo = vista_equipo(solicitud)
+    texto cuerpo_contacto = vista_contacto(solicitud)
+    si estructura_es_get(solicitud, "/api/info") entonces
+        retornar api(solicitud)
+    fin_si
+    si estructura_es_get(solicitud, "/salud") entonces
+        retornar api(solicitud)
+    fin_si
+    retornar estructura_resolver_ruta_cuerpos(
+        solicitud,
+        "/", cuerpo_inicio,
+        "/productos", cuerpo_productos,
+        "/equipo", cuerpo_equipo,
+        "/contacto", cuerpo_contacto,
+        "Estructa", nav
+    )
+fin_funcion
+
+principal
+    imprimir "Estructa"
+    imprimir "app simple activa en http://127.0.0.1:18210"
+    imprimir "ui: /"
+    imprimir "ui: /productos"
+    imprimir "ui: /equipo"
+    imprimir "ui: /contacto"
+    imprimir "api: /api/info"
+    imprimir "salud: /salud"
+    imprimir estructura_http_bucle("127.0.0.1", 18210, 100, app)
+fin_principal
