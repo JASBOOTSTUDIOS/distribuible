@@ -453,6 +453,7 @@ Para una documentación detallada de la arquitectura de clases, consulte [IMPLEM
 
 ```jasb
 clase Persona
+    privado texto id_interno
     texto nombre
     entero edad
 fin_clase
@@ -464,12 +465,16 @@ fin_clase
 
 ### Métodos Nativos
 
-Las clases pueden contener funciones internas que operan sobre sus campos usando la palabra clave `este`.
+Las clases pueden contener funciones internas que operan sobre sus campos usando la palabra clave `este`. Los métodos también pueden ser `privado`.
 
 ```jasb
 clase Contador
-    entero valor
+    privado entero valor
     
+    privado funcion obtener_valor_interno() retorna entero
+        retornar este.valor
+    fin_funcion
+
     funcion incrementar() retorna
         este.valor = este.valor + 1
     fin_funcion
@@ -861,16 +866,30 @@ En `sistema_llamadas.c` aparecen nombres como `n_abrir_grafo`, `n_recordar`, `n_
 
 ## 14. Módulos y bibliotecas
 
-### activar_modulo / usar
+### activar_modulo / usar / enviar
 
-Carga un módulo Jasboot.
+Carga un módulo Jasboot y gestiona la exportación de símbolos.
 
 ```jasb
-activar_modulo "modulos/mi_modulo.jasb"
-usar "std/pln.jasb"
+# En el módulo (mi_modulo.jasb):
+enviar funcion sumar(entero a, entero b) retorna entero
+    retornar a + b
+fin_funcion
+
+enviar clase Persona
+    texto nombre
+fin_clase
+
+# Nueva sintaxis agrupada (soporte para múltiples exportaciones):
+enviar {sumar, Persona}
+
+# En el programa principal:
+usar "modulos/mi_modulo.jasb"
+# O importar nombres específicos:
+usar {sumar} de "modulos/mi_modulo.jasb"
 ```
 
-**Internamente:** `ActivarModuloNode` → `OP_ACTIVAR_MODULO`. El path se resuelve respecto al directorio del fuente.
+**Internamente:** `enviar` marca funciones, variables globales o clases como exportadas (`is_exported = 1`). Solo los símbolos marcados con `enviar` son visibles desde otros archivos al usar `usar`.
 
 ### biblioteca
 
