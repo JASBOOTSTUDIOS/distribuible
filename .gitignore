@@ -1,0 +1,15 @@
+# Ignorar directorios del repositorio raíz
+../../JASBOOTSTUDIO/
+../../_jasboot-lang-remote/
+../../apps/
+../../tests/
+../../sdk-dependiente/
+
+# No ignorar archivos de distribución (comentados)
+# bin/
+# img/
+# *.exe
+# *.bat
+# *.nsi
+# *.sed
+# README.md
