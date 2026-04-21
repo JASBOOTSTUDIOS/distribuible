@@ -1,0 +1,254 @@
+# =============================================================================
+# TEST BÁSICO FUNCIONAL - BIBLIOTECA ANALÍTICA-NEURONAL JASBOOT
+# =============================================================================
+# Test simplificado que verifica las funcionalidades básicas disponibles
+# =============================================================================
+
+usar todas de "../estadistica/estadistica_descriptiva.jasb"
+usar todas de "../prediccion/modelos_prediccion.jasb"
+usar todas de "../probabilidad/probabilidad_basica.jasb"
+usar todas de "../inferencia/inferencia_estadistica.jasb"
+
+principal
+    imprimir "╔═══════════════════════════════════════════════════════════╗"
+    imprimir "║                                                           ║"
+    imprimir "║   TEST BÁSICO FUNCIONAL - ANALÍTICA NEURONAL JASBOOT      ║"
+    imprimir "║                      Versión 2.0                          ║"
+    imprimir "║                                                           ║"
+    imprimir "╚═══════════════════════════════════════════════════════════╝"
+    imprimir ""
+
+    entero tests_totales = 0
+    entero tests_exitosos = 0
+
+    # =========================================================================
+    # TEST 1: Estadística Básica
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 1: Estadística Descriptiva Básica"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    lista datos = crear_lista()
+    lista_agregar(datos, 10.0)
+    lista_agregar(datos, 20.0)
+    lista_agregar(datos, 30.0)
+    lista_agregar(datos, 40.0)
+    lista_agregar(datos, 50.0)
+
+    tests_totales = tests_totales + 1
+    flotante media = calcular_media_aritmetica(datos)
+    imprimir "✓ Media aritmética calculada: " + str_desde_numero(media)
+
+    si media == 30.0 entonces
+        imprimir "  ✅ CORRECTO: Media = 30.0"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Se esperaba 30.0, se obtuvo " + str_desde_numero(media)
+    fin_si
+
+    tests_totales = tests_totales + 1
+    flotante mediana = calcular_mediana(datos)
+    imprimir "✓ Mediana calculada: " + str_desde_numero(mediana)
+
+    si mediana == 30.0 entonces
+        imprimir "  ✅ CORRECTO: Mediana = 30.0"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Se esperaba 30.0"
+    fin_si
+
+    tests_totales = tests_totales + 1
+    flotante desv_std = calcular_desviacion_estandar(datos)
+    imprimir "✓ Desviación estándar calculada: " + str_desde_numero(desv_std)
+
+    si desv_std > 14.0 y desv_std < 16.0 entonces
+        imprimir "  ✅ CORRECTO: Desviación ≈ 15.0"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Desviación fuera de rango esperado"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 2: Varianza
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 2: Cálculo de Varianza"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    tests_totales = tests_totales + 1
+    flotante varianza = calcular_varianza(datos, verdadero)
+    imprimir "✓ Varianza calculada: " + str_desde_numero(varianza)
+
+    si varianza > 200.0 y varianza < 210.0 entonces
+        imprimir "  ✅ CORRECTO: Varianza ≈ 208.33"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Varianza fuera de rango esperado"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 3: Percentiles
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 3: Cálculo de Percentiles"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    tests_totales = tests_totales + 1
+    flotante percentil25 = calcular_percentil(datos, 25)
+    flotante percentil75 = calcular_percentil(datos, 75)
+
+    imprimir "✓ Percentil 25: " + str_desde_numero(percentil25)
+    imprimir "✓ Percentil 75: " + str_desde_numero(percentil75)
+
+    si percentil25 == 20.0 y percentil75 == 40.0 entonces
+        imprimir "  ✅ CORRECTO: Percentiles calculados correctamente"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Percentiles incorrectos"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 4: Regresión Lineal Simple
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 4: Regresión Lineal Simple (y = 2x)"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    lista X = crear_lista()
+    lista_agregar(X, 1.0)
+    lista_agregar(X, 2.0)
+    lista_agregar(X, 3.0)
+    lista_agregar(X, 4.0)
+    lista_agregar(X, 5.0)
+
+    lista y = crear_lista()
+    lista_agregar(y, 2.0)
+    lista_agregar(y, 4.0)
+    lista_agregar(y, 6.0)
+    lista_agregar(y, 8.0)
+    lista_agregar(y, 10.0)
+
+    tests_totales = tests_totales + 1
+    mapa modelo = regresion_lineal_simple(X, y)
+    flotante pendiente = mapa_obtener(modelo, "pendiente")
+    flotante intercepto = mapa_obtener(modelo, "intercepto")
+    flotante r2 = mapa_obtener(modelo, "r2")
+
+    imprimir "✓ Pendiente: " + str_desde_numero(pendiente)
+    imprimir "✓ Intercepto: " + str_desde_numero(intercepto)
+    imprimir "✓ R²: " + str_desde_numero(r2)
+
+    si pendiente > 1.99 y pendiente < 2.01 entonces
+        imprimir "  ✅ CORRECTO: Pendiente ≈ 2.0"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Pendiente incorrecta"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 5: Predicción con el Modelo
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 5: Predicción con el Modelo Entrenado"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    tests_totales = tests_totales + 1
+    flotante nuevo_x = 6.0
+    # Calcular predicción manualmente: y = mx + b
+    flotante prediccion = (pendiente * nuevo_x) + intercepto
+    flotante valor_esperado = 12.0
+
+    imprimir "✓ Predicción para x=" + str_desde_numero(nuevo_x) + ": " + str_desde_numero(prediccion)
+    imprimir "✓ Valor esperado: " + str_desde_numero(valor_esperado)
+
+    flotante diferencia = prediccion - valor_esperado
+    si diferencia < 0.0 entonces
+        diferencia = 0.0 - diferencia
+    fin_si
+
+    si diferencia < 0.1 entonces
+        imprimir "  ✅ CORRECTO: Predicción muy precisa"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Predicción incorrecta (diferencia: " + str_desde_numero(diferencia) + ")"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 6: Probabilidad Normal
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 6: Distribución Normal"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    tests_totales = tests_totales + 1
+    flotante prob_normal = normal_pdf(0.0, 0.0, 1.0)
+
+    imprimir "✓ Normal PDF(0, 0, 1): " + str_desde_numero(prob_normal)
+
+    si prob_normal > 0.39 y prob_normal < 0.41 entonces
+        imprimir "  ✅ CORRECTO: PDF ≈ 0.399"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Probabilidad incorrecta"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # TEST 7: Probabilidad Binomial
+    # =========================================================================
+    imprimir "═══════════════════════════════════════════════════════════════"
+    imprimir "TEST 7: Distribución Binomial"
+    imprimir "═══════════════════════════════════════════════════════════════"
+
+    tests_totales = tests_totales + 1
+    flotante prob_binomial = binomial_pmf(3, 10, 0.5)
+
+    imprimir "✓ Binomial PMF(3, 10, 0.5): " + str_desde_numero(prob_binomial)
+
+    si prob_binomial > 0.1 y prob_binomial < 0.15 entonces
+        imprimir "  ✅ CORRECTO: PMF ≈ 0.117"
+        tests_exitosos = tests_exitosos + 1
+    sino
+        imprimir "  ❌ ERROR: Probabilidad fuera de rango"
+    fin_si
+    imprimir ""
+
+    # =========================================================================
+    # RESUMEN FINAL
+    # =========================================================================
+    imprimir ""
+    imprimir "╔═══════════════════════════════════════════════════════════╗"
+    imprimir "║                   RESUMEN DE TESTS                        ║"
+    imprimir "╚═══════════════════════════════════════════════════════════╝"
+    imprimir ""
+    imprimir "Total de tests ejecutados: " + str_desde_numero(tests_totales)
+    imprimir "Tests exitosos:            " + str_desde_numero(tests_exitosos)
+    imprimir "Tests fallidos:            " + str_desde_numero(tests_totales - tests_exitosos)
+    imprimir ""
+
+    si tests_exitosos == tests_totales entonces
+        imprimir "╔═══════════════════════════════════════════════════════════╗"
+        imprimir "║                                                           ║"
+        imprimir "║           ✅ TODOS LOS TESTS PASARON ✅                   ║"
+        imprimir "║                                                           ║"
+        imprimir "║    LA BIBLIOTECA ESTÁ FUNCIONAL Y LISTA PARA USO         ║"
+        imprimir "║                                                           ║"
+        imprimir "╚═══════════════════════════════════════════════════════════╝"
+        imprimir ""
+        imprimir "🎉 ¡Felicidades! La biblioteca analítica-neuronal está"
+        imprimir "   completamente funcional y lista para proyectos de IA."
+    sino
+        imprimir "⚠️  ADVERTENCIA: Algunos tests fallaron"
+        imprimir "    Por favor revise los resultados anteriores"
+        imprimir ""
+        flotante porcentaje = (tests_exitosos + 0.0) / (tests_totales + 0.0) * 100.0
+        imprimir "    Porcentaje de éxito: " + str_desde_numero(porcentaje) + "%"
+    fin_si
+    imprimir ""
+
+fin_principal

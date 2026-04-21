@@ -1,0 +1,618 @@
+# =============================================================================
+# MÓDULO DE MODELOS DE PREDICCIÓN AVANZADOS
+# =============================================================================
+# Propósito: Implementar modelos predictivos especializados para diferentes
+#           dominios y tipos de datos, enfocados en precisión y robustez.
+#
+# Funcionalidades principales:
+# 1. Modelos de predicción financiera
+# 2. Modelos de predicción de demanda y ventas
+# 3. Modelos de predicción de series temporales multivariadas
+# 4. Modelos de clasificación probabilística
+# 5. Ensembles y combinación de modelos
+# =============================================================================
+# =============================================================================
+
+usar todas de "../base.jasb"
+
+clase ModelosPrediccion extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Modelos de Predicción Avanzados", "V1.0")
+    fin_funcion
+
+# =============================================================================
+# 1. MODELOS DE REGRESIÓN
+# =============================================================================
+
+# Función: regresion_lineal_simple
+# Propósito: Entrenar un modelo de regresión lineal simple (y = mx + b)
+# Parámetros: lista de valores X (independiente), lista de valores datos_y (dependiente)
+# Retorna: mapa con pendiente, intercepto y R²
+funcion regresion_lineal_simple(lista X, lista datos_y) retorna mapa
+    mapa modelo = mapa_crear()
+    si X == nulo o datos_y == nulo o lista_tamano(X) == 0 o lista_tamano(datos_y) == 0 entonces
+        retornar modelo
+    fin_si
+
+    entero n = lista_tamano(X)
+    flotante suma_x = 0.0
+    flotante suma_y = 0.0
+    flotante suma_xy = 0.0
+    flotante suma_xx = 0.0
+
+    entero i = 0
+    mientras i < n hacer
+        flotante xi = lista_obtener(X, i)
+        flotante yi = lista_obtener(datos_y, i)
+        suma_x = suma_x + xi
+        suma_y = suma_y + yi
+        suma_xy = suma_xy + (xi * yi)
+        suma_xx = suma_xx + (xi * xi)
+        i = i + 1
+    fin_mientras
+
+    flotante n_flotante = n + 0.0
+    flotante denominador = (n_flotante * suma_xx) - (suma_x * suma_x)
+    flotante pendiente = 0.0
+
+    si denominador != 0 entonces
+        pendiente = ((n_flotante * suma_xy) - (suma_x * suma_y)) / denominador
+    fin_si
+
+    flotante intercepto = (suma_y - (pendiente * suma_x)) / n_flotante
+
+    mapa_poner(modelo, "pendiente", pendiente)
+    mapa_poner(modelo, "intercepto", intercepto)
+
+    # Calcular R²
+    flotante media_y = suma_y / n_flotante
+    flotante ss_tot = 0.0
+    flotante ss_res = 0.0
+    i = 0
+    mientras i < n hacer
+        flotante yi = lista_obtener(datos_y, i)
+        flotante xi = lista_obtener(X, i)
+        flotante y_pred = (pendiente * xi) + intercepto
+        ss_tot = ss_tot + ((yi - media_y) * (yi - media_y))
+        ss_res = ss_res + ((yi - y_pred) * (yi - y_pred))
+        i = i + 1
+    fin_mientras
+
+    flotante r2 = 1.0
+    si ss_tot != 0 entonces
+        r2 = 1.0 - (ss_res / ss_tot)
+    fin_si
+    mapa_poner(modelo, "r2", r2)
+
+    retornar modelo
+fin_funcion
+
+# =============================================================================
+# 2. MODELOS DE PREDICCIÓN DE DEMANDA
+# =============================================================================
+
+# Función: modelo_prediccion_demanda_producto
+# Propósito: Predecir demanda futura usando tendencia histórica
+# Parámetros: histórico de ventas (lista), pasos a predecir
+# Retorna: mapa con predicciones y métricas
+funcion modelo_prediccion_demanda_producto(lista historico, entero pasos) retorna mapa
+    mapa _v_resultado = mapa_crear()
+    si historico == nulo o lista_tamano(historico) == 0 entonces
+        retornar _v_resultado
+    fin_si
+
+    # Crear índices X para la regresión
+    lista X = crear_lista()
+    entero n = lista_tamano(historico)
+    entero i = 0
+    mientras i < n hacer
+        lista_agregar(X, i + 0.0)
+        i = i + 1
+    fin_mientras
+
+    # Entrenar modelo lineal
+    mapa modelo = este.regresion_lineal_simple(X, historico)
+    flotante m = mapa_obtener(modelo, "pendiente")
+    flotante _b = mapa_obtener(modelo, "intercepto")
+
+    # Convertir n a flotante para evitar overflow en operaciones aritméticas
+    flotante n_flotante = n + 0.0
+
+    lista predicciones = crear_lista()
+    i = 0
+    mientras i < pasos hacer
+        flotante punto_futuro = n_flotante + (i + 0.0)
+        flotante pred = (m * punto_futuro) + _b
+        # Evitar demanda negativa
+        si pred < 0 entonces pred = 0.0 fin_si
+        lista_agregar(predicciones, pred)
+        i = i + 1
+    fin_mientras
+
+    mapa_poner(_v_resultado, "predicciones", predicciones)
+    mapa_poner(_v_resultado, "modelo", modelo)
+
+    retornar _v_resultado
+fin_funcion
+
+# =============================================================================
+# 7. VALIDACIÓN Y EVALUACIÓN
+# =============================================================================
+
+# Función: estimar_intervalos_confianza
+# Propósito: Calcular límites de confianza simples para predicciones
+# Parámetros: valor predicho, error típico, nivel confianza (z)
+# Retorna: mapa con inferior y superior
+funcion estimar_intervalos_confianza(flotante valor_pred, flotante error, flotante z) retorna mapa
+    mapa limites = mapa_crear()
+    mapa_poner(limites, "inferior", valor_pred - (z * error))
+    mapa_poner(limites, "superior", valor_pred + (z * error))
+    retornar limites
+fin_funcion
+
+# =============================================================================
+    # 8. ENSEMBLES Y COMBINACIÓN DE MODELOS
+    # =============================================================================
+
+    # Función: prediccion_ensemble_basico
+    # Propósito: Combinar dos series de predicciones mediante promedio ponderado
+    funcion prediccion_ensemble_basico(lista preds_a, lista preds_b, flotante peso_a) retorna lista
+        lista _v_resultado = crear_lista()
+        si lista_tamano(preds_a) != lista_tamano(preds_b) o lista_tamano(preds_a) == 0 entonces
+            retornar _v_resultado
+        fin_si
+
+        flotante peso_b = 1.0 - peso_a
+        entero i = 0
+        mientras i < lista_tamano(preds_a) hacer
+            flotante val_a = lista_obtener(preds_a, i)
+            flotante val_b = lista_obtener(preds_b, i)
+            flotante combinado = (val_a * peso_a) + (val_b * peso_b)
+            lista_agregar(_v_resultado, combinado)
+            i = i + 1
+        fin_mientras
+
+        retornar _v_resultado
+    fin_funcion
+
+# =============================================================================
+# 9. ÁLGEBRA MATRICIAL - MÉTODOS AUXILIARES
+# =============================================================================
+
+    # Función: transponer_matriz
+    # Propósito: Transponer una matriz (convertir filas en columnas)
+    # Parámetros: matriz (lista de listas)
+    # Retorna: matriz transpuesta
+    funcion transponer_matriz(lista matriz) retorna lista
+        lista transpuesta = crear_lista()
+
+        si matriz == nulo o lista_tamano(matriz) == 0 entonces
+            retornar transpuesta
+        fin_si
+
+        entero filas = lista_tamano(matriz)
+        lista primera_fila = lista_obtener(matriz, 0)
+        entero columnas = lista_tamano(primera_fila)
+
+        # Crear matriz transpuesta
+        entero j = 0
+        mientras j < columnas hacer
+            lista nueva_fila = crear_lista()
+            entero i = 0
+            mientras i < filas hacer
+                lista fila_actual = lista_obtener(matriz, i)
+                flotante _valor = lista_obtener(fila_actual, j)
+                lista_agregar(nueva_fila, _valor)
+                i = i + 1
+            fin_mientras
+            lista_agregar(transpuesta, nueva_fila)
+            j = j + 1
+        fin_mientras
+
+        retornar transpuesta
+    fin_funcion
+
+    # Función: multiplicar_matrices
+    # Propósito: Multiplicar dos matrices A * B
+    # Parámetros: matriz A (m x n), matriz B (n x p)
+    # Retorna: matriz resultado (m x p)
+    funcion multiplicar_matrices(lista A, lista B) retorna lista
+        lista _resultado = crear_lista()
+
+        si A == nulo o B == nulo o lista_tamano(A) == 0 o lista_tamano(B) == 0 entonces
+            retornar resultado
+        fin_si
+
+        entero m = lista_tamano(A)
+        lista primera_fila_a = lista_obtener(A, 0)
+        entero n = lista_tamano(primera_fila_a)
+        lista primera_fila_b = lista_obtener(B, 0)
+        entero p = lista_tamano(primera_fila_b)
+
+        # Verificar dimensiones compatibles
+        si lista_tamano(B) != n entonces
+            retornar resultado
+        fin_si
+
+        # Multiplicación A * B
+        entero i = 0
+        mientras i < m hacer
+            lista fila_resultado = crear_lista()
+            entero j = 0
+            mientras j < p hacer
+                flotante suma = 0.0
+                entero k = 0
+                mientras k < n hacer
+                    lista fila_a = lista_obtener(A, i)
+                    lista fila_b = lista_obtener(B, k)
+                    flotante val_a = lista_obtener(fila_a, k)
+                    flotante val_b = lista_obtener(fila_b, j)
+                    suma = suma + (val_a * val_b)
+                    k = k + 1
+                fin_mientras
+                lista_agregar(fila_resultado, suma)
+                j = j + 1
+            fin_mientras
+            lista_agregar(resultado, fila_resultado)
+            i = i + 1
+        fin_mientras
+
+        retornar resultado
+    fin_funcion
+
+    # Función: invertir_matriz_2x2
+    # Propósito: Calcular la inversa de una matriz 2x2
+    # Parámetros: matriz 2x2
+    # Retorna: matriz inversa o lista vacía si no es invertible
+    funcion invertir_matriz_2x2(lista matriz) retorna lista
+        lista inversa = crear_lista()
+
+        si matriz == nulo o lista_tamano(matriz) != 2 entonces
+            retornar inversa
+        fin_si
+
+        lista fila0 = lista_obtener(matriz, 0)
+        lista fila1 = lista_obtener(matriz, 1)
+
+        si lista_tamano(fila0) != 2 o lista_tamano(fila1) != 2 entonces
+            retornar inversa
+        fin_si
+
+        flotante _a = lista_obtener(fila0, 0)
+        flotante _b = lista_obtener(fila0, 1)
+        flotante _c = lista_obtener(fila1, 0)
+        flotante _d = lista_obtener(fila1, 1)
+
+        # Calcular determinante
+        flotante det = (_a * _d) - (_b * _c)
+
+        si det == 0.0 entonces
+            # Matriz singular, no invertible
+            retornar inversa
+        fin_si
+
+        flotante inv_det = 1.0 / det
+
+        # Crear matriz inversa
+        lista fila0_inv = crear_lista()
+        lista_agregar(fila0_inv, _d * inv_det)
+        lista_agregar(fila0_inv, (0.0 - _b) * inv_det)
+        lista_agregar(inversa, fila0_inv)
+
+        lista fila1_inv = crear_lista()
+        lista_agregar(fila1_inv, (0.0 - _c) * inv_det)
+        lista_agregar(fila1_inv, _a * inv_det)
+        lista_agregar(inversa, fila1_inv)
+
+        retornar inversa
+    fin_funcion
+
+# =============================================================================
+# 10. REGRESIÓN LINEAL MÚLTIPLE
+# =============================================================================
+
+    # Función: regresion_lineal_multiple
+    # Propósito: Entrenar un modelo de regresión lineal con múltiples variables
+    # Parámetros: X_matriz (lista de listas), y (lista de valores)
+    # Retorna: mapa con coeficientes, intercepto y R²
+    # Nota: Usa método simplificado para 1-2 variables
+    funcion regresion_lineal_multiple(lista X_matriz, lista _y) retorna mapa
+        mapa modelo = mapa_crear()
+
+        si X_matriz == nulo o _y == nulo o lista_tamano(X_matriz) == 0 o lista_tamano(_y) == 0 entonces
+            retornar modelo
+        fin_si
+
+        entero n = lista_tamano(X_matriz)
+        lista primera_fila = lista_obtener(X_matriz, 0)
+        entero num_features = lista_tamano(primera_fila)
+
+        # Validar que todas las filas tengan el mismo número de features
+        si n != lista_tamano(_y) entonces
+            retornar modelo
+        fin_si
+
+        # Para simplicidad, implementamos caso especial de 1 variable (regresión simple)
+        si num_features == 1 entonces
+            # Extraer primera columna
+            lista X_simple = crear_lista()
+            entero i = 0
+            mientras i < n hacer
+                lista fila = lista_obtener(X_matriz, i)
+                flotante _valor = lista_obtener(fila, 0)
+                lista_agregar(X_simple, _valor)
+                i = i + 1
+            fin_mientras
+
+            mapa modelo_simple = este.regresion_lineal_simple(X_simple, _y)
+            lista coefs = crear_lista()
+            flotante pendiente = mapa_obtener(modelo_simple, "pendiente")
+            lista_agregar(coefs, pendiente)
+
+            mapa_poner(modelo, "coeficientes", coefs)
+            mapa_poner(modelo, "intercepto", mapa_obtener(modelo_simple, "intercepto"))
+            mapa_poner(modelo, "r2", mapa_obtener(modelo_simple, "r2"))
+            mapa_poner(modelo, "num_features", 1)
+
+            retornar modelo
+        fin_si
+
+        # Para 2 variables, usamos método de ecuaciones normales simplificado
+        si num_features == 2 entonces
+            # Calcular medias
+            flotante media_y = 0.0
+            flotante media_x1 = 0.0
+            flotante media_x2 = 0.0
+
+            entero i = 0
+            mientras i < n hacer
+                lista fila = lista_obtener(X_matriz, i)
+                media_x1 = media_x1 + lista_obtener(fila, 0)
+                media_x2 = media_x2 + lista_obtener(fila, 1)
+                media_y = media_y + lista_obtener(_y, i)
+                i = i + 1
+            fin_mientras
+
+            flotante n_float = n + 0.0
+            media_x1 = media_x1 / n_float
+            media_x2 = media_x2 / n_float
+            media_y = media_y / n_float
+
+            # Calcular varianzas y covarianzas
+            flotante var_x1 = 0.0
+            flotante var_x2 = 0.0
+            flotante cov_x1_x2 = 0.0
+            flotante cov_x1_y = 0.0
+            flotante cov_x2_y = 0.0
+
+            i = 0
+            mientras i < n hacer
+                lista fila = lista_obtener(X_matriz, i)
+                flotante x1 = lista_obtener(fila, 0)
+                flotante x2 = lista_obtener(fila, 1)
+                flotante yi = lista_obtener(_y, i)
+
+                flotante dx1 = x1 - media_x1
+                flotante dx2 = x2 - media_x2
+                flotante dy = yi - media_y
+
+                var_x1 = var_x1 + (dx1 * dx1)
+                var_x2 = var_x2 + (dx2 * dx2)
+                cov_x1_x2 = cov_x1_x2 + (dx1 * dx2)
+                cov_x1_y = cov_x1_y + (dx1 * dy)
+                cov_x2_y = cov_x2_y + (dx2 * dy)
+
+                i = i + 1
+            fin_mientras
+
+            # Resolver sistema 2x2 usando matriz inversa
+            lista matriz_cov = crear_lista()
+            lista fila_cov_0 = crear_lista()
+            lista_agregar(fila_cov_0, var_x1)
+            lista_agregar(fila_cov_0, cov_x1_x2)
+            lista_agregar(matriz_cov, fila_cov_0)
+
+            lista fila_cov_1 = crear_lista()
+            lista_agregar(fila_cov_1, cov_x1_x2)
+            lista_agregar(fila_cov_1, var_x2)
+            lista_agregar(matriz_cov, fila_cov_1)
+
+            lista matriz_inv = este.invertir_matriz_2x2(matriz_cov)
+
+            si lista_tamano(matriz_inv) == 0 entonces
+                # Matriz no invertible
+                retornar modelo
+            fin_si
+
+            # Calcular coeficientes: beta = inv(X'X) * X'y
+            lista fila_inv_0 = lista_obtener(matriz_inv, 0)
+            lista fila_inv_1 = lista_obtener(matriz_inv, 1)
+
+            flotante beta1 = (lista_obtener(fila_inv_0, 0) * cov_x1_y) + (lista_obtener(fila_inv_0, 1) * cov_x2_y)
+            flotante beta2 = (lista_obtener(fila_inv_1, 0) * cov_x1_y) + (lista_obtener(fila_inv_1, 1) * cov_x2_y)
+
+            flotante intercepto = media_y - (beta1 * media_x1) - (beta2 * media_x2)
+
+            lista coeficientes = crear_lista()
+            lista_agregar(coeficientes, beta1)
+            lista_agregar(coeficientes, beta2)
+
+            # Calcular R²
+            flotante ss_tot = 0.0
+            flotante ss_res = 0.0
+
+            i = 0
+            mientras i < n hacer
+                lista fila = lista_obtener(X_matriz, i)
+                flotante x1 = lista_obtener(fila, 0)
+                flotante x2 = lista_obtener(fila, 1)
+                flotante yi = lista_obtener(_y, i)
+                flotante y_pred = intercepto + (beta1 * x1) + (beta2 * x2)
+
+                ss_tot = ss_tot + ((yi - media_y) * (yi - media_y))
+                ss_res = ss_res + ((yi - y_pred) * (yi - y_pred))
+
+                i = i + 1
+            fin_mientras
+
+            flotante r2 = 1.0
+            si ss_tot != 0.0 entonces
+                r2 = 1.0 - (ss_res / ss_tot)
+            fin_si
+
+            mapa_poner(modelo, "coeficientes", coeficientes)
+            mapa_poner(modelo, "intercepto", intercepto)
+            mapa_poner(modelo, "r2", r2)
+            mapa_poner(modelo, "num_features", 2)
+
+            retornar modelo
+        fin_si
+
+        # Para más de 2 variables, retornamos modelo vacío (no implementado)
+        retornar modelo
+    fin_funcion
+
+    # Función: predecir_regresion_multiple
+    # Propósito: Hacer predicción con modelo de regresión múltiple
+    # Parámetros: x_nuevo (lista de valores), modelo (mapa con coeficientes e intercepto)
+    # Retorna: valor predicho
+    funcion predecir_regresion_multiple(lista x_nuevo, mapa modelo) retorna flotante
+        si x_nuevo == nulo o modelo == nulo entonces
+            retornar 0.0
+        fin_si
+
+        lista coeficientes = mapa_obtener(modelo, "coeficientes")
+        flotante intercepto = mapa_obtener(modelo, "intercepto")
+
+        si coeficientes == nulo entonces
+            retornar 0.0
+        fin_si
+
+        entero num_coefs = lista_tamano(coeficientes)
+        si lista_tamano(x_nuevo) != num_coefs entonces
+            retornar 0.0
+        fin_si
+
+        flotante prediccion = intercepto
+        entero i = 0
+        mientras i < num_coefs hacer
+            flotante coef = lista_obtener(coeficientes, i)
+            flotante x_val = lista_obtener(x_nuevo, i)
+            prediccion = prediccion + (coef * x_val)
+            i = i + 1
+        fin_mientras
+
+        retornar prediccion
+    fin_funcion
+
+# =============================================================================
+# 11. REGRESIÓN POLINOMIAL
+# =============================================================================
+
+    # Función: regresion_polinomial
+    # Propósito: Entrenar un modelo de regresión polinomial
+    # Parámetros: X (lista de valores), y (lista de valores), grado del polinomio
+    # Retorna: mapa con coeficientes, grado y R²
+    funcion regresion_polinomial(lista X, lista y, entero grado) retorna mapa
+        mapa modelo = mapa_crear()
+
+        si X == nulo o y == nulo o lista_tamano(X) == 0 o lista_tamano(y) == 0 entonces
+            retornar modelo
+        fin_si
+
+        si grado < 1 o grado > 5 entonces
+            # Limitar grado a 1-5 para evitar inestabilidad numérica
+            retornar modelo
+        fin_si
+
+        entero n = lista_tamano(X)
+
+        # Generar matriz de features polinómicos
+        lista X_poly = crear_lista()
+        entero i = 0
+        mientras i < n hacer
+            lista fila_features = crear_lista()
+            flotante x_val = lista_obtener(X, i)
+
+            entero g = 1
+            mientras g <= grado hacer
+                # Calcular x^g
+                flotante x_potencia = x_val
+                entero p = 1
+                mientras p < g hacer
+                    x_potencia = x_potencia * x_val
+                    p = p + 1
+                fin_mientras
+
+                lista_agregar(fila_features, x_potencia)
+                g = g + 1
+            fin_mientras
+
+            lista_agregar(X_poly, fila_features)
+            i = i + 1
+        fin_mientras
+
+        # Entrenar regresión lineal múltiple con features polinómicos
+        mapa modelo_multiple = este.regresion_lineal_multiple(X_poly, y)
+
+        si modelo_multiple == nulo entonces
+            retornar modelo
+        fin_si
+
+        # Copiar resultados al modelo polinomial
+        mapa_poner(modelo, "coeficientes", mapa_obtener(modelo_multiple, "coeficientes"))
+        mapa_poner(modelo, "intercepto", mapa_obtener(modelo_multiple, "intercepto"))
+        mapa_poner(modelo, "r2", mapa_obtener(modelo_multiple, "r2"))
+        mapa_poner(modelo, "grado", grado)
+
+        retornar modelo
+    fin_funcion
+
+    # Función: predecir_regresion_polinomial
+    # Propósito: Hacer predicción con modelo de regresión polinomial
+    # Parámetros: x_nuevo (valor flotante), modelo (mapa con coeficientes, intercepto y grado)
+    # Retorna: valor predicho
+    funcion predecir_regresion_polinomial(flotante x_nuevo, mapa modelo) retorna flotante
+        si modelo == nulo entonces
+            retornar 0.0
+        fin_si
+
+        lista coeficientes = mapa_obtener(modelo, "coeficientes")
+        flotante intercepto = mapa_obtener(modelo, "intercepto")
+        entero grado = mapa_obtener(modelo, "grado")
+
+        si coeficientes == nulo entonces
+            retornar 0.0
+        fin_si
+
+        flotante prediccion = intercepto
+
+        entero g = 1
+        mientras g <= grado hacer
+            # Calcular x_nuevo^g
+            flotante x_potencia = x_nuevo
+            entero p = 1
+            mientras p < g hacer
+                x_potencia = x_potencia * x_nuevo
+                p = p + 1
+            fin_mientras
+
+            flotante coef = lista_obtener(coeficientes, g - 1)
+            prediccion = prediccion + (coef * x_potencia)
+
+            g = g + 1
+        fin_mientras
+
+        retornar prediccion
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTACIÓN DE MÓDULO
+# =============================================================================
+enviar {
+    ModelosPrediccion
+}

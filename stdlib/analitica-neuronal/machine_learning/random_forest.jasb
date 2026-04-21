@@ -1,0 +1,462 @@
+# random_forest.jasb
+# Implementación de Random Forest (Bosque Aleatorio)
+# Ensemble learning con árboles de decisión y votación
+
+usar { ArbolesDecision } de "./arboles_decision.jasb"
+
+# ==============================================================================
+# CLASE: RandomForest
+# Ensemble de árboles de decisión con bootstrap sampling
+# ==============================================================================
+
+clase RandomForest
+    texto nombre
+    texto tipo_modelo
+    bool entrenado
+    mapa modelo
+    bool es_clasificacion
+
+    # Constructor
+    funcion constructor()
+        este.nombre = "RandomForest"
+        este.tipo_modelo = "ensemble"
+        este.entrenado = falso
+        este.modelo = nulo
+        este.es_clasificacion = verdadero
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: random_forest_fit
+    # Entrena un ensemble de árboles de decisión con bootstrap sampling
+    # ==========================================================================
+    funcion random_forest_fit(lista X, lista y, entero n_arboles, entero max_prof, entero seed) retorna mapa
+        si (lista_tamano(X) == 0 o lista_tamano(y) == 0) entonces
+            imprimir "[RandomForest] ERROR: Datos vacíos"
+            retornar nulo
+        fin_si
+
+        entero n_muestras = lista_tamano(X)
+        si (n_muestras != lista_tamano(y)) entonces
+            imprimir "[RandomForest] ERROR: Tamaños de X e y no coinciden"
+            retornar nulo
+        fin_si
+
+        si (n_arboles <= 0) entonces
+            n_arboles = 10  # Default
+        fin_si
+
+        si (max_prof <= 0) entonces
+            max_prof = 10  # Default
+        fin_si
+
+        imprimir "[RandomForest] Entrenando con " + str_desde_numero(n_arboles) + " árboles..."
+        imprimir "[RandomForest] Muestras: " + str_desde_numero(n_muestras) + ", Max profundidad: " + str_desde_numero(max_prof)
+
+        # Crear lista de árboles
+        lista arboles = []
+        entero semilla_actual = seed
+
+        # Entrenar cada árbol con bootstrap sample
+        entero i = 0
+        mientras (i < n_arboles) hacer
+            # Bootstrap sampling
+            mapa muestra = este.bootstrap_sample(X, y, semilla_actual)
+            lista X_boot = mapa_obtener(muestra, "X")
+            lista y_boot = mapa_obtener(muestra, "y")
+
+            # Crear y entrenar árbol
+            ArbolesDecision arbol = ArbolesDecision()
+            mapa modelo_arbol = arbol.arbol_decision_clasificacion_fit(X_boot, y_boot, max_prof)
+
+            si (modelo_arbol != nulo) entonces
+                lista_agregar(arboles, modelo_arbol)
+            fin_si
+
+            semilla_actual = semilla_actual + 1234  # Cambiar semilla
+            i = i + 1
+        fin_mientras
+
+        entero arboles_entrenados = lista_tamano(arboles)
+        imprimir "[RandomForest] Árboles entrenados exitosamente: " + str_desde_numero(arboles_entrenados)
+
+        # Crear modelo
+        mapa modelo_mapa = mapa_crear()
+        mapa_poner(modelo_mapa, "arboles", arboles)
+        mapa_poner(modelo_mapa, "n_arboles", arboles_entrenados)
+        mapa_poner(modelo_mapa, "max_profundidad", max_prof)
+        mapa_poner(modelo_mapa, "seed", seed)
+        mapa_poner(modelo_mapa, "n_features", lista_tamano(lista_obtener(X, 0)))
+
+        este.modelo = modelo_mapa
+        este.entrenado = verdadero
+
+        retornar modelo_mapa
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: random_forest_predecir
+    # Predicción individual usando votación de todos los árboles
+    # ==========================================================================
+    funcion random_forest_predecir(mapa modelo, lista x_nuevo) retorna elemento
+        si (modelo == nulo) entonces
+            imprimir "[RandomForest] ERROR: Modelo nulo"
+            retornar nulo
+        fin_si
+
+        lista arboles = mapa_obtener(modelo, "arboles")
+        si (lista_tamano(arboles) == 0) entonces
+            imprimir "[RandomForest] ERROR: No hay árboles en el modelo"
+            retornar nulo
+        fin_si
+
+        # Recolectar predicciones de todos los árboles
+        lista predicciones = crear_lista()
+        entero n_arboles = lista_tamano(arboles)
+
+        # Crear instancia de ArbolesDecision para predicciones
+        ArbolesDecision arbol_obj = ArbolesDecision()
+
+        entero i = 0
+        mientras i < n_arboles hacer
+            mapa arbol = lista_obtener(arboles, i)
+            elemento pred = arbol_obj.arbol_decision_predecir(arbol, x_nuevo)
+
+            si pred != nulo entonces
+                lista_agregar(predicciones, pred)
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        si (lista_tamano(predicciones) == 0) entonces
+            imprimir "[RandomForest] ERROR: No se obtuvieron predicciones"
+            retornar nulo
+        fin_si
+
+        # Votación: usar la clase más frecuente (clasificación)
+        si (este.es_clasificacion) entonces
+            retornar este.votar_clasificacion(predicciones)
+        sino
+            # Regresión: promedio de predicciones
+            retornar este.promedio_predicciones(predicciones)
+        fin_si
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: random_forest_predecir_batch
+    # Predicciones múltiples para un conjunto de datos
+    # ==========================================================================
+    funcion random_forest_predecir_batch(mapa modelo, lista X_test) retorna lista
+        si (modelo == nulo o lista_tamano(X_test) == 0) entonces
+            imprimir "[RandomForest] ERROR: Modelo nulo o datos vacíos"
+            retornar nulo
+        fin_si
+
+        entero n_test = lista_tamano(X_test)
+        imprimir "[RandomForest] Prediciendo " + str_desde_numero(n_test) + " muestras..."
+
+        lista predicciones = lista_crear()
+
+        entero i = 0
+        mientras (i < n_test) hacer
+            lista x = lista_obtener(X_test, i)
+            elemento pred = este.random_forest_predecir(modelo, x)
+            lista_agregar(predicciones, pred)
+            i = i + 1
+        fin_mientras
+
+        retornar predicciones
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: random_forest_importancia_features
+    # Calcula importancia agregada de características
+    # ==========================================================================
+    funcion random_forest_importancia_features(mapa modelo) retorna lista
+        si (modelo == nulo) entonces
+            imprimir "[RandomForest] ERROR: Modelo nulo"
+            retornar nulo
+        fin_si
+
+        lista arboles = mapa_obtener(modelo, "arboles")
+        entero n_features = mapa_obtener(modelo, "n_features")
+        entero n_arboles = lista_tamano(arboles)
+
+        si (n_arboles == 0) entonces
+            retornar nulo
+        fin_si
+
+        # Inicializar importancias acumuladas
+        lista importancias = lista_crear()
+        entero i = 0
+        mientras (i < n_features) hacer
+            lista_agregar(importancias, 0.0)
+            i = i + 1
+        fin_mientras
+
+        # Sumar importancias de cada árbol
+        entero idx_arbol = 0
+        mientras (idx_arbol < n_arboles) hacer
+            mapa arbol = lista_obtener(arboles, idx_arbol)
+
+            # Extraer importancia de cada feature del árbol
+            # (Simplificado: cuenta splits por feature)
+            lista importancia_arbol = este.calcular_importancia_arbol(arbol, n_features)
+
+            si (importancia_arbol != nulo) entonces
+                entero j = 0
+                mientras (j < n_features) hacer
+                    flotante imp_actual = lista_obtener(importancias, j)
+                    flotante imp_arbol = lista_obtener(importancia_arbol, j)
+                    lista_poner(importancias, j, imp_actual + imp_arbol)
+                    j = j + 1
+                fin_mientras
+            fin_si
+
+            idx_arbol = idx_arbol + 1
+        fin_mientras
+
+        # Normalizar por número de árboles
+        entero k = 0
+        mientras (k < n_features) hacer
+            flotante imp = lista_obtener(importancias, k)
+            lista_poner(importancias, k, imp / convertir_flotante(n_arboles))
+            k = k + 1
+        fin_mientras
+
+        imprimir "[RandomForest] Importancia de features calculada"
+        retornar importancias
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: bootstrap_sample
+    # Muestreo con reemplazo para crear conjunto de entrenamiento
+    # ==========================================================================
+    funcion bootstrap_sample(lista X, lista y, entero seed) retorna mapa
+        entero n_muestras = lista_tamano(X)
+
+        lista X_boot = lista_crear()
+        lista y_boot = lista_crear()
+
+        # Generar n_muestras índices aleatorios con reemplazo
+        entero i = 0
+        mientras (i < n_muestras) hacer
+            # Generador pseudo-aleatorio simple
+            entero idx = este.random_index(seed + i, n_muestras)
+
+            lista x_muestra = lista_obtener(X, idx)
+            elemento y_muestra = lista_obtener(y, idx)
+
+            lista_agregar(X_boot, x_muestra)
+            lista_agregar(y_boot, y_muestra)
+
+            i = i + 1
+        fin_mientras
+
+        mapa muestra = mapa_crear()
+        mapa_poner(muestra, "X", X_boot)
+        mapa_poner(muestra, "y", y_boot)
+
+        retornar muestra
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: votar_clasificacion
+    # Retorna la clase más votada (moda)
+    # ==========================================================================
+    funcion votar_clasificacion(lista predicciones) retorna elemento
+        si (lista_tamano(predicciones) == 0) entonces
+            retornar nulo
+        fin_si
+
+        # Contar votos por cada clase usando listas paralelas
+        lista clases_vistas = crear_lista()
+        lista conteos = crear_lista()
+
+        entero i = 0
+        entero n = lista_tamano(predicciones)
+        mientras i < n hacer
+            elemento pred = lista_obtener(predicciones, i)
+
+            # Buscar si ya vimos esta clase
+            entero clase_idx = -1
+            entero j = 0
+            mientras j < lista_tamano(clases_vistas) hacer
+                elemento clase_actual = lista_obtener(clases_vistas, j)
+                si clase_actual == pred entonces
+                    clase_idx = j
+                    j = lista_tamano(clases_vistas)
+                fin_si
+                j = j + 1
+            fin_mientras
+
+            si clase_idx == -1 entonces
+                # Nueva clase - agregarla
+                lista_agregar(clases_vistas, pred)
+                lista_agregar(conteos, 1)
+            sino
+                # Incrementar conteo existente
+                entero conteo_actual = lista_obtener(conteos, clase_idx)
+                lista_poner(conteos, clase_idx, conteo_actual + 1)
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        # Encontrar la clase con más votos
+        elemento clase_ganadora = nulo
+        entero max_votos = 0
+
+        entero k = 0
+        mientras k < lista_tamano(clases_vistas) hacer
+            entero votos_clase = lista_obtener(conteos, k)
+            si votos_clase > max_votos entonces
+                max_votos = votos_clase
+                clase_ganadora = lista_obtener(clases_vistas, k)
+            fin_si
+            k = k + 1
+        fin_mientras
+
+        retornar clase_ganadora
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: promedio_predicciones
+    # Calcula el promedio de predicciones (para regresión)
+    # ==========================================================================
+    funcion promedio_predicciones(lista predicciones) retorna elemento
+        si (lista_tamano(predicciones) == 0) entonces
+            retornar nulo
+        fin_si
+
+        flotante suma = 0.0
+        entero n = lista_tamano(predicciones)
+
+        entero i = 0
+        mientras (i < n) hacer
+            elemento pred = lista_obtener(predicciones, i)
+            suma = suma + convertir_flotante(pred)
+            i = i + 1
+        fin_mientras
+
+        retornar suma / convertir_flotante(n)
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: random_index
+    # Genera un índice aleatorio usando Linear Congruential Generator
+    # ==========================================================================
+    funcion random_index(entero seed, entero max) retorna entero
+        # LCG: X(n+1) = (a * X(n) + c) mod m
+        # a = 1664525, c = 1013904223, m = 2147483647
+        entero valor = (1664525 * seed + 1013904223) % 2147483647
+        entero idx = valor % max
+
+        si (idx < 0) entonces
+            idx = -idx
+        fin_si
+
+        retornar idx
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: calcular_importancia_arbol
+    # Calcula importancia de features en un árbol individual
+    # ==========================================================================
+    funcion calcular_importancia_arbol(mapa arbol, entero n_features) retorna lista
+        lista importancias = lista_crear()
+
+        # Inicializar
+        entero i = 0
+        mientras (i < n_features) hacer
+            lista_agregar(importancias, 0.0)
+            i = i + 1
+        fin_mientras
+
+        # Contar splits por feature (implementación simplificada)
+        este.contar_splits_recursivo(arbol, importancias)
+
+        retornar importancias
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO AUXILIAR: contar_splits_recursivo
+    # Recorre el árbol contando splits por feature
+    # ==========================================================================
+    funcion contar_splits_recursivo(mapa nodo, lista importancias)
+        si (nodo == nulo) entonces
+            retornar
+        fin_si
+
+        # Si es nodo hoja, no hay split
+        si (mapa_contiene(nodo, "es_hoja")) entonces
+            bool es_hoja = mapa_obtener(nodo, "es_hoja")
+            si (es_hoja) entonces
+                retornar
+            fin_si
+        fin_si
+
+        # Si tiene feature_idx, incrementar importancia
+        si (mapa_contiene(nodo, "feature_idx")) entonces
+            entero feature_idx = mapa_obtener(nodo, "feature_idx")
+            flotante imp_actual = lista_obtener(importancias, feature_idx)
+            lista_poner(importancias, feature_idx, imp_actual + 1.0)
+        fin_si
+
+        # Recursión en hijos
+        si (mapa_contiene(nodo, "izquierda")) entonces
+            mapa hijo_izq = mapa_obtener(nodo, "izquierda")
+            este.contar_splits_recursivo(hijo_izq, importancias)
+        fin_si
+
+        si (mapa_contiene(nodo, "derecha")) entonces
+            mapa hijo_der = mapa_obtener(nodo, "derecha")
+            este.contar_splits_recursivo(hijo_der, importancias)
+        fin_si
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: configurar_clasificacion
+    # Configura el modo de operación (clasificación vs regresión)
+    # ==========================================================================
+    funcion configurar_clasificacion(bool es_clasificacion)
+        este.es_clasificacion = es_clasificacion
+        si (es_clasificacion) entonces
+            imprimir "[RandomForest] Modo: Clasificación"
+        sino
+            imprimir "[RandomForest] Modo: Regresión"
+        fin_si
+    fin_funcion
+
+    # ==========================================================================
+    # MÉTODO: obtener_estadisticas
+    # Retorna estadísticas del modelo entrenado
+    # ==========================================================================
+    funcion obtener_estadisticas() retorna mapa
+        si (!este.entrenado o este.modelo == nulo) entonces
+            imprimir "[RandomForest] Modelo no entrenado"
+            retornar nulo
+        fin_si
+
+        mapa stats = mapa_crear()
+        mapa_poner(stats, "n_arboles", mapa_obtener(este.modelo, "n_arboles"))
+        mapa_poner(stats, "max_profundidad", mapa_obtener(este.modelo, "max_profundidad"))
+        mapa_poner(stats, "n_features", mapa_obtener(este.modelo, "n_features"))
+
+        texto tipo_texto = ""
+        si (este.es_clasificacion) entonces
+            tipo_texto = "clasificacion"
+        sino
+            tipo_texto = "regresion"
+        fin_si
+        mapa_poner(stats, "tipo", tipo_texto)
+
+        retornar stats
+    fin_funcion
+fin_clase
+
+# ==============================================================================
+# EXPORTAR
+# ==============================================================================
+
+enviar { RandomForest }

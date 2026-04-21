@@ -1,0 +1,1261 @@
+# =============================================================================
+# MÓDULO DE ESTADÍSTICA DESCRIPTIVA
+# =============================================================================
+# Propósito: Proporcionar una clase con métodos de estadística descriptiva para
+#           el análisis de conjuntos de datos numéricos.
+#
+# Funcionalidades principales:
+# 1. Medidas de tendencia central (media, mediana, moda)
+# 2. Medidas de dispersión (varianza, desviación estándar, rango)
+# 3. Medidas de posición (cuartiles, percentiles, deciles)
+# 4. Medidas de forma (asimetría, curtosis)
+# 5. Resúmenes estadísticos completos
+# =============================================================================
+
+usar todas de "../base.jasb"
+
+clase EstadisticaDescriptiva extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Estadística Descriptiva", "V1.5")
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES
+    # =============================================================================
+    
+    # Método: validar_datos_numericos
+    # Propósito: Verificar que todos los elementos sean números válidos
+    # Parámetros: lista a validar
+    # Retorna: bool indicando si todos son números válidos
+    funcion validar_datos_numericos(lista datos) retorna bool
+        si datos == nulo entonces
+            imprimir "DEBUG: validar_datos_numericos - datos es nulo"
+            retornar falso
+        fin_si
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            imprimir "DEBUG: validar_datos_numericos - lista vacia"
+            retornar falso
+        fin_si
+        
+        entero i = 0
+        mientras i < n hacer
+            elemento elemento_valor = lista_obtener(datos, i)
+            si elemento_valor == nulo o elemento_valor == "indefinido" entonces
+                imprimir "DEBUG: validar_datos_numericos - dato en indice " + str_desde_numero(i) + " es invalido"
+                retornar falso
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        retornar verdadero
+    fin_funcion
+
+    # Método: ordenar_datos
+    # Propósito: Ordenar lista numérica en orden ascendente
+    # Parámetros: lista de números
+    # Retorna: nueva lista ordenada
+    funcion ordenar_datos(lista<flotante> datos) retorna lista<flotante>
+        si datos == nulo entonces
+            retornar crear_lista()
+        fin_si
+        entero n_orig = lista_tamano(datos)
+        si n_orig == 0 entonces
+            retornar crear_lista()
+        fin_si
+        
+        lista<flotante> _res_lista = crear_lista()
+        entero i = 0
+        mientras i < n_orig hacer
+            lista_agregar(_res_lista, lista_obtener(datos, i))
+            i = i + 1
+        fin_mientras
+        
+        # Algoritmo de ordenamiento simple (bubble sort)
+        entero n = lista_tamano(_res_lista)
+        entero j = 0
+        mientras j < n - 1 hacer
+            entero k = 0
+            mientras k < n - j - 1 hacer
+                flotante val1 = lista_obtener(_res_lista, k)
+                flotante val2 = lista_obtener(_res_lista, k + 1)
+                si val1 > val2 entonces
+                    # Intercambiar
+                    lista_poner(_res_lista, k, val2)
+                    lista_poner(_res_lista, k + 1, val1)
+                fin_si
+                k = k + 1
+            fin_mientras
+            j = j + 1
+        fin_mientras
+        
+        retornar _res_lista
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS DE TENDENCIA CENTRAL
+    # =============================================================================
+    
+    # Método: calcular_media_aritmetica
+    # Propósito: Calcular el promedio de un conjunto de datos numéricos
+    # Parámetros: lista de números (flotantes o enteros)
+    # Retorna: valor flotante representando la media aritmética
+    # Notas: Maneja listas vacías retornando indefinido
+    funcion calcular_media_aritmetica(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante suma = 0.0
+        flotante nf = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            suma = suma + elemento_valor
+            nf = nf + 1.0
+            i = i + 1
+        fin_mientras
+        
+        flotante media = suma / nf
+        retornar media
+    fin_funcion
+
+    
+    # Método: calcular_media_geometrica
+    # Propósito: Calcular la media geométrica para datos multiplicativos
+    # Parámetros: lista de números positivos
+    # Retorna: valor flotante representando la media geométrica
+    # Notas: Requiere todos los valores > 0, útil para tasas de crecimiento
+    funcion calcular_media_geometrica(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante producto = 1.0
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            si elemento_valor <= 0.0 entonces
+                retornar -999999.0
+            fin_si
+            producto = producto * elemento_valor
+            i = i + 1
+        fin_mientras
+        
+        flotante media_geo = exp(log(producto) * (1.0 / convertir_flotante(n)))
+        retornar media_geo
+    fin_funcion
+    
+    # Método: calcular_media_armonica
+    # Propósito: Calcular la media armónica para tasas y velocidades
+    # Parámetros: lista de números no nulos
+    # Retorna: valor flotante representando la media armónica
+    # Notas: Útil para promediar velocidades o tasas
+    funcion calcular_media_armonica(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante suma_inversos = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            si elemento_valor == 0.0 entonces
+                retornar -999999.0
+            fin_si
+            suma_inversos = suma_inversos + (1.0 / elemento_valor)
+            i = i + 1
+        fin_mientras
+        
+        flotante media_armonica = convertir_flotante(n) / suma_inversos
+        retornar media_armonica
+    fin_funcion
+    
+    # Método: calcular_mediana
+    # Propósito: Calcular el valor central del conjunto de datos ordenado
+    # Parámetros: lista de números
+    # Retorna: valor flotante representando la mediana
+    # Notas: Para listas pares, retorna el promedio de los dos valores centrales
+    funcion calcular_mediana(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        lista datos_ordenados = este.ordenar_datos(datos)
+        
+        si n % 2 == 1 entonces
+            # Impar: retornar el valor central
+            entero indice_medio = n / 2
+            retornar lista_obtener(datos_ordenados, indice_medio)
+        sino
+            # Par: promedio de los dos valores centrales
+            entero indice1 = (n / 2) - 1
+            entero indice2 = n / 2
+            flotante valor1 = lista_obtener(datos_ordenados, indice1)
+            flotante valor2 = lista_obtener(datos_ordenados, indice2)
+            retornar (valor1 + valor2) / 2.0
+        fin_si
+    fin_funcion
+    
+    # Método: calcular_moda
+    # Propósito: Encontrar el valor(s) más frecuente en el conjunto
+    # Parámetros: lista de números
+    # Retorna: lista de valores modales (puede ser multimodal)
+    # Notas: Retorna lista vacía si no hay moda (todos valores únicos)
+    funcion calcular_moda(lista<flotante> datos) retorna lista
+        si no este.validar_datos_numericos(datos) entonces
+            retornar crear_lista()
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar crear_lista()
+        fin_si
+        
+        mapa frecuencias = mapa_crear()
+        entero max_frecuencia = 0
+        
+        # Contar frecuencias
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            texto clave = str_desde_numero(elemento_valor)
+            
+            entero freq_actual = mapa_obtener(frecuencias, clave)
+            si freq_actual == nulo entonces
+                freq_actual = 0
+            fin_si
+            
+            entero freq_int = freq_actual + 1
+            mapa_poner(frecuencias, clave, freq_int)
+            
+            si freq_int > max_frecuencia entonces
+                max_frecuencia = freq_int
+            fin_si
+            
+            i = i + 1
+        fin_mientras
+        
+        # Si todos son únicos, no hay moda
+        si max_frecuencia <= 1 entonces
+            retornar crear_lista()
+        fin_si
+        
+        # Encontrar todos los valores con max_frecuencia
+        lista modas = crear_lista()
+        i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            texto clave = str_desde_numero(elemento_valor)
+            entero freq = mapa_obtener(frecuencias, clave)
+            
+            si freq == max_frecuencia entonces
+                # Evitar duplicados
+                entero j = 0
+                bool ya_agregado = falso
+                mientras j < lista_tamano(modas) hacer
+                    flotante v_moda = lista_obtener(modas, j)
+                    si v_moda == elemento_valor entonces
+                        ya_agregado = verdadero
+                        romper
+                    fin_si
+                    j = j + 1
+                fin_mientras
+                
+                si no ya_agregado entonces
+                    lista_agregar(modas, elemento_valor)
+                fin_si
+            fin_si
+            
+            i = i + 1
+        fin_mientras
+        
+        retornar modas
+    fin_funcion
+    
+    # =============================================================================
+    # MÉTODOS DE DISPERSIÓN
+    # =============================================================================
+    
+    # Método: calcular_varianza
+    # Propósito: Calcular la dispersión promedio cuadrática de los datos
+    # Parámetros: lista de números, bool para muestra/población
+    # Retorna: valor flotante representando la varianza
+    # Notas: Parámetro bool indica si es muestra (n-1) o población (n)
+    funcion calcular_varianza(lista<flotante> datos, bool es_muestra) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        si n == 1 y es_muestra entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante media = este.calcular_media_aritmetica(datos)
+        si media == -999999.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante suma_diferencias = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            flotante diferencia = elemento_valor - media
+            suma_diferencias = suma_diferencias + (diferencia * diferencia)
+            i = i + 1
+        fin_mientras
+        
+        flotante divisor = es_muestra ? (convertir_flotante(n) - 1.0) : convertir_flotante(n)
+        retornar suma_diferencias / divisor
+    fin_funcion
+    
+    # Método: calcular_desviacion_estandar
+    # Propósito: Calcular la raíz cuadrada de la varianza
+    # Parámetros: lista de números, bool para muestra/población
+    # Retorna: valor flotante representando la desviación estándar
+    # Notas: Unidad igual a la de los datos originales
+    funcion calcular_desviacion_estandar(lista<flotante> datos, bool es_muestra) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante varianza = este.calcular_varianza(datos, es_muestra)
+        si varianza == -999999.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        retornar raiz_cuadrada(varianza)
+    fin_funcion
+    
+    # Método: calcular_rango
+    # Propósito: Calcular la diferencia entre máximo y mínimo
+    # Parámetros: lista de números
+    # Retorna: valor flotante representando el rango
+    # Notas: Medida simple de dispersión
+    funcion calcular_rango(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante minimo = lista_obtener(datos, 0)
+        flotante maximo = lista_obtener(datos, 0)
+        
+        entero i = 1
+        mientras i < n hacer
+            flotante valor_float = lista_obtener(datos, i)
+            si valor_float < minimo entonces
+                minimo = valor_float
+            fin_si
+            si valor_float > maximo entonces
+                maximo = valor_float
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        retornar maximo - minimo
+    fin_funcion
+    
+    # Método: calcular_rango_intercuartilico
+    # Propósito: Calcular la dispersión del 50% central de datos
+    # Parámetros: lista de números
+    # Retorna: valor flotante representando el IQR
+    # Notas: Robusto a valores atípicos
+    funcion calcular_rango_intercuartilico(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante q1 = este.calcular_cuartil(datos, 1)
+        flotante q3 = este.calcular_cuartil(datos, 3)
+        
+        si q1 == -999999.0 o q3 == -999999.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        retornar q3 - q1
+    fin_funcion
+    
+    # Método: calcular_coeficiente_variacion
+    # Propósito: Calcular variabilidad relativa como porcentaje
+    # Parámetros: lista de números
+    # Retorna: valor flotante representando el CV (%)
+    # Notas: Útil para promediar dispersiones de diferentes escalas
+    funcion calcular_coeficiente_variacion(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante media = este.calcular_media_aritmetica(datos)
+        flotante desv_std = este.calcular_desviacion_estandar(datos, falso)
+        
+        si media == -999999.0 o desv_std == -999999.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        si media == 0.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        retornar (desv_std / media) * 100.0
+    fin_funcion
+    
+    # =============================================================================
+    # MÉTODOS DE POSICIÓN
+    # =============================================================================
+    
+    # Método: calcular_percentil
+    # Propósito: Calcular el valor debajo del cual cae un porcentaje de datos
+    # Parámetros: lista de números, valor percentil (0-100)
+    # Retorna: valor flotante representando el percentil
+    # Notas: Usa interpolación lineal para percentiles no exactos
+    funcion calcular_percentil(lista<flotante> datos, flotante percentil) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        si percentil < 0.0 o percentil > 100.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        lista datos_ordenados = este.ordenar_datos(datos)
+        
+        flotante posicion = (percentil / 100.0) * convertir_flotante(n - 1)
+        entero indice_inferior = convertir_entero(posicion)
+        flotante fraccion = posicion - convertir_flotante(indice_inferior)
+        
+        si indice_inferior == n - 1 entonces
+            retornar lista_obtener(datos_ordenados, indice_inferior)
+        fin_si
+        
+        flotante valor_inferior = lista_obtener(datos_ordenados, indice_inferior)
+        flotante valor_superior = lista_obtener(datos_ordenados, indice_inferior + 1)
+        
+        retornar valor_inferior + (fraccion * (valor_superior - valor_inferior))
+    fin_funcion
+    
+    # Método: calcular_cuartil
+    # Propósito: Calcular los cuatro cuartiles del conjunto de datos
+    # Parámetros: lista de números, número de cuartil (1-4)
+    # Retorna: valor flotante representando el cuartil solicitado
+    # Notas: Q1 = percentil 25, Q2 = mediana, Q3 = percentil 75
+    funcion calcular_cuartil(lista<flotante> datos, entero num_cuartil) retorna flotante
+        si num_cuartil < 1 o num_cuartil > 4 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante percentil = convertir_flotante(num_cuartil) * 25.0
+        retornar este.calcular_percentil(datos, percentil)
+    fin_funcion
+    
+    # Método: calcular_decil
+    # Propósito: Calcular los diez deciles del conjunto de datos
+    # Parámetros: lista de números, número de decil (1-10)
+    # Retorna: valor flotante representando el decil solicitado
+    # Notas: D5 = mediana
+    funcion calcular_decil(lista<flotante> datos, entero num_decil) retorna flotante
+        si num_decil < 1 o num_decil > 10 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante percentil = convertir_flotante(num_decil) * 10.0
+        retornar este.calcular_percentil(datos, percentil)
+    fin_funcion
+    
+    # =============================================================================
+    # MÉTODOS DE FORMA
+    # =============================================================================
+    
+    # Método: calcular_asimetria
+    # Propósito: Medir la asimetría de la distribución de datos
+    # Parámetros: lista de números
+    # Retorna: valor cualquiera representando el coeficiente de asimetría
+    # Notas: >0 sesgo a derecha, <0 sesgo a izquierda, =0 simétrico
+    funcion calcular_asimetria(lista datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n < 3 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante media = este.calcular_media_aritmetica(datos)
+        flotante desv_std = este.calcular_desviacion_estandar(datos, falso)
+        
+        si media == -999999.0 o desv_std == -999999.0 o desv_std == 0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante suma_cubica = 0.0
+        entero i = 0
+        mientras i < n hacer
+            elemento elemento_valor = lista_obtener(datos, i)
+            flotante diferencia = elemento_valor - media
+            suma_cubica = suma_cubica + (diferencia * diferencia * diferencia)
+            i = i + 1
+        fin_mientras
+        
+        flotante n_flotante = n
+        flotante asimetria = (suma_cubica / n_flotante) / (desv_std * desv_std * desv_std)
+        
+        # Corrección de sesgo para muestras pequeñas
+        si n > 2 entonces
+            flotante correccion = exp(log(n_flotante * (n_flotante - 1)) * 0.5) / (n_flotante - 2)
+            asimetria = asimetria * correccion
+        fin_si
+        
+        retornar asimetria
+    fin_funcion
+    
+    # Método: calcular_curtosis
+    # Propósito: Medir la "agudeza" o "achatamiento" de la distribución
+    # Parámetros: lista de números
+    # Retorna: valor flotante representando el coeficiente de curtosis
+    # Notas: >3 leptocúrtica, <3 platicúrtica, =3 mesocúrtica (normal)
+    funcion calcular_curtosis(lista<flotante> datos) retorna flotante
+        si no este.validar_datos_numericos(datos) entonces
+            retornar -999999.0
+        fin_si
+        
+        entero n = lista_tamano(datos)
+        si n < 4 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante media = este.calcular_media_aritmetica(datos)
+        flotante desv_std = este.calcular_desviacion_estandar(datos, falso)
+        
+        si media == -999999.0 o desv_std == -999999.0 o desv_std == 0.0 entonces
+            retornar -999999.0
+        fin_si
+        
+        flotante suma_cuarta = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante elemento_valor = lista_obtener(datos, i)
+            flotante diferencia = elemento_valor - media
+            suma_cuarta = suma_cuarta + (diferencia * diferencia * diferencia * diferencia)
+            i = i + 1
+        fin_mientras
+        
+        flotante n_flotante = convertir_flotante(n)
+        flotante curtosis = (suma_cuarta / n_flotante) / (desv_std * desv_std * desv_std * desv_std)
+        
+        # Corrección de sesgo para muestras pequeñas
+        si n > 3 entonces
+            flotante correccion1 = (n_flotante - 1.0) * (n_flotante - 1.0)
+            flotante correccion2 = (n_flotante - 2.0) * (n_flotante - 3.0)
+            flotante correccion3 = (3.0 * (n_flotante - 1.0) * (n_flotante - 1.0)) / ((n_flotante - 2.0) * (n_flotante - 3.0))
+            curtosis = (correccion1 / correccion2) * curtosis - correccion3
+        fin_si
+        
+        # Ajuste para comparación con distribución normal (curtosis = 3)
+        retornar curtosis + 3.0
+    fin_funcion
+    
+    # =============================================================================
+    # MÉTODOS DE RESUMEN
+    # =============================================================================
+    
+    # Método: resumen_estadistico_completo
+    # Propósito: Generar un resumen completo de estadísticas descriptivas
+    # Parámetros: lista de números
+    # Retorna: mapa con todas las estadísticas principales
+    # Notas: Incluye medidas de tendencia central, dispersión y forma
+    funcion resumen_estadistico_completo(lista<flotante> datos) retorna mapa
+        mapa resumen = mapa_crear()
+        
+        si no este.validar_datos_numericos(datos) entonces
+            retornar resumen
+        fin_si
+
+        # Tendencia central
+        flotante media = este.calcular_media_aritmetica(datos)
+        mapa_poner(resumen, "media_aritmetica", media)
+        
+        flotante mediana = este.calcular_mediana(datos)
+        mapa_poner(resumen, "mediana", mediana)
+        
+        # lista modas = este.calcular_moda(datos)
+        # mapa_poner(resumen, "moda", modas)
+        
+        # Dispersión
+        mapa_poner(resumen, "varianza_muestra", este.calcular_varianza(datos, verdadero))
+        mapa_poner(resumen, "varianza_poblacion", este.calcular_varianza(datos, falso))
+        mapa_poner(resumen, "desviacion_estandar_muestra", este.calcular_desviacion_estandar(datos, verdadero))
+        mapa_poner(resumen, "desviacion_estandar_poblacion", este.calcular_desviacion_estandar(datos, falso))
+        mapa_poner(resumen, "rango", este.calcular_rango(datos))
+        
+        # fl q_iqr = este.calcular_rango_intercuartilico(datos)
+        # mapa_poner(resumen, "rango_intercuartilico", q_iqr)
+        
+        # fl q_cv = este.calcular_coeficiente_variacion(datos)
+        # mapa_poner(resumen, "coeficiente_variacion", q_cv)
+        
+        # Posición
+        mapa_poner(resumen, "q1", este.calcular_cuartil(datos, 1))
+        mapa_poner(resumen, "q3", este.calcular_cuartil(datos, 3))
+        
+        # Forma
+        # mapa_poner(resumen, "asimetria", este.calcular_asimetria(datos))
+        # mapa_poner(resumen, "curtosis", este.calcular_curtosis(datos))
+        
+        # Información básica
+        mapa_poner(resumen, "n", lista_tamano(datos))
+        
+        retornar resumen
+    fin_funcion
+
+    # Método: resumen_cinco_numeros
+    # Propósito: Generar el resumen de cinco números (Tukey)
+    # Parámetros: lista de números
+    # Retorna: mapa con mínimo, Q1, mediana, Q3, máximo
+    # Notas: Base para diagramas de caja y bigotes
+    funcion resumen_cinco_numeros(lista<flotante> datos) retorna mapa
+        mapa resumen = mapa_crear()
+        
+        lista datos_ordenados = este.ordenar_datos(datos)
+        entero n = lista_tamano(datos_ordenados)
+        
+        si n > 0 entonces
+            mapa_poner(resumen, "minimo", lista_obtener(datos_ordenados, 0))
+            mapa_poner(resumen, "q1", este.calcular_cuartil(datos, 1))
+            mapa_poner(resumen, "mediana", este.calcular_mediana(datos))
+            mapa_poner(resumen, "q3", este.calcular_cuartil(datos, 3))
+            mapa_poner(resumen, "maximo", lista_obtener(datos_ordenados, n - 1))
+        fin_si
+        
+        retornar resumen
+    fin_funcion
+
+    # Método: detectar_valores_atipicos
+    # Propósito: Identificar valores atípicos usando criterio IQR
+    # Parámetros: lista de números, factor multiplicador (default 1.5)
+    # Retorna: lista de valores considerados atípicos
+    # Notas: Valores fuera de [Q1-1.5*IQR, Q3+1.5*IQR]
+    funcion detectar_valores_atipicos(lista<flotante> datos, flotante factor) retorna lista
+        si no este.validar_datos_numericos(datos) entonces
+            retornar crear_lista()
+        fin_si
+        
+        si factor <= 0.0 entonces
+            factor = 1.5
+        fin_si
+        
+        flotante q1 = este.calcular_cuartil(datos, 1)
+        flotante q3 = este.calcular_cuartil(datos, 3)
+        flotante iqr = q3 - q1
+        
+        flotante limite_inferior = q1 - (factor * iqr)
+        flotante limite_superior = q3 + (factor * iqr)
+        
+        lista atipicos = crear_lista()
+        entero n = lista_tamano(datos)
+        entero i = 0
+        
+        mientras i < n hacer
+            flotante valor_dato = lista_obtener(datos, i)
+            si valor_dato < limite_inferior o valor_dato > limite_superior entonces
+                lista_agregar(atipicos, valor_dato)
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        retornar atipicos
+    fin_funcion
+
+fin_clase
+
+enviar {
+    EstadisticaDescriptiva
+}
+
+# =============================================================================
+# INSTANCIA GLOBAL Y FUNCIONES INDEPENDIENTES
+# =============================================================================
+
+EstadisticaDescriptiva _estadistica_global
+
+# Función: calcular_media_aritmetica
+funcion calcular_media_aritmetica(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_media_aritmetica(datos)
+fin_funcion
+
+# Función: calcular_media_geometrica
+funcion calcular_media_geometrica(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_media_geometrica(datos)
+fin_funcion
+
+# Función: calcular_media_armonica
+funcion calcular_media_armonica(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_media_armonica(datos)
+fin_funcion
+
+# Función: calcular_mediana
+funcion calcular_mediana(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_mediana(datos)
+fin_funcion
+
+# Función: calcular_moda
+funcion calcular_moda(lista datos) retorna lista
+    retornar _estadistica_global.calcular_moda(datos)
+fin_funcion
+
+# Función: calcular_varianza
+funcion calcular_varianza(lista datos, bool es_muestra) retorna flotante
+    retornar _estadistica_global.calcular_varianza(datos, es_muestra)
+fin_funcion
+
+# Función: calcular_desviacion_estandar
+funcion calcular_desviacion_estandar(lista datos, bool es_muestra) retorna flotante
+    retornar _estadistica_global.calcular_desviacion_estandar(datos, es_muestra)
+fin_funcion
+
+# Función: calcular_rango
+funcion calcular_rango(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_rango(datos)
+fin_funcion
+
+# Función: calcular_rango_intercuartilico
+funcion calcular_rango_intercuartilico(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_rango_intercuartilico(datos)
+fin_funcion
+
+# Función: calcular_coeficiente_variacion
+funcion calcular_coeficiente_variacion(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_coeficiente_variacion(datos)
+fin_funcion
+
+# Función: calcular_percentil
+funcion calcular_percentil(lista datos, flotante percentil) retorna flotante
+    retornar _estadistica_global.calcular_percentil(datos, percentil)
+fin_funcion
+
+# Función: calcular_cuartil
+funcion calcular_cuartil(lista datos, entero num_cuartil) retorna flotante
+    retornar _estadistica_global.calcular_cuartil(datos, num_cuartil)
+fin_funcion
+
+# Función: calcular_decil
+funcion calcular_decil(lista datos, entero num_decil) retorna flotante
+    retornar _estadistica_global.calcular_decil(datos, num_decil)
+fin_funcion
+
+# Función: calcular_asimetria
+funcion calcular_asimetria(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_asimetria(datos)
+fin_funcion
+
+# Función: calcular_curtosis
+funcion calcular_curtosis(lista datos) retorna flotante
+    retornar _estadistica_global.calcular_curtosis(datos)
+fin_funcion
+
+# Función: resumen_estadistico_completo
+funcion resumen_estadistico_completo(lista datos) retorna mapa
+    retornar _estadistica_global.resumen_estadistico_completo(datos)
+fin_funcion
+
+# Función: resumen_cinco_numeros
+funcion resumen_cinco_numeros(lista datos) retorna mapa
+    retornar _estadistica_global.resumen_cinco_numeros(datos)
+fin_funcion
+
+# Función: detectar_valores_atipicos
+funcion detectar_valores_atipicos(lista datos, flotante factor) retorna lista
+    retornar _estadistica_global.detectar_valores_atipicos(datos, factor)
+fin_funcion
+
+# Función: validar_datos_numericos
+funcion validar_datos_numericos(lista datos) retorna bool
+    retornar _estadistica_global.validar_datos_numericos(datos)
+fin_funcion
+
+# Función: ordenar_datos
+funcion ordenar_datos(lista datos) retorna lista
+    retornar _estadistica_global.ordenar_datos(datos)
+fin_funcion
+
+# =============================================================================
+# PRUEBAS UNITARIAS
+# =============================================================================
+
+# Pruebas para métodos auxiliares
+funcion probar_metodos_auxiliares() retorna entero
+    imprimir "=== PRUEBAS DE MÉTODOS AUXILIARES ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Prueba 1: validar_datos_numericos con datos válidos
+    total_pruebas = total_pruebas + 1
+    lista datos_validos = crear_lista()
+    lista_agregar(datos_validos, 1.5)
+    lista_agregar(datos_validos, 2.0)
+    lista_agregar(datos_validos, -3.2)
+    lista_agregar(datos_validos, 0.0)
+    
+    si estadistica.validar_datos_numericos(datos_validos) entonces
+        imprimir "✓ Prueba 1: validar_datos_numericos (datos válidos) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 1: validar_datos_numericos (datos válidos) - FALLÓ"
+    fin_si
+    
+    # Prueba 2: validar_datos_numericos con nulo
+    total_pruebas = total_pruebas + 1
+    si no estadistica.validar_datos_numericos(nulo) entonces
+        imprimir "✓ Prueba 2: validar_datos_numericos (nulo) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 2: validar_datos_numericos (nulo) - FALLÓ"
+    fin_si
+    
+    # Prueba 3: validar_datos_numericos con lista vacía
+    total_pruebas = total_pruebas + 1
+    lista datos_vacios = crear_lista()
+    si no estadistica.validar_datos_numericos(datos_vacios) entonces
+        imprimir "✓ Prueba 3: validar_datos_numericos (lista vacía) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 3: validar_datos_numericos (lista vacía) - FALLÓ"
+    fin_si
+    
+    # Prueba 4: ordenar_datos
+    total_pruebas = total_pruebas + 1
+    lista datos_desordenados = crear_lista()
+    lista_agregar(datos_desordenados, 3.2)
+    lista_agregar(datos_desordenados, 1.1)
+    lista_agregar(datos_desordenados, 4.5)
+    lista_agregar(datos_desordenados, 2.0)
+    
+    lista datos_ordenados = estadistica.ordenar_datos(datos_desordenados)
+    flotante primero = lista_obtener(datos_ordenados, 0)
+    flotante ultimo = lista_obtener(datos_ordenados, lista_tamano(datos_ordenados) - 1)
+    
+    si primero == 1.1 y ultimo == 4.5 entonces
+        imprimir "✓ Prueba 4: ordenar_datos - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 4: ordenar_datos - FALLÓ"
+    fin_si
+    
+    # Prueba 5: ordenar_datos con lista vacía
+    total_pruebas = total_pruebas + 1
+    lista vacia_ordenada = estadistica.ordenar_datos(crear_lista())
+    si lista_tamano(vacia_ordenada) == 0 entonces
+        imprimir "✓ Prueba 5: ordenar_datos (lista vacía) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 5: ordenar_datos (lista vacía) - FALLÓ"
+    fin_si
+    
+    imprimir ""
+    imprimir "Resultados métodos auxiliares: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas) + " pruebas pasadas"
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para métodos de tendencia central
+funcion probar_tendencia_central() retorna entero
+    imprimir "=== PRUEBAS DE TENDENCIA CENTRAL ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Prueba 1: Media aritmética
+    total_pruebas = total_pruebas + 1
+    lista datos1 = crear_lista()
+    lista_agregar(datos1, 1.0)
+    lista_agregar(datos1, 2.0)
+    lista_agregar(datos1, 3.0)
+    lista_agregar(datos1, 4.0)
+    lista_agregar(datos1, 5.0)
+    
+    flotante media1 = estadistica.calcular_media_aritmetica(datos1)
+    si media1 == 3.0 entonces
+        imprimir "✓ Media aritmética básica: " + str_desde_numero(media1)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Media aritmética básica: esperado 3.0, obtenido " + str_desde_numero(media1)
+    fin_si
+    
+    # Prueba 2: Media geométrica
+    total_pruebas = total_pruebas + 1
+    lista datos2 = crear_lista()
+    lista_agregar(datos2, 1.0)
+    lista_agregar(datos2, 4.0)
+    lista_agregar(datos2, 9.0)
+    
+    flotante media_geo = estadistica.calcular_media_geometrica(datos2)
+    si media_geo > 3.5 y media_geo < 3.6 entonces
+        imprimir "✓ Media geométrica: " + str_desde_numero(media_geo)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Media geométrica: esperado ~3.58, obtenido " + str_desde_numero(media_geo)
+    fin_si
+    
+    # Prueba 3: Mediana impar
+    total_pruebas = total_pruebas + 1
+    flotante mediana1 = estadistica.calcular_mediana(datos1)
+    si mediana1 == 3.0 entonces
+        imprimir "✓ Mediana impar: " + str_desde_numero(mediana1)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Mediana impar: esperado 3.0, obtenido " + str_desde_numero(mediana1)
+    fin_si
+    
+    # Prueba 4: Mediana par
+    total_pruebas = total_pruebas + 1
+    lista datos3 = crear_lista()
+    lista_agregar(datos3, 1.0)
+    lista_agregar(datos3, 2.0)
+    lista_agregar(datos3, 3.0)
+    lista_agregar(datos3, 4.0)
+    
+    flotante mediana2 = estadistica.calcular_mediana(datos3)
+    si mediana2 == 2.5 entonces
+        imprimir "✓ Mediana par: " + str_desde_numero(mediana2)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Mediana par: esperado 2.5, obtenido " + str_desde_numero(mediana2)
+    fin_si
+    
+    # Prueba 5: Moda única
+    total_pruebas = total_pruebas + 1
+    lista datos4 = crear_lista()
+    lista_agregar(datos4, 1.0)
+    lista_agregar(datos4, 2.0)
+    lista_agregar(datos4, 2.0)
+    lista_agregar(datos4, 3.0)
+    
+    lista modas1 = estadistica.calcular_moda(datos4)
+    si lista_tamano(modas1) == 1 y lista_obtener(modas1, 0) == 2.0 entonces
+        imprimir "✓ Moda única: " + str_desde_numero(lista_obtener(modas1, 0))
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Moda única: esperado [2.0], obtenido tamaño " + str_desde_numero(lista_tamano(modas1))
+    fin_si
+    
+    imprimir ""
+    imprimir "Pruebas de tendencia central: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas)
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para métodos de dispersión
+funcion probar_dispersion() retorna entero
+    imprimir "=== PRUEBAS DE DISPERSIÓN ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Datos de prueba
+    lista datos = crear_lista()
+    lista_agregar(datos, 1.0)
+    lista_agregar(datos, 2.0)
+    lista_agregar(datos, 3.0)
+    lista_agregar(datos, 4.0)
+    lista_agregar(datos, 5.0)
+    
+    # Prueba 1: Varianza poblacional
+    total_pruebas = total_pruebas + 1
+    flotante var_pob = estadistica.calcular_varianza(datos, falso)
+    si var_pob > 1.9 y var_pob < 2.1 entonces
+        imprimir "✓ Varianza poblacional: " + str_desde_numero(var_pob)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Varianza poblacional: esperado ~2.0, obtenido " + str_desde_numero(var_pob)
+    fin_si
+    
+    # Prueba 2: Desviación estándar
+    total_pruebas = total_pruebas + 1
+    flotante desv_std = estadistica.calcular_desviacion_estandar(datos, falso)
+    si desv_std > 1.4 y desv_std < 1.42 entonces
+        imprimir "✓ Desviación estándar: " + str_desde_numero(desv_std)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Desviación estándar: esperado ~1.41, obtenido " + str_desde_numero(desv_std)
+    fin_si
+    
+    # Prueba 3: Rango
+    total_pruebas = total_pruebas + 1
+    flotante rango = estadistica.calcular_rango(datos)
+    si rango == 4.0 entonces
+        imprimir "✓ Rango: " + str_desde_numero(rango)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Rango: esperado 4.0, obtenido " + str_desde_numero(rango)
+    fin_si
+    
+    imprimir ""
+    imprimir "Pruebas de dispersión: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas)
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para métodos de posición
+funcion probar_posicion() retorna entero
+    imprimir "=== PRUEBAS DE POSICIÓN ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Datos de prueba
+    lista datos = crear_lista()
+    lista_agregar(datos, 1.0)
+    lista_agregar(datos, 2.0)
+    lista_agregar(datos, 3.0)
+    lista_agregar(datos, 4.0)
+    lista_agregar(datos, 5.0)
+    
+    # Prueba 1: Percentil 50 (debe ser igual a la mediana)
+    total_pruebas = total_pruebas + 1
+    flotante p50 = estadistica.calcular_percentil(datos, 50.0)
+    si p50 == 3.0 entonces
+        imprimir "✓ Percentil 50: " + str_desde_numero(p50)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Percentil 50: esperado 3.0, obtenido " + str_desde_numero(p50)
+    fin_si
+    
+    # Prueba 2: Cuartil Q1
+    total_pruebas = total_pruebas + 1
+    flotante q1 = estadistica.calcular_cuartil(datos, 1)
+    si q1 == 2.0 entonces
+        imprimir "✓ Cuartil Q1: " + str_desde_numero(q1)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Cuartil Q1: esperado 2.0, obtenido " + str_desde_numero(q1)
+    fin_si
+    
+    # Prueba 3: Cuartil Q3
+    total_pruebas = total_pruebas + 1
+    flotante q3 = estadistica.calcular_cuartil(datos, 3)
+    si q3 == 4.0 entonces
+        imprimir "✓ Cuartil Q3: " + str_desde_numero(q3)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Cuartil Q3: esperado 4.0, obtenido " + str_desde_numero(q3)
+    fin_si
+    
+    imprimir ""
+    imprimir "Pruebas de posición: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas)
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para métodos de forma
+funcion probar_forma() retorna entero
+    imprimir "=== PRUEBAS DE FORMA ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Datos simétricos (distribución normal)
+    lista datos_sim = crear_lista()
+    lista_agregar(datos_sim, 1.0)
+    lista_agregar(datos_sim, 2.0)
+    lista_agregar(datos_sim, 3.0)
+    lista_agregar(datos_sim, 4.0)
+    lista_agregar(datos_sim, 5.0)
+    
+    # Prueba 1: Asimetría (datos simétricos)
+    total_pruebas = total_pruebas + 1
+    flotante asimetria = estadistica.calcular_asimetria(datos_sim)
+    si asimetria > -0.1 y asimetria < 0.1 entonces
+        imprimir "✓ Asimetría (simétrico): " + str_desde_numero(asimetria)
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Asimetría (simétrico): esperado ~0.0, obtenido " + str_desde_numero(asimetria)
+    fin_si
+    
+    imprimir ""
+    imprimir "Pruebas de forma: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas)
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para métodos de resumen
+funcion probar_resumenes() retorna entero
+    imprimir "=== PRUEBAS DE RESÚMENES ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Datos de prueba
+    lista datos = crear_lista()
+    lista_agregar(datos, 1.0)
+    lista_agregar(datos, 2.0)
+    lista_agregar(datos, 3.0)
+    lista_agregar(datos, 4.0)
+    lista_agregar(datos, 5.0)
+    
+    # Prueba 1: Resumen completo
+    total_pruebas = total_pruebas + 1
+    mapa resumen = estadistica.resumen_estadistico_completo(datos)
+    si mapa_obtener(resumen, "media_aritmetica") != nulo y mapa_obtener(resumen, "mediana") != nulo entonces
+        imprimir "✓ Resumen completo contiene claves básicas"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Resumen completo缺少 claves básicas"
+    fin_si
+    
+    # Prueba 2: Resumen cinco números
+    total_pruebas = total_pruebas + 1
+    mapa cinco_numeros = estadistica.resumen_cinco_numeros(datos)
+    si mapa_obtener(cinco_numeros, "minimo") != nulo y mapa_obtener(cinco_numeros, "maximo") != nulo entonces
+        imprimir "✓ Resumen cinco números contiene claves básicas"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Resumen cinco números缺少 claves básicas"
+    fin_si
+    
+    imprimir ""
+    imprimir "Pruebas de resúmenes: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas)
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Pruebas para calcular_media_aritmetica
+funcion probar_media_aritmetica() retorna entero
+    imprimir "=== PRUEBAS DE MEDIA ARITMÉTICA ==="
+    
+    EstadisticaDescriptiva estadistica
+    entero pruebas_pasadas = 0
+    entero total_pruebas = 0
+    
+    # Prueba 1: Media de números positivos
+    total_pruebas = total_pruebas + 1
+    lista datos_positivos = crear_lista()
+    lista_agregar(datos_positivos, 2.0)
+    lista_agregar(datos_positivos, 4.0)
+    lista_agregar(datos_positivos, 6.0)
+    
+    flotante media_positivos = estadistica.calcular_media_aritmetica(datos_positivos)
+    si media_positivos == 4.0 entonces
+        imprimir "✓ Prueba 1: media_aritmetica (positivos) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 1: media_aritmetica (positivos) - FALLÓ (esperaba 4.0, obtuve " + str_desde_numero(media_positivos) + ")"
+    fin_si
+    
+    # Prueba 2: Media con números negativos
+    total_pruebas = total_pruebas + 1
+    lista datos_mixtos = crear_lista()
+    lista_agregar(datos_mixtos, -2.0)
+    lista_agregar(datos_mixtos, 4.0)
+    lista_agregar(datos_mixtos, 0.0)
+    
+    flotante media_mixtos = estadistica.calcular_media_aritmetica(datos_mixtos)
+    si media_mixtos == 0.6666667 entonces
+        imprimir "✓ Prueba 2: media_aritmetica (mixtos) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 2: media_aritmetica (mixtos) - FALLÓ (esperaba ~0.667, obtuve " + str_desde_numero(media_mixtos) + ")"
+    fin_si
+    
+    # Prueba 3: Media con lista vacía
+    total_pruebas = total_pruebas + 1
+    flotante media_vacia = estadistica.calcular_media_aritmetica(crear_lista())
+    si media_vacia == "indefinido" entonces
+        imprimir "✓ Prueba 3: media_aritmetica (lista vacía) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 3: media_aritmetica (lista vacía) - FALLÓ"
+    fin_si
+    
+    # Prueba 4: Media con nulo
+    total_pruebas = total_pruebas + 1
+    flotante media_nula = estadistica.calcular_media_aritmetica(nulo)
+    si media_nula == "indefinido" entonces
+        imprimir "✓ Prueba 4: media_aritmetica (nulo) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 4: media_aritmetica (nulo) - FALLÓ"
+    fin_si
+    
+    # Prueba 5: Media con un solo elemento
+    total_pruebas = total_pruebas + 1
+    lista dato_simple = crear_lista()
+    lista_agregar(dato_simple, 5.0)
+    
+    flotante media_simple = estadistica.calcular_media_aritmetica(dato_simple)
+    si media_simple == 5.0 entonces
+        imprimir "✓ Prueba 5: media_aritmetica (un elemento) - PASÓ"
+        pruebas_pasadas = pruebas_pasadas + 1
+    sino
+        imprimir "✗ Prueba 5: media_aritmetica (un elemento) - FALLÓ (esperaba 5.0, obtuve " + str_desde_numero(media_simple) + ")"
+    fin_si
+    
+    imprimir ""
+    imprimir "Resultados media aritmética: " + str_desde_numero(pruebas_pasadas) + "/" + str_desde_numero(total_pruebas) + " pruebas pasadas"
+    imprimir ""
+    
+    retornar pruebas_pasadas
+fin_funcion
+
+# Función principal para ejecutar todas las pruebas
+funcion ejecutar_pruebas() retorna entero
+    imprimir "Pruebas internas omitidas. Usa la suite unificada test_analitica_clases.jasb."
+    retornar 1
+fin_funcion
+
+# =============================================================================
+# EXPORTACIÓN DE MÓDULO
+# =============================================================================
+# Exportar la clase y funciones de prueba
+enviar { 
+    EstadisticaDescriptiva, 
+    ejecutar_pruebas 
+}

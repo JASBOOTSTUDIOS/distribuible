@@ -1,0 +1,399 @@
+# Proyecto: Jasboot Programming Language
+# Lenguaje de programación español con memoria neuronal integrada
+
+## Descripción del Proyecto
+Jasboot es un lenguaje de programación en español con capacidades de memoria neuronal (JMN).
+Incluye compilador a IR, máquina virtual, y sistema de memoria asociativa para IA.
+
+## Stack Tecnológico
+
+### Lenguajes y Herramientas
+- C11 (GCC/MinGW) para compilador y runtime
+- Make/Batch scripts para build system
+- Git para control de versiones
+- Node.js para scripts de testing
+
+### Componentes Principales
+- **Compilador**: jas-compiler-c (C) - Jasboot → IR bytecode
+- **VM**: jasboot-ir (C) - Ejecuta bytecode IR
+- **JMN Core**: jasboot-jmn-core (C) - Memoria neuronal persistente
+- **SDK**: Bibliotecas estándar en Jasboot
+
+## Estructura del Proyecto
+
+```
+jasboot/
+├── sdk-dependiente/           # SDK con dependencias nativas
+│   ├── jas-compiler-c/        # Compilador Jasboot → IR
+│   ├── jasboot-ir/            # Máquina virtual
+│   ├── jasboot-jmn-core/      # Core memoria neuronal
+│   └── bin/                   # Ejecutables compilados
+├── apps/                      # Aplicaciones de ejemplo
+│   ├── aurora_ia/             # Sistema de IA conversacional
+│   ├── michelle_IA/           # Asistente virtual
+│   └── neurixis/              # Framework de redes neuronales
+├── stdlib/                    # Biblioteca estándar Jasboot
+├── tests/                     # Tests del lenguaje
+└── examples/                  # Ejemplos de código
+```
+
+## Convenciones de Código
+
+### Código C (Compilador/VM/JMN)
+
+#### Nombres de Funciones
+- Funciones de VM: prefijo `vm_` (ej: `vm_step`, `vm_leer_seguro`)
+- Funciones de JMN: prefijo `jmn_` (ej: `jmn_buscar_asociaciones`, `jmn_guardar_texto`)
+- Funciones de IR: prefijo `ir_` (ej: `ir_read_instruction`)
+- Funciones estáticas/internas: `static` + prefijo del módulo
+
+#### Estilos
+- snake_case para funciones y variables
+- PascalCase para structs y typedefs (ej: `VM`, `SymbolTable`, `JMNMemoria`)
+- SCREAMING_SNAKE_CASE para constantes y macros
+- Usar tipos estándar de C11: `uint32_t`, `uint64_t`, `size_t`
+
+#### Gestión de Memoria
+- SIEMPRE validar rangos antes de leer/escribir memoria
+- Usar `vm_leer_seguro()` y `vm_escribir_seguro()` en lugar de accesos directos
+- Liberar recursos en el orden inverso a su asignación
+- Verificar NULL después de malloc/calloc
+
+#### Seguridad de Memoria (CRÍTICO)
+```c
+// ✅ CORRECTO - Validación segura sin overflow
+if (addr > vm->memory_size || vm->memory_size - addr < 8) {
+    // Error
+}
+
+// ❌ INCORRECTO - Vulnerable a overflow
+if (addr + 8 > vm->memory_size) {
+    // Error
+}
+```
+
+### Código Jasboot (Lenguaje)
+
+#### Sintaxis
+- Palabras clave en español: `principal`, `funcion`, `si`, `mientras`, etc.
+- Variables: snake_case o camelCase (preferir snake_case)
+- Clases: PascalCase
+- Constantes: SCREAMING_SNAKE_CASE
+
+#### Tipos de Datos
+- `entero` - Enteros de 64 bits
+- `texto` - Cadenas de texto (UTF-8)
+- `flotante` - Números decimales
+- `bool` - Booleano (verdadero/falso)
+- `elemento` - Tipo dinámico (puede contener cualquier valor)
+
+#### Memoria JMN
+```jasb
+# Crear memoria
+crear_memoria("archivo.jmn")
+
+# Recordar (guardar)
+recordar "clave" con valor "valor"
+
+# Buscar (recuperar)
+buscar "clave"
+texto resultado_var = resultado  # Variable 'resultado' es tipo 'elemento'
+
+# Asociar conceptos
+asociar "concepto1" con "concepto2" con fuerza 0.9
+
+# Cerrar
+cerrar_memoria()
+```
+
+## Arquitectura del Sistema
+
+### Pipeline de Compilación
+1. **Lexer** (lexer.c): Texto → Tokens
+2. **Parser** (parser.c): Tokens → AST
+3. **Resolver** (resolve.c): Resolución de símbolos y tipos
+4. **Codegen** (codegen.c): AST → IR bytecode
+5. **VM** (vm.c): Ejecuta IR bytecode
+
+### Sistema de Tipos
+- Tipado dinámico en runtime
+- Variable especial `resultado`: tipo `elemento` (no `entero`)
+- Conversión automática entre tipos cuando es seguro
+- `OP_ID_A_TEXTO` convierte IDs de hash a texto
+
+### Memoria Neuronal (JMN)
+
+#### Conceptos Clave
+- **Nodo**: Concepto con ID único (hash de texto)
+- **Conexión**: Relación entre dos nodos con peso (0.0-1.0)
+- **Tipos de relación**: Asociación (1), Secuencia (2), Similitud (3), etc.
+- **Persistencia**: Archivo binario .jmn
+
+#### Operaciones Principales
+```c
+// Buscar asociaciones
+jmn_buscar_asociaciones(mem, id_origen, tipo_relacion, umbral, profundidad, resultados, max_resultados)
+
+// Guardar/obtener texto
+jmn_guardar_texto(mem, id, texto)
+jmn_obtener_texto(mem, id, buffer, buffer_size)
+
+// Agregar nodo/conexión
+jmn_agregar_nodo(mem, id, valor)
+jmn_agregar_conexion(mem, id_origen, id_destino, peso, tipo_relacion)
+```
+
+## Patrones Importantes
+
+### Manejo de Errores
+```c
+// En VM - usar try/catch integration
+if (vm_try_catch_or_abort(vm, error_msg)) return 0;
+
+// En funciones normales - retornar error code
+if (error_condition) {
+    fprintf(stderr, "[ERROR] Descripción del error\n");
+    return -1;  // o NULL para punteros
+}
+```
+
+### Cache de Texto
+- La VM mantiene un cache de ID → texto
+- Usar `vm_text_cache_get()` antes de `jmn_obtener_texto()`
+- IDs runtime empiezan en 0x80000000
+- Siempre sincronizar cache con JMN en operaciones críticas
+
+### Validación de Rangos
+```c
+// Usar funciones unificadas
+if (!vm_leer_seguro(vm, addr, &value, "contexto")) {
+    return 0; // Error ya manejado
+}
+
+// Incluir contexto descriptivo en mensajes de error
+char msg[512];
+snprintf(msg, sizeof msg, 
+    "[ERROR] Operación falló en %s: detalle específico", 
+    contexto);
+```
+
+## Problemas Comunes y Soluciones
+
+### 1. "buscar" devuelve números en lugar de texto
+**Causa**: Variable `resultado` declarada como `entero` en lugar de `elemento`
+**Solución**: Cambiar en `symbol_table.c`:
+```c
+sym_declare(st, "resultado", "elemento", 8, 0, 0, NULL);
+```
+
+### 2. Violación de acceso en OP_LEER/OP_ESCRIBIR
+**Causa**: Dirección fuera de límites o uso de hash como puntero
+**Solución**: 
+- Usar `vm_leer_seguro()` / `vm_escribir_seguro()`
+- Validar rangos sin overflow: `addr > size || size - addr < needed`
+
+### 3. Texto no persiste en JMN después de "recordar"
+**Causa**: Texto no guardado en JMN cuando se ejecuta OP_MEM_ASOCIAR_CONCEPTOS
+**Solución**: En OP_LOAD_STR_HASH, agregar:
+```c
+if (vm->mem_neuronal) {
+    jmn_guardar_texto(vm->mem_neuronal, hash, str);
+}
+```
+
+### 4. Memoria JMN corrupta
+**Causa**: No cerrar memoria antes de salir o escritura parcial
+**Solución**: Siempre llamar `cerrar_memoria()` o `consolidar_memoria()`
+
+### 5. ✅ CORREGIDO: Bugs en sistema de listas JMN
+Ver sección "Bugs Corregidos Recientemente (2024)" más abajo para detalles completos.
+**Doc**: `BUGFIX_SISTEMA_LISTAS_JMN.md`
+
+### 6. ✅ IMPLEMENTADO: No se pueden redeclarar funciones del sistema
+**Problema**: El compilador permitía declarar funciones con nombres de funciones built-in
+**Solución**: ✅ IMPLEMENTADO - Validación en `parser.c` en `validate_user_defined_name_tok()`
+```c
+// Ahora verifica:
+if (is_sistema_llamada(s, strlen(s))) {
+    set_error_at(p, tok->line, tok->column, 
+        "'%s' es una funcion incorporada del lenguaje. No puede ser redeclarada...");
+    return 0;
+}
+```
+**Funciones protegidas**: Todas las funciones en `SISTEMA_LLAMADAS[]` (200+)
+- Ejemplos: `consolidar_memoria`, `lista_tamano`, `buscar`, `crear_memoria`, `asociar`, etc.
+**Nombres permitidos**: Variaciones como `mi_consolidar_memoria`, `buscar_en_cache`, etc.
+**Estado**: ✅ Implementado el 20/04/2024
+**Tests**: `tests/test_funcion_sistema_no_redeclarable.jasb` (debe fallar), `tests/test_funciones_validas.jasb` (debe pasar)
+**Doc**: `BUGFIX_NO_REDECLARAR_FUNCIONES_SISTEMA.md`
+</text>
+
+<old_text line=350>
+**Tests**: `tests/test_bugs_corregidos.jasb`, `tests/test_fuerza_asociacion.jasb`
+**Documentación**: `BUGFIX_SISTEMA_LISTAS_JMN.md`
+**Estado**: ✅ VERIFICADO - Aurora IA y Neurixis funcionan correctamente
+
+
+## Testing y Validación
+
+### Ejecutar Tests
+```bash
+# Compilar test
+node .vscode/run-jasb.cjs apps/test.jasb
+
+# Con debug
+JASBOOT_DEBUG=1 sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe test.jbo
+```
+
+### Tests Críticos
+- Validación de memoria JMN: crear, recordar, buscar, cerrar
+- Conversión de tipos: elemento → texto → entero
+- Manejo de errores: try/catch, violaciones de acceso
+- Persistencia: archivo .jmn sobrevive entre ejecuciones
+
+## Build System
+
+### Compilar Todo
+```bash
+# Windows
+cd sdk-dependiente
+scripts\build-all.bat
+
+# Linux/Mac
+make all
+```
+
+### Compilar Solo VM
+```bash
+cd sdk-dependiente/jasboot-ir
+# Windows: build_vm.bat
+# Linux: make
+```
+
+### Compilar Solo Compilador
+```bash
+cd sdk-dependiente/jas-compiler-c
+# Windows: build.bat
+# Linux: make
+```
+
+## Branches Importantes
+
+### vm-estabilidad-error-memoria (ACTUAL)
+- Correcciones de seguridad de memoria
+- Funciones `vm_leer_seguro()` / `vm_escribir_seguro()`
+- Validación de rangos sin overflow
+- Integración con try/catch
+
+### fix/jmn-correcciones-sdk
+- Correcciones de errores en manejo de memoria JMN
+
+### feature/jmn-solutions
+- Soluciones y mejoras de JMN
+
+## Restricciones y Prohibiciones
+
+### NO HACER NUNCA
+- ❌ Acceso directo a memoria sin validación: `*(uint64_t*)(vm->memory + addr)`
+- ❌ Aritmética con overflow: `if (addr + size > limit)`
+- ❌ Usar palabras clave en inglés en código Jasboot
+- ❌ Olvidar liberar memoria (memory leaks)
+- ❌ Modificar memoria JMN sin consolidar antes de cerrar
+- ❌ Usar `resultado` como `entero` (debe ser `elemento`)
+
+### SIEMPRE HACER
+- ✅ Validar rangos con `vm_leer_seguro()` / `vm_escribir_seguro()`
+- ✅ Usar funciones helper en lugar de acceso directo
+- ✅ Incluir contexto en mensajes de error
+- ✅ Sincronizar cache de texto con JMN
+- ✅ Cerrar/consolidar memoria antes de salir
+- ✅ Verificar NULL después de asignaciones de memoria
+
+## Debugging
+
+### Variables de Entorno
+```bash
+JASBOOT_DEBUG=1          # Activa logs detallados de VM
+JASBOOT_JMN_ROOT=path    # Ruta custom a JMN core
+```
+
+### Logs Importantes
+```
+[VM LOAD HASH] 'texto' (off=X, hash=Y) -> RZ
+[VM OP_MEM_OBTENER_VALOR] Buscando valor para key_id=X
+[JMN IO] Cargados X/X nodos, Y/Y conex, Z/Z textos
+```
+
+## Recursos Adicionales
+
+### Documentación
+- `docs/` - Documentación del lenguaje
+- `jasboot.md` - Especificación del lenguaje
+- `memoria.jmn` - Archivo de memoria neuronal
+
+### Ejemplos
+- `apps/aurora_ia/` - Sistema de IA conversacional completo
+- `examples/` - Ejemplos básicos del lenguaje
+- `tests/` - Suite de tests
+
+## Bugs Corregidos Recientemente (2024)
+
+### 20 de Abril 2024: Sistema de Listas JMN
+**Impacto**: CRÍTICO - Listas de asociaciones no funcionaban
+**Bugs corregidos**:
+1. ✅ `asociados_lista_de` con tipo por defecto incorrecto (0 → 1)
+2. ✅ `lista_tamano` usaba opcode de mapas en lugar de listas
+3. ✅ `OP_MEM_LISTA_TAMANO` faltaba en `opcodes.h`
+
+**Archivos modificados**:
+- `sdk-dependiente/jas-compiler-c/src/codegen.c` (líneas 3766, 4337)
+- `sdk-dependiente/jas-compiler-c/include/opcodes.h` (línea 130)
+- `sdk-dependiente/jasboot-ir/src/vm.c` (logs de debug)
+
+**Tests**: `tests/test_bugs_corregidos.jasb`, `tests/test_fuerza_asociacion.jasb`
+**Documentación**: `BUGFIX_SISTEMA_LISTAS_JMN.md`
+**Estado**: ✅ VERIFICADO - Aurora IA y Neurixis funcionan correctamente
+
+### 20 de Abril 2024: Compilador - Tipo 'elemento' y Keywords
+**Impacto**: CRÍTICO - Funciones con `retorna elemento` no compilaban
+**Bugs corregidos**:
+1. ✅ Tipo de retorno `elemento` no estaba en lista de tipos válidos en `parse_function()`
+2. ✅ Keywords comunes (`entero`, `flotante`, `a`, `valor`, `peso`, etc.) rechazados como identificadores
+3. ✅ Uso incorrecto de `resultado` como variable (error de código en `algoritmos_ml.jasb`)
+
+**Archivos modificados**:
+- `sdk-dependiente/jas-compiler-c/src/parser.c` (líneas 204-229, 4583)
+- `stdlib/analitica-neuronal/machine_learning/algoritmos_ml.jasb` (línea 392)
+
+**Causa raíz**: 
+- Parser no reconocía `elemento` como tipo de retorno → quedaba desincronizado
+- `keyword_ok_as_user_identifier()` tenía lista incompleta de keywords permitidos
+
+**Síntomas antes del fix**:
+```
+'si' es palabra reservada del lenguaje: aqui se esperaba un nombre elegido por usted...
+```
+
+**Tests**: `test_elemento_bug.jasb`, `test_ml_simple5.jasb`
+**Documentación**: `BUGFIX_COMPILADOR_ELEMENTO_Y_KEYWORDS.md`
+**Estado**: ✅ VERIFICADO - Biblioteca analítica neuronal compila correctamente
+
+## Notas para Cascade
+
+Cuando trabajes en este proyecto:
+
+1. **Siempre verifica** la seguridad de memoria antes de hacer cambios en VM
+2. **Consulta primero** los archivos existentes antes de crear nuevos
+3. **Mantén consistencia** con los nombres de funciones y estilos existentes
+4. **Prueba los cambios** compilando y ejecutando tests
+5. **Documenta** decisiones arquitectónicas importantes
+6. **Branch correcto**: Trabaja en `vm-estabilidad-error-memoria` para temas de memoria
+7. **Tests de regresión**: Ejecuta `tests/test_bugs_corregidos.jasb` después de cambios en JMN
+8. **Sincronización de headers**: `opcodes.h` e `ir_format.h` deben estar sincronizados
+9. **Nombres de funciones**: No uses nombres de funciones del sistema para tus funciones personalizadas
+</text>
+
+
+Este es un proyecto crítico donde la seguridad de memoria es PARAMOUNT.
+Un error de memoria puede corromper archivos .jmn o causar crashes.
+Cuando dudes, prefiere seguridad sobre rendimiento.

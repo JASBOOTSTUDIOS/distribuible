@@ -1,0 +1,173 @@
+# =============================================================================
+# MÓDULO DE PROCESAMIENTO DE LENGUAJE NATURAL BÁSICO (NLP)
+# =============================================================================
+# Propósito: Dotar a Neurixis_IA de la capacidad de comprender texto,
+#            convertirlo en vectores, y encontrar ideas similares en memoria.
+#
+# Funcionalidades:
+# 1. Tokenización básica (texto -> lista de palabras)
+# 2. Bag of Words (lista de tokens -> vector de frecuencias)
+# 3. TF-IDF (ponderación de importancia por término)
+# 4. Búsqueda Semántica por Similitud del Coseno
+# 5. Generación de Idea Creativa (Interpolación vectorial)
+# =============================================================================
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase ProcesadorLenguajeNatural extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("NLP y Semántica Vectorial", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # 1. TOKENIZACIÓN BÁSICA
+    # =============================================================================
+    # Divide un texto en palabras individuales usando separadores comunes
+    funcion tokenizar(texto contenido) retorna lista
+        lista tokens = crear_lista()
+        texto palabra = ""
+        entero i = 0
+        entero n = longitud_texto(contenido)
+        
+        mientras i < n hacer
+            texto char = extraer_subtexto(contenido, i, 1)
+            si char == " " o char == "," o char == "." o char == ";" o char == "!" o char == "?" entonces
+                si longitud_texto(palabra) > 0 entonces
+                    lista_agregar(tokens, palabra)
+                    palabra = ""
+                fin_si
+            sino
+                palabra = palabra + char
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        si longitud_texto(palabra) > 0 entonces
+            lista_agregar(tokens, palabra)
+        fin_si
+        
+        retornar tokens
+    fin_funcion
+
+    # =============================================================================
+    # 2. GENERADOR DE EMBEDDINGS (Bag of Words)
+    # =============================================================================
+    # Convierte una lista de tokens en un vector numérico de frecuencias
+    funcion bag_of_words(lista tokens, lista vocabulario) retorna lista
+        lista vector = crear_lista()
+        entero n_v = lista_tamano(vocabulario)
+        si n_v == 0 entonces retornar vector fin_si
+        
+        entero i = 0
+        mientras i < n_v hacer
+            texto palabra_voc = lista_obtener(vocabulario, i)
+            entero apariciones = 0
+            
+            entero j = 0
+            mientras j < lista_tamano(tokens) hacer
+                texto tok = lista_obtener(tokens, j)
+                si tok == palabra_voc entonces
+                    apariciones = apariciones + 1
+                fin_si
+                j = j + 1
+            fin_mientras
+            
+            flotante apariciones_f = apariciones + 0.0
+            lista_agregar(vector, apariciones_f)
+            i = i + 1
+        fin_mientras
+        
+        retornar vector
+    fin_funcion
+
+    # =============================================================================
+    # 3. TF-IDF (Ponderación de importancia semántica)
+    # =============================================================================
+    funcion calcular_tf_idf(lista tokens, lista vocabulario, lista doc_frequencies, entero total_docs) retorna lista
+        lista tf_vec = este.bag_of_words(tokens, vocabulario)
+        lista tf_idf_vec = crear_lista()
+        
+        entero n_v = lista_tamano(vocabulario)
+        flotante n_tokens = lista_tamano(tokens) + 0.0
+        si n_tokens == 0.0 entonces retornar tf_idf_vec fin_si
+        
+        entero i = 0
+        mientras i < n_v hacer
+            flotante tf = lista_obtener(tf_vec, i) / n_tokens
+            flotante df = lista_obtener(doc_frequencies, i) + 0.0
+            
+            # IDF aproximado: (Total / (1 + df)) para evitar log nativo
+            flotante idf = (total_docs + 0.0) / (1.0 + df)
+            
+            lista_agregar(tf_idf_vec, tf * idf)
+            i = i + 1
+        fin_mientras
+        
+        retornar tf_idf_vec
+    fin_funcion
+
+    # =============================================================================
+    # 4. BÚSQUEDA SEMÁNTICA POR SIMILITUD DEL COSENO
+    # =============================================================================
+    # Retorna el índice y coeficiente del recuerdo más cercano al input
+    funcion encontrar_idea_mas_cercana(lista vector_input, lista memoria_vectores) retorna mapa
+        flotante maxima_similitud = -1.0
+        entero index_ganador = -1
+        
+        entero i = 0
+        mientras i < lista_tamano(memoria_vectores) hacer
+            lista vec_memoria = lista_obtener(memoria_vectores, i)
+            flotante sim = similitud_coseno(vector_input, vec_memoria)
+            si sim > maxima_similitud entonces
+                maxima_similitud = sim
+                index_ganador = i
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        mapa _v_resultado = mapa_crear()
+        mapa_poner(_v_resultado, "indice_recuerdo", index_ganador)
+        mapa_poner(_v_resultado, "coeficiente_seguridad", maxima_similitud)
+        
+        retornar _v_resultado
+    fin_funcion
+
+    # =============================================================================
+    # 5. GENERADOR DE CREATIVIDAD (Interpolación entre ideas)
+    # =============================================================================
+    # En lugar de recuperar una copia exacta, genera un punto "intermedio"
+    # entre el input y su recuerdo más cercano (creatividad por difuminación)
+    funcion generar_idea_creativa(lista vector_input, lista memoria_vectores, entero k) retorna lista
+        lista idea_creativa = crear_lista()
+        mapa ganador = este.encontrar_idea_mas_cercana(vector_input, memoria_vectores)
+        entero idx = mapa_obtener(ganador, "indice_recuerdo")
+        
+        si idx == -1 entonces retornar vector_input fin_si
+        
+        lista mas_cercano = lista_obtener(memoria_vectores, idx)
+        entero n_vec = lista_tamano(vector_input)
+        si n_vec != lista_tamano(mas_cercano) entonces retornar vector_input fin_si
+        
+        # Interpolación 50/50: input + recuerdo = creatividad base
+        entero i = 0
+        mientras i < n_vec hacer
+            flotante val_in = lista_obtener(vector_input, i)
+            flotante val_rec = lista_obtener(mas_cercano, i)
+            flotante val = (val_in + val_rec) / 2.0
+            lista_agregar(idea_creativa, val)
+            i = i + 1
+        fin_mientras
+        
+        retornar idea_creativa
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTACIÓN
+# =============================================================================
+enviar {
+    ProcesadorLenguajeNatural
+}

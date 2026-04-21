@@ -1,0 +1,336 @@
+# =============================================================================
+# VALIDACIÓN CRUZADA (CROSS VALIDATION)
+# Módulo de validación cruzada para evaluación de modelos
+# =============================================================================
+
+usar todas de "../base.jasb"
+
+enviar clase CrossValidation extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        este.nombre_analizador = "CrossValidation"
+        este.version_analizador = "1.0.0"
+    fin_funcion
+
+    # =============================================================================
+    # UTILIDADES INTERNAS
+    # =============================================================================
+
+    # Genera una permutación aleatoria de índices usando seed
+    funcion _permutar_indices(entero n, entero seed) retorna lista
+        lista indices = crear_lista()
+        entero i = 0
+        mientras i < n hacer
+            lista_agregar(indices, i)
+            i = i + 1
+        fin_mientras
+
+        # Fisher-Yates shuffle con seed
+        entero rng = seed
+        i = n - 1
+        mientras i > 0 hacer
+            # Generador congruencial lineal simple
+            rng = (rng * 1103515245 + 12345) % 2147483648
+            entero j = rng % (i + 1)
+
+            # Intercambiar indices[i] y indices[j]
+            elemento temp = lista_obtener(indices, i)
+            indices = este.establecer_en_lista(indices, i, lista_obtener(indices, j))
+            indices = este.establecer_en_lista(indices, j, temp)
+
+            i = i - 1
+        fin_mientras
+
+        retornar indices
+    fin_funcion
+
+    # Extrae elementos de una lista según índices
+    funcion _extraer_por_indices(lista datos, lista indices) retorna lista
+        lista res_lista = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(indices)
+
+        mientras i < n hacer
+            entero idx = lista_obtener(indices, i)
+            lista_agregar(res_lista, lista_obtener(datos, idx))
+            i = i + 1
+        fin_mientras
+
+        retornar res_lista
+    fin_funcion
+
+    # =============================================================================
+    # VALIDACIÓN CRUZADA K-FOLD CON ÍNDICES
+    # =============================================================================
+
+    # Genera k conjuntos de índices para validación cruzada k-fold
+    funcion validacion_cruzada_k_fold_indices(entero n_samples, entero k, entero seed) retorna lista
+        si n_samples <= 0 o k <= 0 o k > n_samples entonces
+            imprimir "[ERROR] Parámetros inválidos: n_samples=" + str_desde_numero(n_samples) + " k=" + str_desde_numero(k)
+            retornar crear_lista()
+        fin_si
+
+        # Generar índices permutados
+        lista indices = este._permutar_indices(n_samples, seed)
+
+        # Calcular tamaño de cada fold
+        entero fold_size = n_samples / k
+        entero remainder = n_samples % k
+
+        # Crear los k folds
+        lista folds = crear_lista()
+        entero start = 0
+        entero fold_num = 0
+
+        mientras fold_num < k hacer
+            # Algunos folds tendrán un elemento extra si hay remainder
+            entero current_fold_size = fold_size
+            si fold_num < remainder entonces
+                current_fold_size = fold_size + 1
+            fin_si
+
+            # Índices de test para este fold
+            lista test_indices = crear_lista()
+            entero i = 0
+            mientras i < current_fold_size hacer
+                lista_agregar(test_indices, lista_obtener(indices, start + i))
+                i = i + 1
+            fin_mientras
+
+            # Índices de train (todos excepto test)
+            lista train_indices = crear_lista()
+            i = 0
+            mientras i < n_samples hacer
+                entero idx = lista_obtener(indices, i)
+                si i < start o i >= start + current_fold_size entonces
+                    lista_agregar(train_indices, idx)
+                fin_si
+                i = i + 1
+            fin_mientras
+
+            # Crear mapa con los índices
+            mapa fold_map = mapa_crear()
+            mapa_poner(fold_map, "train_indices", train_indices)
+            mapa_poner(fold_map, "test_indices", test_indices)
+            mapa_poner(fold_map, "fold_num", fold_num)
+
+            lista_agregar(folds, fold_map)
+
+            start = start + current_fold_size
+            fold_num = fold_num + 1
+        fin_mientras
+
+        retornar folds
+    fin_funcion
+
+    # =============================================================================
+    # CREAR K-FOLDS CON DATOS
+    # =============================================================================
+
+    # Crea k conjuntos de índices para validación cruzada a partir de datos
+    funcion crear_k_folds(lista X, lista y, entero k, entero seed) retorna lista
+        si X == nulo o y == nulo entonces
+            imprimir "[ERROR] X o y son nulos"
+            retornar crear_lista()
+        fin_si
+
+        entero n_samples = lista_tamano(X)
+        si n_samples != lista_tamano(y) entonces
+            imprimir "[ERROR] X e y deben tener el mismo tamaño"
+            retornar crear_lista()
+        fin_si
+
+        si k <= 0 o k > n_samples entonces
+            imprimir "[ERROR] k debe estar entre 1 y n_samples"
+            retornar crear_lista()
+        fin_si
+
+        # Usar la función de índices
+        lista folds = este.validacion_cruzada_k_fold_indices(n_samples, k, seed)
+
+        # Agregar información adicional a cada fold
+        entero i = 0
+        mientras i < lista_tamano(folds) hacer
+            mapa fold = lista_obtener(folds, i)
+            entero n_train = lista_tamano(mapa_obtener(fold, "train_indices"))
+            entero n_test = lista_tamano(mapa_obtener(fold, "test_indices"))
+
+            mapa_poner(fold, "n_train", n_train)
+            mapa_poner(fold, "n_test", n_test)
+
+            i = i + 1
+        fin_mientras
+
+        retornar folds
+    fin_funcion
+
+    # =============================================================================
+    # OBTENER FOLD ESPECÍFICO
+    # =============================================================================
+
+    # Extrae un fold específico con datos de entrenamiento y prueba
+    funcion obtener_fold(lista X, lista y, lista indices_train, lista indices_test) retorna mapa
+        si X == nulo o y == nulo o indices_train == nulo o indices_test == nulo entonces
+            imprimir "[ERROR] Parámetros nulos en obtener_fold"
+            retornar mapa_crear()
+        fin_si
+
+        # Extraer datos de entrenamiento
+        lista X_train = este._extraer_por_indices(X, indices_train)
+        lista y_train = este._extraer_por_indices(y, indices_train)
+
+        # Extraer datos de prueba
+        lista X_test = este._extraer_por_indices(X, indices_test)
+        lista y_test = este._extraer_por_indices(y, indices_test)
+
+        # Crear mapa con los conjuntos
+        mapa fold_data = mapa_crear()
+        mapa_poner(fold_data, "X_train", X_train)
+        mapa_poner(fold_data, "y_train", y_train)
+        mapa_poner(fold_data, "X_test", X_test)
+        mapa_poner(fold_data, "y_test", y_test)
+        mapa_poner(fold_data, "n_train", lista_tamano(X_train))
+        mapa_poner(fold_data, "n_test", lista_tamano(X_test))
+
+        retornar fold_data
+    fin_funcion
+
+    # =============================================================================
+    # TIME SERIES SPLIT (EXPANDING WINDOW)
+    # =============================================================================
+
+    # Crea splits para series temporales con ventana expansiva
+    # No mezcla datos, mantiene orden temporal
+    funcion time_series_split(lista datos, entero n_splits) retorna lista
+        si datos == nulo entonces
+            imprimir "[ERROR] datos es nulo"
+            retornar crear_lista()
+        fin_si
+
+        entero n_samples = lista_tamano(datos)
+
+        si n_splits <= 0 o n_splits >= n_samples entonces
+            imprimir "[ERROR] n_splits debe estar entre 1 y n_samples-1"
+            retornar crear_lista()
+        fin_si
+
+        # Calcular tamaño mínimo de entrenamiento
+        entero min_train_size = n_samples / (n_splits + 1)
+        si min_train_size < 1 entonces
+            min_train_size = 1
+        fin_si
+
+        lista splits = crear_lista()
+        entero split_num = 0
+
+        mientras split_num < n_splits hacer
+            # Calcular índice de corte
+            # Cada split tiene más datos de entrenamiento que el anterior
+            entero train_end = min_train_size + (split_num * (n_samples - min_train_size) / n_splits)
+            entero test_start = train_end
+            entero test_end = train_end + ((n_samples - min_train_size) / n_splits)
+
+            # Ajustar último split para incluir todos los datos restantes
+            si split_num == n_splits - 1 entonces
+                test_end = n_samples
+            fin_si
+
+            # Crear índices de train (0 hasta train_end)
+            lista train_indices = crear_lista()
+            entero i = 0
+            mientras i < train_end hacer
+                lista_agregar(train_indices, i)
+                i = i + 1
+            fin_mientras
+
+            # Crear índices de test (test_start hasta test_end)
+            lista test_indices = crear_lista()
+            i = test_start
+            mientras i < test_end hacer
+                lista_agregar(test_indices, i)
+                i = i + 1
+            fin_mientras
+
+            # Crear mapa con los índices
+            mapa split_map = mapa_crear()
+            mapa_poner(split_map, "train_indices", train_indices)
+            mapa_poner(split_map, "test_indices", test_indices)
+            mapa_poner(split_map, "split_num", split_num)
+            mapa_poner(split_map, "n_train", train_end)
+            mapa_poner(split_map, "n_test", test_end - test_start)
+            mapa_poner(split_map, "train_end", train_end)
+            mapa_poner(split_map, "test_start", test_start)
+            mapa_poner(split_map, "test_end", test_end)
+
+            lista_agregar(splits, split_map)
+
+            split_num = split_num + 1
+        fin_mientras
+
+        retornar splits
+    fin_funcion
+
+    # =============================================================================
+    # UTILIDADES DE INFORMACIÓN
+    # =============================================================================
+
+    # Muestra información sobre los folds generados
+    funcion mostrar_info_folds(lista folds)
+        si folds == nulo entonces
+            imprimir "[ERROR] folds es nulo"
+            retornar
+        fin_si
+
+        entero n_folds = lista_tamano(folds)
+        imprimir "=== Información de Folds ==="
+        imprimir "Total de folds: " + str_desde_numero(n_folds)
+
+        entero i = 0
+        mientras i < n_folds hacer
+            mapa fold = lista_obtener(folds, i)
+            entero fold_num = mapa_obtener(fold, "fold_num")
+            entero n_train = lista_tamano(mapa_obtener(fold, "train_indices"))
+            entero n_test = lista_tamano(mapa_obtener(fold, "test_indices"))
+
+            imprimir "Fold " + str_desde_numero(fold_num) + ": train=" + str_desde_numero(n_train) + " test=" + str_desde_numero(n_test)
+
+            i = i + 1
+        fin_mientras
+    fin_funcion
+
+    # Muestra información sobre splits de series temporales
+    funcion mostrar_info_time_series(lista splits)
+        si splits == nulo entonces
+            imprimir "[ERROR] splits es nulo"
+            retornar
+        fin_si
+
+        entero n_splits = lista_tamano(splits)
+        imprimir "=== Información de Time Series Splits ==="
+        imprimir "Total de splits: " + str_desde_numero(n_splits)
+
+        entero i = 0
+        mientras i < n_splits hacer
+            mapa split = lista_obtener(splits, i)
+            entero split_num = mapa_obtener(split, "split_num")
+            entero n_train = mapa_obtener(split, "n_train")
+            entero n_test = mapa_obtener(split, "n_test")
+            entero train_end = mapa_obtener(split, "train_end")
+            entero test_start = mapa_obtener(split, "test_start")
+            entero test_end = mapa_obtener(split, "test_end")
+
+            imprimir "Split " + str_desde_numero(split_num) + ": train[0:" + str_desde_numero(train_end) + "] test[" + str_desde_numero(test_start) + ":" + str_desde_numero(test_end) + "]"
+            imprimir "  -> n_train=" + str_desde_numero(n_train) + " n_test=" + str_desde_numero(n_test)
+
+            i = i + 1
+        fin_mientras
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTAR
+# =============================================================================
+
+enviar { CrossValidation }

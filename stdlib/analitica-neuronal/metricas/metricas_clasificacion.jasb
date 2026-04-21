@@ -1,0 +1,309 @@
+# =============================================================================
+# MÉTRICAS DE CLASIFICACIÓN PARA JASBOOT
+# Implementa métricas estándar para evaluar modelos de clasificación
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase MetricasClasificacion extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        este.nombre_analizador = "Métricas de Clasificación"
+        este.version_analizador = "1.0.0"
+    fin_funcion
+
+    # =========================================================================
+    # VALIDACIÓN DE DATOS
+    # =========================================================================
+
+    funcion validar_listas_clasificacion(lista y_real, lista y_pred) retorna bool
+        # Verificar que las listas no sean nulas
+        si y_real == nulo o y_pred == nulo entonces
+            imprimir "[ERROR] Las listas no pueden ser nulas"
+            retornar falso
+        fin_si
+
+        # Verificar que tengan el mismo tamaño
+        entero tam_real = lista_tamano(y_real)
+        entero tam_pred = lista_tamano(y_pred)
+
+        si tam_real == 0 o tam_pred == 0 entonces
+            imprimir "[ERROR] Las listas no pueden estar vacías"
+            retornar falso
+        fin_si
+
+        si tam_real != tam_pred entonces
+            imprimir "[ERROR] Las listas deben tener el mismo tamaño"
+            retornar falso
+        fin_si
+
+        retornar verdadero
+    fin_funcion
+
+    # =========================================================================
+    # MATRIZ DE CONFUSIÓN
+    # =========================================================================
+
+    funcion calcular_matriz_confusion(lista y_real, lista y_pred, entero clase_positiva) retorna mapa
+        # Validar entradas
+        si no este.validar_listas_clasificacion(y_real, y_pred) entonces
+            retornar nulo
+        fin_si
+
+        # Inicializar contadores
+        entero vp = 0  # Verdaderos Positivos
+        entero vn = 0  # Verdaderos Negativos
+        entero fp = 0  # Falsos Positivos
+        entero fn = 0  # Falsos Negativos
+
+        # Recorrer las predicciones
+        entero tam = lista_tamano(y_real)
+        entero i = 0
+
+        mientras i < tam hacer
+            entero real = lista_obtener(y_real, i)
+            entero pred = lista_obtener(y_pred, i)
+
+            # Clasificar según la matriz de confusión
+            # Clasificar según la matriz de confusión usando sino-si para evitar anidación
+            si real == clase_positiva y pred == clase_positiva entonces
+                vp = vp + 1  # Verdadero Positivo
+            sino si real == clase_positiva entonces
+                fn = fn + 1  # Falso Negativo
+            sino si pred == clase_positiva entonces
+                fp = fp + 1  # Falso Positivo
+            sino
+                vn = vn + 1  # Verdadero Negativo
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        # Crear mapa con resultados
+        mapa matriz = mapa_crear()
+        mapa_poner(matriz, "VP", vp)
+        mapa_poner(matriz, "VN", vn)
+        mapa_poner(matriz, "FP", fp)
+        mapa_poner(matriz, "FN", fn)
+        mapa_poner(matriz, "total", tam)
+
+        retornar matriz
+    fin_funcion
+
+
+    # =========================================================================
+    # ACCURACY (EXACTITUD)
+    # =========================================================================
+
+    funcion calcular_accuracy(lista y_real, lista y_pred) retorna flotante
+        # Validar entradas
+        si no este.validar_listas_clasificacion(y_real, y_pred) entonces
+            retornar -1.0
+        fin_si
+
+        # Contar aciertos
+        entero aciertos = 0
+        entero tam = lista_tamano(y_real)
+        entero i = 0
+
+        mientras i < tam hacer
+            entero real = lista_obtener(y_real, i)
+            entero pred = lista_obtener(y_pred, i)
+
+            si real == pred entonces
+                aciertos = aciertos + 1
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        # Calcular accuracy
+        flotante accuracy = aciertos / tam
+        retornar accuracy
+    fin_funcion
+
+    # =========================================================================
+    # PRECISION (PRECISIÓN)
+    # =========================================================================
+
+    funcion calcular_precision(lista y_real, lista y_pred, entero clase_positiva) retorna flotante
+        # Obtener matriz de confusión
+        mapa matriz = este.calcular_matriz_confusion(y_real, y_pred, clase_positiva)
+
+        si matriz == nulo entonces
+            retornar -1.0
+        fin_si
+
+        entero vp = mapa_obtener(matriz, "VP")
+        entero fp = mapa_obtener(matriz, "FP")
+
+        # Evitar división por cero
+        si vp + fp == 0 entonces
+            retornar 0.0
+        fin_si
+
+        # Precision = VP / (VP + FP)
+        flotante precision = vp / (vp + fp)
+        retornar precision
+    fin_funcion
+
+    # =========================================================================
+    # RECALL (EXHAUSTIVIDAD / SENSIBILIDAD)
+    # =========================================================================
+
+    funcion calcular_recall(lista y_real, lista y_pred, entero clase_positiva) retorna flotante
+        # Obtener matriz de confusión
+        mapa matriz = este.calcular_matriz_confusion(y_real, y_pred, clase_positiva)
+
+        si matriz == nulo entonces
+            retornar -1.0
+        fin_si
+
+        entero vp = mapa_obtener(matriz, "VP")
+        entero fn = mapa_obtener(matriz, "FN")
+
+        # Evitar división por cero
+        si vp + fn == 0 entonces
+            retornar 0.0
+        fin_si
+
+        # Recall = VP / (VP + FN)
+        flotante recall = vp / (vp + fn)
+        retornar recall
+    fin_funcion
+
+    # =========================================================================
+    # F1 SCORE
+    # =========================================================================
+
+    funcion calcular_f1_score(lista y_real, lista y_pred, entero clase_positiva) retorna flotante
+        # Calcular precision y recall
+        flotante precision = este.calcular_precision(y_real, y_pred, clase_positiva)
+        flotante recall = este.calcular_recall(y_real, y_pred, clase_positiva)
+
+        # Verificar errores
+        si precision < 0.0 o recall < 0.0 entonces
+            retornar -1.0
+        fin_si
+
+        # Evitar división por cero
+        si precision + recall == 0.0 entonces
+            retornar 0.0
+        fin_si
+
+        # F1 = 2 * (Precision * Recall) / (Precision + Recall)
+        flotante f1 = 2.0 * (precision * recall) / (precision + recall)
+        retornar f1
+    fin_funcion
+
+    # =========================================================================
+    # SPECIFICITY (ESPECIFICIDAD)
+    # =========================================================================
+
+    funcion calcular_specificity(lista y_real, lista y_pred, entero clase_positiva) retorna flotante
+        # Obtener matriz de confusión
+        mapa matriz = este.calcular_matriz_confusion(y_real, y_pred, clase_positiva)
+
+        si matriz == nulo entonces
+            retornar -1.0
+        fin_si
+
+        entero vn = mapa_obtener(matriz, "VN")
+        entero fp = mapa_obtener(matriz, "FP")
+
+        # Evitar división por cero
+        si vn + fp == 0 entonces
+            retornar 0.0
+        fin_si
+
+        # Specificity = VN / (VN + FP)
+        flotante specificity = vn / (vn + fp)
+        retornar specificity
+    fin_funcion
+
+    # =========================================================================
+    # INFORME COMPLETO DE CLASIFICACIÓN BINARIA
+    # =========================================================================
+
+    funcion informe_clasificacion_binaria(lista y_real, lista y_pred, entero clase_positiva) retorna mapa
+        # Validar entradas
+        si no este.validar_listas_clasificacion(y_real, y_pred) entonces
+            retornar nulo
+        fin_si
+
+        # Calcular todas las métricas
+        mapa matriz = este.calcular_matriz_confusion(y_real, y_pred, clase_positiva)
+        flotante accuracy = este.calcular_accuracy(y_real, y_pred)
+        flotante precision = este.calcular_precision(y_real, y_pred, clase_positiva)
+        flotante recall = este.calcular_recall(y_real, y_pred, clase_positiva)
+        flotante f1 = este.calcular_f1_score(y_real, y_pred, clase_positiva)
+        flotante specificity = este.calcular_specificity(y_real, y_pred, clase_positiva)
+
+        # Crear informe
+        mapa informe = mapa_crear()
+
+        # Métricas generales
+        mapa_poner(informe, "accuracy", accuracy)
+        mapa_poner(informe, "precision", precision)
+        mapa_poner(informe, "recall", recall)
+        mapa_poner(informe, "f1_score", f1)
+        mapa_poner(informe, "specificity", specificity)
+
+        # Matriz de confusión
+        mapa_poner(informe, "vp", mapa_obtener(matriz, "VP"))
+        mapa_poner(informe, "vn", mapa_obtener(matriz, "VN"))
+        mapa_poner(informe, "fp", mapa_obtener(matriz, "FP"))
+        mapa_poner(informe, "fn", mapa_obtener(matriz, "FN"))
+        mapa_poner(informe, "total", mapa_obtener(matriz, "total"))
+
+        # Información adicional
+        mapa_poner(informe, "clase_positiva", clase_positiva)
+
+        retornar informe
+    fin_funcion
+
+    # =========================================================================
+    # MOSTRAR INFORME
+    # =========================================================================
+
+    funcion mostrar_informe(mapa informe)
+        si informe == nulo entonces
+            imprimir "[ERROR] Informe inválido"
+            retornar
+        fin_si
+
+        imprimir "========================================"
+        imprimir "  INFORME DE CLASIFICACIÓN BINARIA"
+        imprimir "========================================"
+        imprimir ""
+
+        # Matriz de confusión
+        imprimir "MATRIZ DE CONFUSIÓN:"
+        imprimir "  Verdaderos Positivos (VP): " + mapa_obtener(informe, "vp")
+        imprimir "  Verdaderos Negativos (VN): " + mapa_obtener(informe, "vn")
+        imprimir "  Falsos Positivos (FP):     " + mapa_obtener(informe, "fp")
+        imprimir "  Falsos Negativos (FN):     " + mapa_obtener(informe, "fn")
+        imprimir "  Total de muestras:         " + mapa_obtener(informe, "total")
+        imprimir ""
+
+        # Métricas
+        imprimir "MÉTRICAS DE RENDIMIENTO:"
+        imprimir "  Accuracy (Exactitud):      " + mapa_obtener(informe, "accuracy")
+        imprimir "  Precision (Precisión):     " + mapa_obtener(informe, "precision")
+        imprimir "  Recall (Exhaustividad):    " + mapa_obtener(informe, "recall")
+        imprimir "  F1 Score:                  " + mapa_obtener(informe, "f1_score")
+        imprimir "  Specificity (Especificidad): " + mapa_obtener(informe, "specificity")
+        imprimir ""
+        imprimir "  Clase Positiva:            " + mapa_obtener(informe, "clase_positiva")
+        imprimir "========================================"
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTAR CLASE
+# =============================================================================
+
+enviar { MetricasClasificacion }

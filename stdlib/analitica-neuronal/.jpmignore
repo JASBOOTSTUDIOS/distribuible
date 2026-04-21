@@ -1,0 +1,68 @@
+# Archivos de documentación (excepto los principales)
+BIBLIOTECA_COMPLETADA_100_PORCIENTO.md
+COMPLETADO_2024.md
+CORRECCIONES_PREDICCION.md
+ESTADO_COMPLETITUD_ANALITICA.md
+GUIA_RAPIDA_CORRECCION.md
+IMPLEMENTACION_COMPLETA_2024.md
+RESULTADO_FINAL_CORRECCIONES.md
+RESUMEN_CORRECCIONES_SINTAXIS.md
+RESUMEN_ESTADO_FINAL.md
+RESUMEN_FINAL_IMPLEMENTACION.md
+SOLUCION_CONFLICTOS_SCOPE.md
+**/CHANGELOG*.md
+
+# Directorios de build
+**/build/
+**/dist/
+**/target/
+
+# Archivos compilados
+*.jbo
+*.o
+*.exe
+*.so
+*.dll
+*.dylib
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Directorios de caché
+.cache/
+.jpm-cache/
+.jpm-temp/
+
+# Control de versiones
+.git/
+.gitignore
+.gitattributes
+
+# IDEs y editores
+.vscode/
+.idea/
+*.code-workspace
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+logs/
+
+# Node modules (si hubiera)
+node_modules/
+a-modulos/
+
+# Archivos de test compilados
+tests/**/*.jbo
+tests/**/build/

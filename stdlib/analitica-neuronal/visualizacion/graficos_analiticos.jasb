@@ -1,0 +1,126 @@
+# =============================================================================
+# MÓDULO de VISUALIZACIÓN ANALÍTICA (VERSIÓN CLASES)
+# =============================================================================
+usar todas de "../base.jasb"
+usar { EstadisticaDescriptiva } de "../estadistica/estadistica_descriptiva.jasb"
+
+clase VisualizadorAnalitico extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Visualización Analítica", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # 1. FORMATEO DE DATOS
+    # =============================================================================
+
+    # Genera una lista de mapas {x, y} para gráficas de dispersión
+    funcion formatear_xy(lista x, lista serie_y) retorna lista
+        lista _v_resultado = crear_lista()
+        entero n = lista_tamano(x)
+        si n != lista_tamano(serie_y) entonces retornar _v_resultado fin_si
+        
+        entero i = 0
+        mientras i < n hacer
+            mapa punto = mapa_crear()
+            mapa_poner(punto, "x", lista_obtener(x, i))
+            mapa_poner(punto, "y", lista_obtener(serie_y, i))
+            lista_agregar(_v_resultado, punto)
+            i = i + 1
+        fin_mientras
+        retornar _v_resultado
+    fin_funcion
+
+    # Genera histograma (conteo por cubetas)
+    funcion calcular_histograma(lista datos, entero cubetas) retorna mapa
+        mapa histograma = mapa_crear()
+        si no este.validar_lista_numerica(datos) entonces retornar histograma fin_si
+        
+        flotante min = lista_obtener(datos, 0)
+        flotante max = lista_obtener(datos, 0)
+        
+        entero i = 1
+        mientras i < lista_tamano(datos) hacer
+            flotante v = lista_obtener(datos, i)
+            si v < min entonces min = v fin_si
+            si v > max entonces max = v fin_si
+            i = i + 1
+        fin_mientras
+        
+        flotante rango = max - min
+        flotante ancho_cubeta = rango / cubetas
+        
+        lista conteos = crear_lista()
+        entero j = 0
+        mientras j < cubetas hacer
+            lista_agregar(conteos, 0)
+            j = j + 1
+        fin_mientras
+        
+        i = 0
+        mientras i < lista_tamano(datos) hacer
+            flotante v = lista_obtener(datos, i)
+            entero indice = (v - min) / ancho_cubeta
+            si indice >= cubetas entonces indice = cubetas - 1 fin_si
+            
+            entero actual = convertir_entero(lista_obtener(conteos, indice))
+            conteos = este.establecer_en_lista(conteos, indice, actual + 1)
+            i = i + 1
+        fin_mientras
+        
+        mapa_poner(histograma, "conteos", conteos)
+        mapa_poner(histograma, "ancho_cubeta", ancho_cubeta)
+        mapa_poner(histograma, "min", min)
+        
+        retornar histograma
+    fin_funcion
+
+    # =============================================================================
+    # 2. BOXPLOTS Y CUARTILES
+    # =============================================================================
+
+    # Pre-procesador para renderizado UI de Boxplots (cajas y bigotes)
+    funcion calcular_boxplot(lista datos) retorna mapa
+        mapa _v_resultado = mapa_crear()
+        entero n = lista_tamano(datos)
+        si n < 4 entonces retornar _v_resultado fin_si
+        
+        EstadisticaDescriptiva stats = EstadisticaDescriptiva()
+        lista ordenados = stats.ordenar_datos(datos)
+        
+        entero q2_idx = n / 2
+        entero q1_idx = q2_idx / 2
+        entero q3_idx = q2_idx + q1_idx
+        
+        flotante q1 = lista_obtener(ordenados, q1_idx)
+        flotante q2 = lista_obtener(ordenados, q2_idx)
+        flotante q3 = lista_obtener(ordenados, q3_idx)
+        flotante iqr = q3 - q1
+        
+        flotante min_b = q1 - (1.5 * iqr)
+        flotante max_b = q3 + (1.5 * iqr)
+        
+        flotante min_real = lista_obtener(ordenados, 0)
+        flotante max_real = lista_obtener(ordenados, n - 1)
+        
+        si min_b < min_real entonces min_b = min_real fin_si
+        si max_b > max_real entonces max_b = max_real fin_si
+        
+        mapa_poner(_v_resultado, "minimo", min_real)
+        mapa_poner(_v_resultado, "q1", q1)
+        mapa_poner(_v_resultado, "mediana", q2)
+        mapa_poner(_v_resultado, "q3", q3)
+        mapa_poner(_v_resultado, "maximo", max_real)
+        mapa_poner(_v_resultado, "iqr", iqr)
+        mapa_poner(_v_resultado, "bigote_inf", min_b)
+        mapa_poner(_v_resultado, "bigote_sup", max_b)
+        
+        retornar _v_resultado
+    fin_funcion
+
+fin_clase
+
+enviar {
+    VisualizadorAnalitico
+}

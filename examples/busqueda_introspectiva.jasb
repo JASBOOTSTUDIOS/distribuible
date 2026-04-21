@@ -1,0 +1,62 @@
+# Ejemplo de búsqueda introspectiva en memoria neuronal JMN
+# Este programa demuestra cómo buscar texto en todos los conceptos almacenados
+
+principal
+    # Crear y abrir memoria neuronal
+    crear_memoria("ejemplo_busqueda.jmn")
+    
+    # Agregar algunos conceptos de ejemplo
+    recordar "inteligencia artificial" con valor "Campo de la informática que desarrolla sistemas inteligentes"
+    recordar "aprendizaje automático" con valor "Subcampo de IA que permite a las computadoras aprender sin programación explícita"
+    recordar "red neuronal" con valor "Modelo computacional inspirado en el cerebro humano"
+    recordar "procesamiento de lenguaje natural" con valor "Área de la IA que procesa texto y lenguaje humano"
+    recordar "visión por computadora" con valor "Campo que permite a las máquinas interpretar información visual"
+    recordar "robotica inteligente" con valor "Integración de IA con sistemas robóticos físicos"
+    recordar "mineria de datos" con valor "Proceso de descubrir patrones en grandes conjuntos de datos"
+    recordar "sistemas expertos" con valor "Programas que emulan la toma de decisiones humanas"
+    
+    imprimir ""
+    imprimir "=== BÚSQUEDA INTROSPECTIVA EN MEMORIA JMN ==="
+    imprimir ""
+    
+    # Ejemplo 1: Buscar todos los conceptos que contienen "inteligencia"
+    imprimir "1. Buscando conceptos con 'inteligencia':"
+    buscar "inteligencia"
+    imprimir "   Resultado: " + resultado
+    imprimir ""
+    
+    # Ejemplo 2: Buscar todos los conceptos que contienen "aprendizaje"
+    imprimir "2. Buscando conceptos con 'aprendizaje':"
+    buscar "aprendizaje"
+    imprimir "   Resultado: " + resultado
+    imprimir ""
+    
+    # Ejemplo 3: Buscar todos los conceptos que contienen "procesamiento"
+    imprimir "3. Buscando conceptos con 'procesamiento':"
+    buscar "procesamiento"
+    imprimir "   Resultado: " + resultado
+    imprimir ""
+    
+    # Ejemplo 4: Buscar conceptos relacionados con "datos"
+    imprimir "4. Buscando conceptos con 'datos':"
+    buscar "datos"
+    imprimir "   Resultado: " + resultado
+    imprimir ""
+    
+    # Ejemplo 5: Buscar conceptos que contienen "neuronal"
+    imprimir "5. Buscando conceptos con 'neuronal':"
+    buscar "neuronal"
+    imprimir "   Resultado: " + resultado
+    imprimir ""
+    
+    # Mostrar información de la memoria
+    imprimir "=== ESTADÍSTICAS DE LA MEMORIA ==="
+    imprimir "Conceptos almacenados: 8"
+    imprimir "Búsquedas realizadas: 5"
+    imprimir ""
+    
+    # Cerrar memoria
+    cerrar_memoria()
+    
+    imprimir "=== BÚSQUEDA COMPLETADA ==="
+fin_principal

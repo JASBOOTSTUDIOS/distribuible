@@ -1,0 +1,656 @@
+# =============================================================================
+# MODELO ARIMA PARA SERIES TEMPORALES
+# Implementación de AutoRegressive Integrated Moving Average (p,d,q)
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase ARIMA extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Modelo ARIMA", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODO PRINCIPAL: ENTRENAR MODELO ARIMA(p,d,q)
+    # =============================================================================
+
+    funcion arima_fit(lista serie, entero p, entero d, entero q) retorna mapa
+        # Validar entrada
+        si no este.validar_lista_numerica(serie) entonces
+            imprimir "[ARIMA] Error: Serie no válida"
+            retornar nulo
+        fin_si
+
+        si lista_tamano(serie) < (p + d + q + 5) entonces
+            imprimir "[ARIMA] Error: Serie muy corta para los parámetros dados"
+            retornar nulo
+        fin_si
+
+        # Paso 1: Diferenciar la serie (componente I)
+        lista serie_diferenciada = este.diferenciar_serie(serie, d)
+
+        # Guardar valores iniciales para poder integrar después
+        lista valores_iniciales = crear_lista()
+        entero i = 0
+        mientras i < d hacer
+            lista_agregar(valores_iniciales, lista_obtener(serie, i))
+            i = i + 1
+        fin_mientras
+
+        # Paso 2: Ajustar componente AR (autoregresivo)
+        lista parametros_ar = este.ajustar_ar(serie_diferenciada, p)
+
+        # Paso 3: Calcular residuos para ajustar componente MA
+        lista predicciones_ar = este.predecir_con_ar(serie_diferenciada, parametros_ar, p)
+        lista residuos = este.calcular_residuos(serie_diferenciada, predicciones_ar)
+
+        # Paso 4: Ajustar componente MA (media móvil)
+        lista parametros_ma = este.ajustar_ma(residuos, q)
+
+        # Calcular métricas del modelo
+        flotante sse = este.calcular_sse(residuos)
+        flotante mse = sse / lista_tamano(residuos)
+
+        # Construir el modelo
+        mapa modelo = mapa_crear()
+        mapa_poner(modelo, "p", p)
+        mapa_poner(modelo, "d", d)
+        mapa_poner(modelo, "q", q)
+        mapa_poner(modelo, "parametros_ar", parametros_ar)
+        mapa_poner(modelo, "parametros_ma", parametros_ma)
+        mapa_poner(modelo, "serie_diferenciada", serie_diferenciada)
+        mapa_poner(modelo, "valores_iniciales", valores_iniciales)
+        mapa_poner(modelo, "residuos", residuos)
+        mapa_poner(modelo, "mse", mse)
+        mapa_poner(modelo, "serie_original", serie)
+
+        imprimir "[ARIMA] Modelo ARIMA(" + str_desde_numero(p) + "," + str_desde_numero(d) + "," + str_desde_numero(q) + ") entrenado"
+        imprimir "[ARIMA] MSE: " + str_desde_numero(mse)
+
+        retornar modelo
+    fin_funcion
+
+    # =============================================================================
+    # PREDICCIÓN: FORECAST DE MÚLTIPLES PASOS
+    # =============================================================================
+
+    funcion arima_forecast(mapa modelo, entero steps) retorna lista
+        si modelo == nulo o steps <= 0 entonces
+            retornar crear_lista()
+        fin_si
+
+        entero p = mapa_obtener(modelo, "p")
+        entero d = mapa_obtener(modelo, "d")
+        entero q = mapa_obtener(modelo, "q")
+        lista serie_diferenciada = mapa_obtener(modelo, "serie_diferenciada")
+        lista valores_iniciales = mapa_obtener(modelo, "valores_iniciales")
+        lista residuos = mapa_obtener(modelo, "residuos")
+
+        # Crear ventana con últimos valores de la serie diferenciada
+        entero n_diff = lista_tamano(serie_diferenciada)
+        lista ventana = crear_lista()
+        entero max_orden = p
+        si q > max_orden entonces
+            max_orden = q
+        fin_si
+
+        entero i = n_diff - max_orden
+        si i < 0 entonces i = 0 fin_si
+        mientras i < n_diff hacer
+            lista_agregar(ventana, lista_obtener(serie_diferenciada, i))
+            i = i + 1
+        fin_mientras
+
+        # Crear ventana de residuos
+        lista ventana_residuos = crear_lista()
+        entero n_res = lista_tamano(residuos)
+        i = n_res - q
+        si i < 0 entonces i = 0 fin_si
+        mientras i < n_res hacer
+            lista_agregar(ventana_residuos, lista_obtener(residuos, i))
+            i = i + 1
+        fin_mientras
+
+        # Predicciones en espacio diferenciado
+        lista predicciones_diff = crear_lista()
+        entero step = 0
+        mientras step < steps hacer
+            flotante pred = este.arima_predecir_un_paso_interno(modelo, ventana, ventana_residuos)
+            lista_agregar(predicciones_diff, pred)
+
+            # Actualizar ventana para siguiente predicción
+            lista_agregar(ventana, pred)
+            si lista_tamano(ventana) > max_orden entonces
+                lista nueva_ventana = crear_lista()
+                entero j = 1
+                mientras j < lista_tamano(ventana) hacer
+                    lista_agregar(nueva_ventana, lista_obtener(ventana, j))
+                    j = j + 1
+                fin_mientras
+                ventana = nueva_ventana
+            fin_si
+
+            # Actualizar ventana de residuos (asumir residuo = 0 para predicciones)
+            lista_agregar(ventana_residuos, 0.0)
+            si lista_tamano(ventana_residuos) > q entonces
+                lista nueva_residuos = crear_lista()
+                entero j = 1
+                mientras j < lista_tamano(ventana_residuos) hacer
+                    lista_agregar(nueva_residuos, lista_obtener(ventana_residuos, j))
+                    j = j + 1
+                fin_mientras
+                ventana_residuos = nueva_residuos
+            fin_si
+
+            step = step + 1
+        fin_mientras
+
+        # Integrar las predicciones (revertir diferenciación)
+        lista serie_original = mapa_obtener(modelo, "serie_original")
+        lista predicciones_finales = este.integrar_predicciones(predicciones_diff, serie_original, d)
+
+        retornar predicciones_finales
+    fin_funcion
+
+    # =============================================================================
+    # PREDICCIÓN: UN SOLO PASO
+    # =============================================================================
+
+    funcion arima_predecir_un_paso(mapa modelo, lista ventana) retorna flotante
+        si modelo == nulo o ventana == nulo entonces
+            retornar 0.0
+        fin_si
+
+        lista ventana_residuos = crear_lista()
+        entero q = mapa_obtener(modelo, "q")
+        entero i = 0
+        mientras i < q hacer
+            lista_agregar(ventana_residuos, 0.0)
+            i = i + 1
+        fin_mientras
+
+        retornar este.arima_predecir_un_paso_interno(modelo, ventana, ventana_residuos)
+    fin_funcion
+
+    funcion arima_predecir_un_paso_interno(mapa modelo, lista ventana, lista ventana_residuos) retorna flotante
+        lista parametros_ar = mapa_obtener(modelo, "parametros_ar")
+        lista parametros_ma = mapa_obtener(modelo, "parametros_ma")
+        entero p = mapa_obtener(modelo, "p")
+        entero q = mapa_obtener(modelo, "q")
+
+        flotante prediccion = 0.0
+
+        # Componente AR: suma ponderada de valores pasados
+        entero n_ventana = lista_tamano(ventana)
+        entero i = 0
+        mientras i < p hacer
+            si i < n_ventana entonces
+                entero idx = n_ventana - 1 - i
+                flotante valor = lista_obtener(ventana, idx)
+                flotante coef = lista_obtener(parametros_ar, i)
+                prediccion = prediccion + (coef * valor)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        # Componente MA: suma ponderada de errores pasados
+        entero n_residuos = lista_tamano(ventana_residuos)
+        i = 0
+        mientras i < q hacer
+            si i < n_residuos entonces
+                entero idx = n_residuos - 1 - i
+                flotante residuo = lista_obtener(ventana_residuos, idx)
+                flotante coef = lista_obtener(parametros_ma, i)
+                prediccion = prediccion + (coef * residuo)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        retornar prediccion
+    fin_funcion
+
+    # =============================================================================
+    # DIFERENCIACIÓN: CONVERTIR SERIE A ESTACIONARIA
+    # =============================================================================
+
+    funcion diferenciar_serie(lista serie, entero orden) retorna lista
+        si orden == 0 entonces
+            retornar serie
+        fin_si
+
+        lista res_diff = serie
+        entero iter = 0
+        mientras iter < orden hacer
+            lista nueva = crear_lista()
+            entero n = lista_tamano(res_diff)
+            entero i = 1
+            mientras i < n hacer
+                flotante diff = lista_obtener(res_diff, i) - lista_obtener(res_diff, i - 1)
+                lista_agregar(nueva, diff)
+                i = i + 1
+            fin_mientras
+            res_diff = nueva
+            iter = iter + 1
+        fin_mientras
+
+        retornar res_diff
+    fin_funcion
+
+    # =============================================================================
+    # INTEGRACIÓN: REVERTIR DIFERENCIACIÓN
+    # =============================================================================
+
+    funcion integrar_serie(lista serie_diff, lista valores_iniciales, entero orden) retorna lista
+        si orden == 0 entonces
+            retornar serie_diff
+        fin_si
+
+        lista res_integ = serie_diff
+        entero iter = 0
+        mientras iter < orden hacer
+            lista nueva = crear_lista()
+
+            # Agregar valor inicial
+            entero idx_inicial = lista_tamano(valores_iniciales) - orden + iter
+            flotante valor_previo = lista_obtener(valores_iniciales, idx_inicial)
+            lista_agregar(nueva, valor_previo)
+
+            # Integrar (suma acumulativa)
+            entero i = 0
+            mientras i < lista_tamano(res_integ) hacer
+                valor_previo = valor_previo + lista_obtener(res_integ, i)
+                lista_agregar(nueva, valor_previo)
+                i = i + 1
+            fin_mientras
+
+            res_integ = nueva
+            iter = iter + 1
+        fin_mientras
+
+        retornar res_integ
+    fin_funcion
+
+    funcion integrar_predicciones(lista predicciones_diff, lista serie_original, entero orden) retorna lista
+        si orden == 0 entonces
+            retornar predicciones_diff
+        fin_si
+
+        # Obtener los últimos 'orden' valores de la serie original
+        lista valores_base = crear_lista()
+        entero n = lista_tamano(serie_original)
+        entero i = n - orden
+        mientras i < n hacer
+            lista_agregar(valores_base, lista_obtener(serie_original, i))
+            i = i + 1
+        fin_mientras
+
+        # Integrar las predicciones
+        lista res_pred = predicciones_diff
+        entero iter = 0
+        mientras iter < orden hacer
+            lista nueva = crear_lista()
+
+            # Valor base es el último de valores_base
+            flotante valor_previo = lista_obtener(valores_base, lista_tamano(valores_base) - 1)
+
+            # Integrar cada predicción
+            i = 0
+            mientras i < lista_tamano(res_pred) hacer
+                valor_previo = valor_previo + lista_obtener(res_pred, i)
+                lista_agregar(nueva, valor_previo)
+                i = i + 1
+            fin_mientras
+
+            # Actualizar valores_base para siguiente iteración
+            lista_agregar(valores_base, valor_previo)
+
+            res_pred = nueva
+            iter = iter + 1
+        fin_mientras
+
+        retornar res_pred
+    fin_funcion
+
+    # =============================================================================
+    # TEST DE ESTACIONARIEDAD
+    # =============================================================================
+
+    funcion test_estacionariedad_simple(lista serie) retorna mapa
+        mapa res_test = mapa_crear()
+
+        entero n = lista_tamano(serie)
+        si n < 10 entonces
+            mapa_poner(res_test, "es_estacionaria", falso)
+            mapa_poner(res_test, "estadistico", 0.0)
+            mapa_poner(res_test, "mensaje", "Serie muy corta")
+            retornar res_test
+        fin_si
+
+        # Dividir serie en dos mitades
+        entero mitad = n / 2
+
+        # Calcular media y varianza de primera mitad
+        flotante suma1 = 0.0
+        entero i = 0
+        mientras i < mitad hacer
+            suma1 = suma1 + lista_obtener(serie, i)
+            i = i + 1
+        fin_mientras
+        flotante media1 = suma1 / mitad
+
+        flotante var1 = 0.0
+        i = 0
+        mientras i < mitad hacer
+            flotante diff = lista_obtener(serie, i) - media1
+            var1 = var1 + (diff * diff)
+            i = i + 1
+        fin_mientras
+        var1 = var1 / mitad
+
+        # Calcular media y varianza de segunda mitad
+        flotante suma2 = 0.0
+        i = mitad
+        mientras i < n hacer
+            suma2 = suma2 + lista_obtener(serie, i)
+            i = i + 1
+        fin_mientras
+        flotante media2 = suma2 / (n - mitad)
+
+        flotante var2 = 0.0
+        i = mitad
+        mientras i < n hacer
+            flotante diff = lista_obtener(serie, i) - media2
+            var2 = var2 + (diff * diff)
+            i = i + 1
+        fin_mientras
+        var2 = var2 / (n - mitad)
+
+        # Estadístico: razón de varianzas
+        flotante ratio_var = 1.0
+        si var2 > 0.0 entonces
+            ratio_var = var1 / var2
+            si ratio_var < 1.0 entonces
+                ratio_var = 1.0 / ratio_var
+            fin_si
+        fin_si
+
+        # Si la razón es cercana a 1, la serie es más estacionaria
+        bool es_estacionaria = ratio_var < 2.0
+
+        mapa_poner(res_test, "es_estacionaria", es_estacionaria)
+        mapa_poner(res_test, "estadistico", ratio_var)
+        mapa_poner(res_test, "media1", media1)
+        mapa_poner(res_test, "media2", media2)
+        mapa_poner(res_test, "var1", var1)
+        mapa_poner(res_test, "var2", var2)
+
+        retornar res_test
+    fin_funcion
+
+    # =============================================================================
+    # AJUSTE DE PARÁMETROS AR (AUTOREGRESIVO)
+    # =============================================================================
+
+    funcion ajustar_ar(lista serie, entero p) retorna lista
+        lista parametros = crear_lista()
+
+        si p == 0 entonces
+            retornar parametros
+        fin_si
+
+        entero n = lista_tamano(serie)
+        si n <= p entonces
+            # No hay suficientes datos, retornar coeficientes por defecto
+            entero i = 0
+            mientras i < p hacer
+                lista_agregar(parametros, 0.5)
+                i = i + 1
+            fin_mientras
+            retornar parametros
+        fin_si
+
+        # Método simplificado: Mínimos cuadrados ordinarios
+        # Construir matriz X y vector y
+        # y[t] = phi1*y[t-1] + phi2*y[t-2] + ... + phip*y[t-p]
+
+        entero n_obs = n - p
+
+        # Calcular autocorrelaciones
+        lista autocorr = crear_lista()
+        entero lag = 1
+        mientras lag <= p hacer
+            flotante acf = este.calcular_autocorrelacion(serie, lag)
+            lista_agregar(autocorr, acf)
+            lag = lag + 1
+        fin_mientras
+
+        # Resolver ecuaciones de Yule-Walker (versión simplificada)
+        # Para simplificar, usar método de Burg o aproximación
+        entero i = 0
+        mientras i < p hacer
+            flotante coef = lista_obtener(autocorr, i)
+            # Ajustar coeficiente para que sea estable
+            si coef > 0.9 entonces coef = 0.9 fin_si
+            si coef < -0.9 entonces coef = -0.9 fin_si
+            lista_agregar(parametros, coef)
+            i = i + 1
+        fin_mientras
+
+        retornar parametros
+    fin_funcion
+
+    funcion calcular_autocorrelacion(lista serie, entero lag) retorna flotante
+        entero n = lista_tamano(serie)
+        si n <= lag entonces retornar 0.0 fin_si
+
+        # Calcular media
+        flotante suma = 0.0
+        entero i = 0
+        mientras i < n hacer
+            suma = suma + lista_obtener(serie, i)
+            i = i + 1
+        fin_mientras
+        flotante media = suma / n
+
+        # Calcular covarianza con lag
+        flotante cov = 0.0
+        i = 0
+        mientras i < (n - lag) hacer
+            flotante v1 = lista_obtener(serie, i) - media
+            flotante v2 = lista_obtener(serie, i + lag) - media
+            cov = cov + (v1 * v2)
+            i = i + 1
+        fin_mientras
+
+        # Calcular varianza
+        flotante varianza = 0.0
+        i = 0
+        mientras i < n hacer
+            flotante diff = lista_obtener(serie, i) - media
+            varianza = varianza + (diff * diff)
+            i = i + 1
+        fin_mientras
+
+        si varianza == 0.0 entonces retornar 0.0 fin_si
+
+        retornar cov / varianza
+    fin_funcion
+
+    # =============================================================================
+    # AJUSTE DE PARÁMETROS MA (MEDIA MÓVIL)
+    # =============================================================================
+
+    funcion ajustar_ma(lista residuos, entero q) retorna lista
+        lista parametros = crear_lista()
+
+        si q == 0 entonces
+            retornar parametros
+        fin_si
+
+        entero n = lista_tamano(residuos)
+        si n <= q entonces
+            # No hay suficientes datos
+            entero i = 0
+            mientras i < q hacer
+                lista_agregar(parametros, 0.3)
+                i = i + 1
+            fin_mientras
+            retornar parametros
+        fin_si
+
+        # Método simplificado: usar autocorrelaciones de residuos
+        # En un modelo MA real se usaría máxima verosimilitud
+
+        entero lag = 1
+        mientras lag <= q hacer
+            flotante acf = este.calcular_autocorrelacion(residuos, lag)
+            # Coeficiente MA es aproximadamente -acf para lag pequeños
+            flotante coef = 0.0 - (acf * 0.8)
+            # Mantener estabilidad
+            si coef > 0.9 entonces coef = 0.9 fin_si
+            si coef < -0.9 entonces coef = -0.9 fin_si
+            lista_agregar(parametros, coef)
+            lag = lag + 1
+        fin_mientras
+
+        retornar parametros
+    fin_funcion
+
+    # =============================================================================
+    # PREDICCIÓN CON COMPONENTE AR
+    # =============================================================================
+
+    funcion predecir_con_ar(lista serie, lista parametros_ar, entero p) retorna lista
+        lista predicciones = crear_lista()
+        entero n = lista_tamano(serie)
+
+        # Las primeras p observaciones no tienen predicción
+        entero i = 0
+        mientras i < p hacer
+            lista_agregar(predicciones, lista_obtener(serie, i))
+            i = i + 1
+        fin_mientras
+
+        # Predecir el resto
+        mientras i < n hacer
+            flotante pred = 0.0
+            entero j = 0
+            mientras j < p hacer
+                flotante coef = lista_obtener(parametros_ar, j)
+                flotante valor = lista_obtener(serie, i - j - 1)
+                pred = pred + (coef * valor)
+                j = j + 1
+            fin_mientras
+            lista_agregar(predicciones, pred)
+            i = i + 1
+        fin_mientras
+
+        retornar predicciones
+    fin_funcion
+
+    # =============================================================================
+    # CÁLCULO DE RESIDUOS
+    # =============================================================================
+
+    funcion calcular_residuos(lista serie, lista predicciones) retorna lista
+        lista residuos = crear_lista()
+        entero n = lista_tamano(serie)
+        entero n_pred = lista_tamano(predicciones)
+
+        si n != n_pred entonces
+            imprimir "[ARIMA] Error: Serie y predicciones tienen tamaños diferentes"
+            retornar residuos
+        fin_si
+
+        entero i = 0
+        mientras i < n hacer
+            flotante residuo = lista_obtener(serie, i) - lista_obtener(predicciones, i)
+            lista_agregar(residuos, residuo)
+            i = i + 1
+        fin_mientras
+
+        retornar residuos
+    fin_funcion
+
+    # =============================================================================
+    # MÉTRICAS DE ERROR
+    # =============================================================================
+
+    funcion calcular_sse(lista residuos) retorna flotante
+        flotante sse = 0.0
+        entero i = 0
+        mientras i < lista_tamano(residuos) hacer
+            flotante r = lista_obtener(residuos, i)
+            sse = sse + (r * r)
+            i = i + 1
+        fin_mientras
+        retornar sse
+    fin_funcion
+
+    funcion calcular_mse(lista residuos) retorna flotante
+        entero n = lista_tamano(residuos)
+        si n == 0 entonces retornar 0.0 fin_si
+        retornar este.calcular_sse(residuos) / n
+    fin_funcion
+
+    funcion calcular_rmse(lista residuos) retorna flotante
+        flotante mse = este.calcular_mse(residuos)
+        retornar raiz_cuadrada(mse)
+    fin_funcion
+
+    # =============================================================================
+    # UTILIDADES
+    # =============================================================================
+
+    funcion imprimir_resumen_modelo(mapa modelo)
+        si modelo == nulo entonces
+            imprimir "[ARIMA] Modelo no válido"
+            retornar
+        fin_si
+
+        entero p = mapa_obtener(modelo, "p")
+        entero d = mapa_obtener(modelo, "d")
+        entero q = mapa_obtener(modelo, "q")
+        flotante mse = mapa_obtener(modelo, "mse")
+
+        imprimir "============================================"
+        imprimir "RESUMEN MODELO ARIMA(" + str_desde_numero(p) + "," + str_desde_numero(d) + "," + str_desde_numero(q) + ")"
+        imprimir "============================================"
+        imprimir "MSE: " + str_desde_numero(mse)
+        imprimir "RMSE: " + str_desde_numero(raiz_cuadrada(mse))
+
+        lista parametros_ar = mapa_obtener(modelo, "parametros_ar")
+        si lista_tamano(parametros_ar) > 0 entonces
+            imprimir "Parámetros AR:"
+            entero i = 0
+            mientras i < lista_tamano(parametros_ar) hacer
+                flotante coef = lista_obtener(parametros_ar, i)
+                imprimir "  phi" + str_desde_numero(i + 1) + " = " + str_desde_numero(coef)
+                i = i + 1
+            fin_mientras
+        fin_si
+
+        lista parametros_ma = mapa_obtener(modelo, "parametros_ma")
+        si lista_tamano(parametros_ma) > 0 entonces
+            imprimir "Parámetros MA:"
+            entero i = 0
+            mientras i < lista_tamano(parametros_ma) hacer
+                flotante coef = lista_obtener(parametros_ma, i)
+                imprimir "  theta" + str_desde_numero(i + 1) + " = " + str_desde_numero(coef)
+                i = i + 1
+            fin_mientras
+        fin_si
+
+        imprimir "============================================"
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTAR
+# =============================================================================
+
+enviar { ARIMA }

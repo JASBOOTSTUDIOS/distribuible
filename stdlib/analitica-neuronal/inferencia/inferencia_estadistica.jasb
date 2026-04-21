@@ -1,0 +1,141 @@
+# =============================================================================
+# MÓDULO DE INFERENCIA ESTADÍSTICA (VERSIÓN CLASES)
+# =============================================================================
+usar todas de "../base.jasb"
+usar { EstadisticaDescriptiva } de "../estadistica/estadistica_descriptiva.jasb"
+usar todas de "../math_lib.jasb"
+
+clase InferenciaEstadistica extiende AnalizadorBase
+    EstadisticaDescriptiva _stats
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Inferencia Estadística", "V1.0")
+        este._stats = EstadisticaDescriptiva()
+    fin_funcion
+
+    # =============================================================================
+    # 1. INTERVALOS DE CONFIANZA
+    # =============================================================================
+
+    # Asume n grande (Distribución Z)
+    funcion intervalo_confianza_media(lista datos, flotante nivel_confianza) retorna mapa
+        si no este.validar_lista_numerica(datos) entonces retornar nulo fin_si
+        
+        flotante media = este._stats.calcular_media_aritmetica(datos)
+        flotante desv = este._stats.calcular_desviacion_estandar(datos, verdadero)
+        entero n = lista_tamano(datos)
+        
+        # Valor Z crítico (simplificado para niveles comunes)
+        flotante z = 1.96 # 95% por defecto
+        si nivel_confianza == 0.90 entonces z = 1.645 fin_si
+        si nivel_confianza == 0.99 entonces z = 2.576 fin_si
+        
+        flotante error_estandar = desv / raiz_cuadrada(n)
+        flotante margen_error = z * error_estandar
+        
+        mapa _v_resultado = mapa_crear()
+        mapa_poner(_v_resultado, "media", media)
+        mapa_poner(_v_resultado, "limite_inferior", media - margen_error)
+        mapa_poner(_v_resultado, "limite_superior", media + margen_error)
+        mapa_poner(_v_resultado, "margen_error", margen_error)
+        
+        retornar _v_resultado
+    fin_funcion
+
+    # =============================================================================
+    # 2. PRUEBAS DE HIPÓTESIS
+    # =============================================================================
+
+    funcion prueba_t_una_muestra(lista datos, flotante mu_hipotetica) retorna mapa
+        si no este.validar_lista_numerica(datos) entonces retornar nulo fin_si
+        
+        flotante media = este._stats.calcular_media_aritmetica(datos)
+        flotante desv = este._stats.calcular_desviacion_estandar(datos, verdadero)
+        entero n = lista_tamano(datos)
+        
+        flotante t_est = (media - mu_hipotetica) / (desv / raiz_cuadrada(n))
+        
+        mapa _v_resultado = mapa_crear()
+        mapa_poner(_v_resultado, "t_estadistico", t_est)
+        mapa_poner(_v_resultado, "grados_libertad", n - 1)
+        
+        # Decisión simplificada (p-valor requeriría integral de T-student, usando t-crítico aprox p<0.05)
+        bool significativo = valor_absoluto(t_est) > 2.0 
+        mapa_poner(_v_resultado, "es_significativo_05", significativo)
+        
+        retornar _v_resultado
+    fin_funcion
+
+    # Welch's T-Test para dos muestras independientes (varianzas poblacionales desiguales)
+    funcion prueba_t_welch_dos_muestras(lista poblacion_a, lista poblacion_b) retorna mapa
+        entero n_a = lista_tamano(poblacion_a)
+        entero n_b = lista_tamano(poblacion_b)
+        si n_a < 2 o n_b < 2 entonces retornar nulo fin_si
+        
+        flotante media_a = este._stats.calcular_media_aritmetica(poblacion_a)
+        flotante media_b = este._stats.calcular_media_aritmetica(poblacion_b)
+        
+        flotante sd_a = este._stats.calcular_desviacion_estandar(poblacion_a, verdadero)
+        flotante sd_b = este._stats.calcular_desviacion_estandar(poblacion_b, verdadero)
+        flotante var_a = sd_a * sd_a
+        flotante var_b = sd_b * sd_b
+        
+        flotante n_a_f = n_a + 0.0
+        flotante n_b_f = n_b + 0.0
+        
+        flotante divisor = raiz_cuadrada((var_a / n_a_f) + (var_b / n_b_f))
+        
+        flotante t_est = 0.0
+        si divisor != 0.0 entonces
+            t_est = (media_a - media_b) / divisor
+        fin_si
+        
+        mapa _v_resultado = mapa_crear()
+        mapa_poner(_v_resultado, "t_estadistico", t_est)
+        mapa_poner(_v_resultado, "media_a", media_a)
+        mapa_poner(_v_resultado, "media_b", media_b)
+        
+        bool significativo = valor_absoluto(t_est) > 2.0 
+        mapa_poner(_v_resultado, "es_significativo_05", significativo)
+        
+        retornar _v_resultado
+    fin_funcion
+
+    # =============================================================================
+    # 3. CORRELACIÓN
+    # =============================================================================
+
+    funcion correlacion_pearson(lista x, lista serie_y) retorna flotante
+        entero n = lista_tamano(x)
+        si n != lista_tamano(serie_y) o n == 0 entonces retornar 0.0 fin_si
+        
+        flotante media_x = este._stats.calcular_media_aritmetica(x)
+        flotante media_y = este._stats.calcular_media_aritmetica(serie_y)
+        
+        flotante num = 0.0
+        flotante den_x = 0.0
+        flotante den_y = 0.0
+        
+        entero i = 0
+        mientras i < n hacer
+            flotante val_x = lista_obtener(x, i)
+            flotante val_y = lista_obtener(serie_y, i)
+            flotante dx = val_x - media_x
+            flotante dy = val_y - media_y
+            num = num + (dx * dy)
+            den_x = den_x + (dx * dx)
+            den_y = den_y + (dy * dy)
+            i = i + 1
+        fin_mientras
+        
+        flotante den = raiz_cuadrada(den_x * den_y)
+        si den == 0.0 entonces retornar 0.0 fin_si
+        
+        retornar num / den
+    fin_funcion
+fin_clase
+
+enviar {
+    InferenciaEstadistica
+}

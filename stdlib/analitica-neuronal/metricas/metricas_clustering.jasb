@@ -1,0 +1,724 @@
+# =============================================================================
+# MÓDULO DE MÉTRICAS DE CLUSTERING
+# =============================================================================
+# Propósito: Proporcionar una clase con métodos para evaluar algoritmos de
+#           clustering mediante diversas métricas de calidad y cohesión.
+#
+# Funcionalidades principales:
+# 1. Silhouette Score (promedio y por muestra)
+# 2. Davies-Bouldin Index
+# 3. Calinski-Harabasz Score
+# 4. Inercia (Within-Cluster Sum of Squares)
+# 5. Informe completo de clustering
+# 6. Métodos auxiliares para cálculo de centroides y distancias
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase MetricasClustering extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Métricas de Clustering", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES DE VALIDACIÓN Y UTILIDAD
+    # =============================================================================
+
+    # Método: validar_datos_clustering
+    # Propósito: Verificar que los datos de clustering sean válidos
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: bool indicando si son válidos
+    funcion validar_datos_clustering(lista X_matriz, lista labels) retorna bool
+        # Verificar que no sean nulas
+        si X_matriz == nulo entonces
+            imprimir "[ERROR] Matriz X es nula"
+            retornar falso
+        fin_si
+
+        si labels == nulo entonces
+            imprimir "[ERROR] Labels es nula"
+            retornar falso
+        fin_si
+
+        # Verificar tamaños
+        entero n_muestras = lista_tamano(X_matriz)
+        entero n_labels = lista_tamano(labels)
+
+        si n_muestras == 0 entonces
+            imprimir "[ERROR] Matriz X está vacía"
+            retornar falso
+        fin_si
+
+        si n_labels == 0 entonces
+            imprimir "[ERROR] Labels está vacía"
+            retornar falso
+        fin_si
+
+        si n_muestras != n_labels entonces
+            imprimir "[ERROR] Tamaños no coinciden: " + str_desde_numero(n_muestras) + " muestras vs " + str_desde_numero(n_labels) + " labels"
+            retornar falso
+        fin_si
+
+        retornar verdadero
+    fin_funcion
+
+    # Método: distancia_euclidiana
+    # Propósito: Calcular distancia euclidiana entre dos puntos
+    # Parámetros: punto_a, punto_b - listas con coordenadas
+    # Retorna: flotante con la distancia
+    funcion distancia_euclidiana(lista punto_a, lista punto_b) retorna flotante
+        entero n_a = lista_tamano(punto_a)
+        entero n_b = lista_tamano(punto_b)
+
+        si n_a != n_b o n_a == 0 entonces
+            retornar 0.0
+        fin_si
+
+        flotante suma_cuadrados = 0.0
+        entero i = 0
+        mientras i < n_a hacer
+            flotante val_a = lista_obtener(punto_a, i)
+            flotante val_b = lista_obtener(punto_b, i)
+            flotante diff = val_a - val_b
+            suma_cuadrados = suma_cuadrados + (diff * diff)
+            i = i + 1
+        fin_mientras
+
+        retornar raiz_cuadrada(suma_cuadrados)
+    fin_funcion
+
+    # Método: obtener_indices_cluster
+    # Propósito: Obtener índices de todas las muestras de un cluster
+    # Parámetros: labels - etiquetas, cluster_id - ID del cluster
+    # Retorna: lista con los índices
+    funcion obtener_indices_cluster(lista labels, entero cluster_id) retorna lista
+        lista indices = crear_lista()
+        entero n = lista_tamano(labels)
+        entero i = 0
+
+        mientras i < n hacer
+            entero label = lista_obtener(labels, i)
+            si label == cluster_id entonces
+                lista_agregar(indices, i)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        retornar indices
+    fin_funcion
+
+    # Método: calcular_centroide_cluster
+    # Propósito: Calcular el centroide (promedio) de un cluster
+    # Parámetros: X - matriz de datos, labels - etiquetas, cluster_id - ID del cluster
+    # Retorna: lista con las coordenadas del centroide
+    funcion calcular_centroide_cluster(lista X, lista labels, entero cluster_id) retorna lista
+        lista indices = este.obtener_indices_cluster(labels, cluster_id)
+        entero n_puntos = lista_tamano(indices)
+
+        si n_puntos == 0 entonces
+            retornar crear_lista()
+        fin_si
+
+        # Obtener dimensiones del primer punto
+        entero idx_primero = lista_obtener(indices, 0)
+        lista primer_punto = lista_obtener(X, idx_primero)
+        entero n_dims = lista_tamano(primer_punto)
+
+        # Inicializar centroide con ceros
+        lista centroide = crear_lista()
+        entero d = 0
+        mientras d < n_dims hacer
+            lista_agregar(centroide, 0.0)
+            d = d + 1
+        fin_mientras
+
+        # Sumar todas las coordenadas
+        entero i = 0
+        mientras i < n_puntos hacer
+            entero idx = lista_obtener(indices, i)
+            lista punto = lista_obtener(X, idx)
+
+            entero dim = 0
+            mientras dim < n_dims hacer
+                flotante coord_actual = lista_obtener(centroide, dim)
+                flotante coord_punto = lista_obtener(punto, dim)
+                # Actualizar centroide (simulamos lista_poner)
+                centroide = este.establecer_en_lista(centroide, dim, coord_actual + coord_punto)
+                dim = dim + 1
+            fin_mientras
+
+            i = i + 1
+        fin_mientras
+
+        # Dividir por número de puntos para obtener promedio
+        entero dim = 0
+        mientras dim < n_dims hacer
+            flotante suma = lista_obtener(centroide, dim)
+            flotante promedio = suma / n_puntos
+            centroide = este.establecer_en_lista(centroide, dim, promedio)
+            dim = dim + 1
+        fin_mientras
+
+        retornar centroide
+    fin_funcion
+
+    # Método: obtener_clusters_unicos
+    # Propósito: Obtener lista de IDs de clusters únicos
+    # Parámetros: labels - etiquetas
+    # Retorna: lista con IDs únicos
+    funcion obtener_clusters_unicos(lista labels) retorna lista
+        lista unicos = crear_lista()
+        entero n = lista_tamano(labels)
+        entero i = 0
+
+        mientras i < n hacer
+            entero label = lista_obtener(labels, i)
+
+            # Verificar si ya existe
+            bool encontrado = falso
+            entero j = 0
+            mientras j < lista_tamano(unicos) hacer
+                entero u = lista_obtener(unicos, j)
+                si u == label entonces
+                    encontrado = verdadero
+                fin_si
+                j = j + 1
+            fin_mientras
+
+            si no encontrado entonces
+                lista_agregar(unicos, label)
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar unicos
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS DE SILHOUETTE
+    # =============================================================================
+
+    # Método: distancia_media_intra_cluster
+    # Propósito: Calcular distancia media de un punto a otros puntos del mismo cluster (a(i))
+    # Parámetros: X - matriz, labels - etiquetas, indice - índice del punto
+    # Retorna: flotante con distancia media intra-cluster
+    funcion distancia_media_intra_cluster(lista X, lista labels, entero indice) retorna flotante
+        entero cluster_id = lista_obtener(labels, indice)
+        lista indices_cluster = este.obtener_indices_cluster(labels, cluster_id)
+        entero n_cluster = lista_tamano(indices_cluster)
+
+        # Si es el único punto del cluster, retornar 0
+        si n_cluster <= 1 entonces
+            retornar 0.0
+        fin_si
+
+        lista punto_i = lista_obtener(X, indice)
+        flotante suma_distancias = 0.0
+        entero count = 0
+
+        entero j = 0
+        mientras j < n_cluster hacer
+            entero idx_j = lista_obtener(indices_cluster, j)
+            si idx_j != indice entonces
+                lista punto_j = lista_obtener(X, idx_j)
+                flotante dist = este.distancia_euclidiana(punto_i, punto_j)
+                suma_distancias = suma_distancias + dist
+                count = count + 1
+            fin_si
+            j = j + 1
+        fin_mientras
+
+        si count == 0 entonces
+            retornar 0.0
+        fin_si
+
+        retornar suma_distancias / count
+    fin_funcion
+
+    # Método: distancia_media_inter_cluster
+    # Propósito: Calcular distancia media de un punto a puntos de otro cluster (b(i))
+    # Parámetros: X - matriz, labels - etiquetas, indice - índice del punto, cluster_destino - cluster a comparar
+    # Retorna: flotante con distancia media inter-cluster
+    funcion distancia_media_inter_cluster(lista X, lista labels, entero indice, entero cluster_destino) retorna flotante
+        lista indices_cluster = este.obtener_indices_cluster(labels, cluster_destino)
+        entero n_cluster = lista_tamano(indices_cluster)
+
+        si n_cluster == 0 entonces
+            retornar 0.0
+        fin_si
+
+        lista punto_i = lista_obtener(X, indice)
+        flotante suma_distancias = 0.0
+
+        entero j = 0
+        mientras j < n_cluster hacer
+            entero idx_j = lista_obtener(indices_cluster, j)
+            lista punto_j = lista_obtener(X, idx_j)
+            flotante dist = este.distancia_euclidiana(punto_i, punto_j)
+            suma_distancias = suma_distancias + dist
+            j = j + 1
+        fin_mientras
+
+        retornar suma_distancias / n_cluster
+    fin_funcion
+
+    # Método: calcular_silhouette_samples
+    # Propósito: Calcular Silhouette score para cada muestra individual
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: lista con score silhouette de cada punto
+    funcion calcular_silhouette_samples(lista X_matriz, lista labels) retorna lista
+        si no este.validar_datos_clustering(X_matriz, labels) entonces
+            retornar crear_lista()
+        fin_si
+
+        entero n_muestras = lista_tamano(X_matriz)
+        lista clusters_unicos = este.obtener_clusters_unicos(labels)
+        entero n_clusters = lista_tamano(clusters_unicos)
+
+        # Si solo hay 1 cluster, silhouette no tiene sentido
+        si n_clusters <= 1 entonces
+            imprimir "[WARN] Solo hay 1 cluster, Silhouette score no aplicable"
+            lista zeros = crear_lista()
+            entero i = 0
+            mientras i < n_muestras hacer
+                lista_agregar(zeros, 0.0)
+                i = i + 1
+            fin_mientras
+            retornar zeros
+        fin_si
+
+        lista scores = crear_lista()
+        entero i = 0
+
+        mientras i < n_muestras hacer
+            # Calcular a(i) - distancia media intra-cluster
+            flotante a_i = este.distancia_media_intra_cluster(X_matriz, labels, i)
+
+            # Calcular b(i) - mínima distancia media a otros clusters
+            entero cluster_i = lista_obtener(labels, i)
+            flotante b_i = 999999.0  # Inicializar con valor grande
+
+            entero c = 0
+            mientras c < n_clusters hacer
+                entero cluster_c = lista_obtener(clusters_unicos, c)
+                si cluster_c != cluster_i entonces
+                    flotante dist_media = este.distancia_media_inter_cluster(X_matriz, labels, i, cluster_c)
+                    si dist_media < b_i entonces
+                        b_i = dist_media
+                    fin_si
+                fin_si
+                c = c + 1
+            fin_mientras
+
+            # Calcular silhouette score: s(i) = (b(i) - a(i)) / max(a(i), b(i))
+            flotante max_val = a_i
+            si b_i > max_val entonces
+                max_val = b_i
+            fin_si
+
+            flotante s_i = 0.0
+            si max_val > 0.0 entonces
+                s_i = (b_i - a_i) / max_val
+            fin_si
+
+            lista_agregar(scores, s_i)
+            i = i + 1
+        fin_mientras
+
+        retornar scores
+    fin_funcion
+
+    # Método: calcular_silhouette_score
+    # Propósito: Calcular Silhouette score promedio (métrica de separación de clusters)
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: flotante entre -1 y 1 (1 = mejor)
+    funcion calcular_silhouette_score(lista X_matriz, lista labels) retorna flotante
+        lista samples = este.calcular_silhouette_samples(X_matriz, labels)
+        entero n = lista_tamano(samples)
+
+        si n == 0 entonces
+            retornar 0.0
+        fin_si
+
+        flotante suma = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante s = lista_obtener(samples, i)
+            suma = suma + s
+            i = i + 1
+        fin_mientras
+
+        retornar suma / n
+    fin_funcion
+
+    # =============================================================================
+    # DAVIES-BOULDIN INDEX
+    # =============================================================================
+
+    # Método: calcular_davies_bouldin_index
+    # Propósito: Calcular Davies-Bouldin Index (menor es mejor)
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: flotante >= 0 (0 = ideal)
+    funcion calcular_davies_bouldin_index(lista X_matriz, lista labels) retorna flotante
+        si no este.validar_datos_clustering(X_matriz, labels) entonces
+            retornar 0.0
+        fin_si
+
+        lista clusters_unicos = este.obtener_clusters_unicos(labels)
+        entero n_clusters = lista_tamano(clusters_unicos)
+
+        si n_clusters <= 1 entonces
+            imprimir "[WARN] Solo hay 1 cluster, Davies-Bouldin no aplicable"
+            retornar 0.0
+        fin_si
+
+        # Calcular centroides de todos los clusters
+        lista centroides = crear_lista()
+        entero c = 0
+        mientras c < n_clusters hacer
+            entero cluster_id = lista_obtener(clusters_unicos, c)
+            lista centroide = este.calcular_centroide_cluster(X_matriz, labels, cluster_id)
+            lista_agregar(centroides, centroide)
+            c = c + 1
+        fin_mientras
+
+        # Calcular dispersión intra-cluster para cada cluster
+        lista dispersiones = crear_lista()
+        c = 0
+        mientras c < n_clusters hacer
+            entero cluster_id = lista_obtener(clusters_unicos, c)
+            lista indices = este.obtener_indices_cluster(labels, cluster_id)
+            entero n_puntos = lista_tamano(indices)
+
+            si n_puntos == 0 entonces
+                lista_agregar(dispersiones, 0.0)
+            sino
+                lista centroide = lista_obtener(centroides, c)
+                flotante suma_dist = 0.0
+
+                entero i = 0
+                mientras i < n_puntos hacer
+                    entero idx = lista_obtener(indices, i)
+                    lista punto = lista_obtener(X_matriz, idx)
+                    flotante dist = este.distancia_euclidiana(punto, centroide)
+                    suma_dist = suma_dist + dist
+                    i = i + 1
+                fin_mientras
+
+                lista_agregar(dispersiones, suma_dist / n_puntos)
+            fin_si
+            c = c + 1
+        fin_mientras
+
+        # Calcular DB index
+        flotante suma_db = 0.0
+        entero i = 0
+
+        mientras i < n_clusters hacer
+            flotante max_ratio = 0.0
+            flotante disp_i = lista_obtener(dispersiones, i)
+            lista cent_i = lista_obtener(centroides, i)
+
+            entero j = 0
+            mientras j < n_clusters hacer
+                si i != j entonces
+                    flotante disp_j = lista_obtener(dispersiones, j)
+                    lista cent_j = lista_obtener(centroides, j)
+                    flotante dist_centros = este.distancia_euclidiana(cent_i, cent_j)
+
+                    si dist_centros > 0.0 entonces
+                        flotante ratio = (disp_i + disp_j) / dist_centros
+                        si ratio > max_ratio entonces
+                            max_ratio = ratio
+                        fin_si
+                    fin_si
+                fin_si
+                j = j + 1
+            fin_mientras
+
+            suma_db = suma_db + max_ratio
+            i = i + 1
+        fin_mientras
+
+        retornar suma_db / n_clusters
+    fin_funcion
+
+    # =============================================================================
+    # CALINSKI-HARABASZ SCORE
+    # =============================================================================
+
+    # Método: calcular_calinski_harabasz_score
+    # Propósito: Calcular Calinski-Harabasz Score (mayor es mejor)
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: flotante >= 0 (mayor = mejor)
+    funcion calcular_calinski_harabasz_score(lista X_matriz, lista labels) retorna flotante
+        si no este.validar_datos_clustering(X_matriz, labels) entonces
+            retornar 0.0
+        fin_si
+
+        entero n_muestras = lista_tamano(X_matriz)
+        lista clusters_unicos = este.obtener_clusters_unicos(labels)
+        entero n_clusters = lista_tamano(clusters_unicos)
+
+        si n_clusters <= 1 o n_clusters >= n_muestras entonces
+            imprimir "[WARN] Número de clusters no válido para Calinski-Harabasz"
+            retornar 0.0
+        fin_si
+
+        # Calcular centroide global
+        entero n_dims = lista_tamano(lista_obtener(X_matriz, 0))
+        lista centroide_global = crear_lista()
+        entero d = 0
+        mientras d < n_dims hacer
+            flotante suma = 0.0
+            entero i = 0
+            mientras i < n_muestras hacer
+                lista punto = lista_obtener(X_matriz, i)
+                flotante val = lista_obtener(punto, d)
+                suma = suma + val
+                i = i + 1
+            fin_mientras
+            lista_agregar(centroide_global, suma / n_muestras)
+            d = d + 1
+        fin_mientras
+
+        # Calcular dispersión entre-clusters (Between-Cluster Dispersion)
+        flotante bcd = 0.0
+        entero c = 0
+        mientras c < n_clusters hacer
+            entero cluster_id = lista_obtener(clusters_unicos, c)
+            lista indices = este.obtener_indices_cluster(labels, cluster_id)
+            entero n_puntos = lista_tamano(indices)
+
+            si n_puntos > 0 entonces
+                lista centroide = este.calcular_centroide_cluster(X_matriz, labels, cluster_id)
+                flotante dist = este.distancia_euclidiana(centroide, centroide_global)
+                bcd = bcd + (n_puntos * dist * dist)
+            fin_si
+            c = c + 1
+        fin_mientras
+
+        # Calcular dispersión dentro-clusters (Within-Cluster Dispersion)
+        flotante wcd = 0.0
+        entero i = 0
+        mientras i < n_muestras hacer
+            entero cluster_id = lista_obtener(labels, i)
+            lista centroide = este.calcular_centroide_cluster(X_matriz, labels, cluster_id)
+            lista punto = lista_obtener(X_matriz, i)
+            flotante dist = este.distancia_euclidiana(punto, centroide)
+            wcd = wcd + (dist * dist)
+            i = i + 1
+        fin_mientras
+
+        # Calcular CH score
+        si wcd == 0.0 entonces
+            retornar 0.0
+        fin_si
+
+        flotante numerador = bcd / (n_clusters - 1)
+        flotante denominador = wcd / (n_muestras - n_clusters)
+
+        si denominador == 0.0 entonces
+            retornar 0.0
+        fin_si
+
+        retornar numerador / denominador
+    fin_funcion
+
+    # =============================================================================
+    # INERCIA (WCSS)
+    # =============================================================================
+
+    # Método: calcular_inercia
+    # Propósito: Calcular inercia (Within-Cluster Sum of Squares)
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas, centroides - lista de centroides (opcional)
+    # Retorna: flotante >= 0 (menor = mejor)
+    funcion calcular_inercia(lista X_matriz, lista labels, lista centroides) retorna flotante
+        si no este.validar_datos_clustering(X_matriz, labels) entonces
+            retornar 0.0
+        fin_si
+
+        lista clusters_unicos = este.obtener_clusters_unicos(labels)
+        entero n_clusters = lista_tamano(clusters_unicos)
+
+        # Si no se proporcionan centroides, calcularlos
+        lista cents = centroides
+        si cents == nulo o lista_tamano(cents) == 0 entonces
+            cents = crear_lista()
+            entero c = 0
+            mientras c < n_clusters hacer
+                entero cluster_id = lista_obtener(clusters_unicos, c)
+                lista centroide = este.calcular_centroide_cluster(X_matriz, labels, cluster_id)
+                lista_agregar(cents, centroide)
+                c = c + 1
+            fin_mientras
+        fin_si
+
+        # Calcular suma de distancias cuadradas
+        flotante inercia = 0.0
+        entero n_muestras = lista_tamano(X_matriz)
+        entero i = 0
+
+        mientras i < n_muestras hacer
+            entero cluster_id = lista_obtener(labels, i)
+
+            # Encontrar índice del cluster en la lista de únicos
+            entero idx_cluster = 0
+            entero c = 0
+            mientras c < n_clusters hacer
+                entero cid = lista_obtener(clusters_unicos, c)
+                si cid == cluster_id entonces
+                    idx_cluster = c
+                fin_si
+                c = c + 1
+            fin_mientras
+
+            lista punto = lista_obtener(X_matriz, i)
+            lista centroide = lista_obtener(cents, idx_cluster)
+            flotante dist = este.distancia_euclidiana(punto, centroide)
+            inercia = inercia + (dist * dist)
+            i = i + 1
+        fin_mientras
+
+        retornar inercia
+    fin_funcion
+
+    # =============================================================================
+    # INFORME COMPLETO
+    # =============================================================================
+
+    # Método: informe_clustering
+    # Propósito: Generar informe completo con todas las métricas de clustering
+    # Parámetros: X_matriz - matriz de datos, labels - etiquetas de cluster
+    # Retorna: mapa con todas las métricas calculadas
+    funcion informe_clustering(lista X_matriz, lista labels) retorna mapa
+        mapa informe = mapa_crear()
+
+        si no este.validar_datos_clustering(X_matriz, labels) entonces
+            mapa_poner(informe, "error", "Datos no válidos")
+            retornar informe
+        fin_si
+
+        lista clusters_unicos = este.obtener_clusters_unicos(labels)
+        entero n_clusters = lista_tamano(clusters_unicos)
+        entero n_muestras = lista_tamano(X_matriz)
+
+        # Información general
+        mapa_poner(informe, "n_muestras", n_muestras)
+        mapa_poner(informe, "n_clusters", n_clusters)
+
+        # Calcular métricas (solo si hay más de 1 cluster)
+        si n_clusters > 1 entonces
+            # Silhouette Score
+            flotante silhouette = este.calcular_silhouette_score(X_matriz, labels)
+            mapa_poner(informe, "silhouette_score", silhouette)
+
+            # Davies-Bouldin Index
+            flotante db_index = este.calcular_davies_bouldin_index(X_matriz, labels)
+            mapa_poner(informe, "davies_bouldin_index", db_index)
+
+            # Calinski-Harabasz Score
+            flotante ch_score = este.calcular_calinski_harabasz_score(X_matriz, labels)
+            mapa_poner(informe, "calinski_harabasz_score", ch_score)
+
+            # Inercia
+            flotante inercia = este.calcular_inercia(X_matriz, labels, nulo)
+            mapa_poner(informe, "inercia", inercia)
+
+            # Tamaños de clusters
+            lista tamanos = crear_lista()
+            entero c = 0
+            mientras c < n_clusters hacer
+                entero cluster_id = lista_obtener(clusters_unicos, c)
+                lista indices = este.obtener_indices_cluster(labels, cluster_id)
+                lista_agregar(tamanos, lista_tamano(indices))
+                c = c + 1
+            fin_mientras
+            mapa_poner(informe, "tamanos_clusters", tamanos)
+        sino
+            mapa_poner(informe, "aviso", "Solo hay 1 cluster, métricas no aplicables")
+        fin_si
+
+        retornar informe
+    fin_funcion
+
+    # Método: imprimir_informe
+    # Propósito: Mostrar informe de clustering en formato legible
+    # Parámetros: informe - mapa con métricas
+    funcion imprimir_informe(mapa informe)
+        imprimir "=========================================="
+        imprimir "  INFORME DE MÉTRICAS DE CLUSTERING"
+        imprimir "=========================================="
+
+        # Verificar si hay error
+        elemento err = mapa_obtener(informe, "error")
+        si err != nulo entonces
+            imprimir "[ERROR] " + err
+            retornar
+        fin_si
+
+        # Información general
+        entero n_muestras = mapa_obtener(informe, "n_muestras")
+        entero n_clusters = mapa_obtener(informe, "n_clusters")
+
+        imprimir ""
+        imprimir "Información General:"
+        imprimir "  - Número de muestras: " + str_desde_numero(n_muestras)
+        imprimir "  - Número de clusters: " + str_desde_numero(n_clusters)
+
+        # Verificar si hay métricas
+        elemento silh = mapa_obtener(informe, "silhouette_score")
+        si silh == nulo entonces
+            imprimir ""
+            imprimir "[AVISO] Métricas no calculadas (cluster único)"
+            retornar
+        fin_si
+
+        # Métricas principales
+        imprimir ""
+        imprimir "Métricas de Calidad:"
+
+        flotante silhouette = silh
+        imprimir "  - Silhouette Score: " + str_desde_numero(silhouette)
+        imprimir "    (Rango: -1 a 1, donde 1 = mejor separación)"
+
+        flotante db = mapa_obtener(informe, "davies_bouldin_index")
+        imprimir "  - Davies-Bouldin Index: " + str_desde_numero(db)
+        imprimir "    (Menor es mejor, 0 = ideal)"
+
+        flotante ch = mapa_obtener(informe, "calinski_harabasz_score")
+        imprimir "  - Calinski-Harabasz Score: " + str_desde_numero(ch)
+        imprimir "    (Mayor es mejor)"
+
+        flotante inercia = mapa_obtener(informe, "inercia")
+        imprimir "  - Inercia (WCSS): " + str_desde_numero(inercia)
+        imprimir "    (Menor es mejor)"
+
+        # Tamaños de clusters
+        lista tamanos = mapa_obtener(informe, "tamanos_clusters")
+        si tamanos != nulo entonces
+            imprimir ""
+            imprimir "Distribución de Clusters:"
+            entero c = 0
+            mientras c < lista_tamano(tamanos) hacer
+                entero tam = lista_obtener(tamanos, c)
+                imprimir "  - Cluster " + str_desde_numero(c) + ": " + str_desde_numero(tam) + " puntos"
+                c = c + 1
+            fin_mientras
+        fin_si
+
+        imprimir ""
+        imprimir "=========================================="
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTAR CLASE
+# =============================================================================
+
+enviar { MetricasClustering }

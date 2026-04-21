@@ -1,0 +1,572 @@
+# =============================================================================
+# MÓDULO DE ÁRBOLES DE DECISIÓN (DECISION TREES)
+# =============================================================================
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase ArbolesDecision extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Arboles de Decision", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # FUNCIONES AUXILIARES - CÁLCULO DE GINI
+    # =============================================================================
+
+    # Calcula la impureza Gini de un conjunto de etiquetas
+    funcion calcular_gini(lista y) retorna flotante
+        entero n = lista_tamano(y)
+        si n == 0 entonces retornar 0.0 fin_si
+
+        # Contar frecuencias de cada clase
+        mapa conteos = mapa_crear()
+        lista clases_unicas = lista_crear()
+        entero i = 0
+        mientras i < n hacer
+            elemento clase = lista_obtener(y, i)
+            elemento contador_actual = mapa_obtener(conteos, clase)
+
+            si contador_actual == nulo entonces
+                mapa_poner(conteos, clase, 1)
+                lista_agregar(clases_unicas, clase)
+            sino
+                mapa_poner(conteos, clase, contador_actual + 1)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        # Calcular Gini: 1 - sum(p_i^2)
+        flotante gini = 1.0
+        entero j = 0
+        mientras j < lista_tamano(clases_unicas) hacer
+            elemento clase_key = lista_obtener(clases_unicas, j)
+            entero conteo = mapa_obtener(conteos, clase_key)
+            flotante probabilidad = conteo / n
+            gini = gini - (probabilidad * probabilidad)
+            j = j + 1
+        fin_mientras
+
+        retornar gini
+    fin_funcion
+
+    # Encuentra la clase más común en una lista
+    funcion clase_mayoritaria(lista y) retorna elemento
+        entero n = lista_tamano(y)
+        si n == 0 entonces retornar nulo fin_si
+
+        mapa conteos = mapa_crear()
+        elemento mejor_clase = lista_obtener(y, 0)
+        entero max_conteo = 0
+
+        entero i = 0
+        mientras i < n hacer
+            elemento clase = lista_obtener(y, i)
+            elemento contador_actual = mapa_obtener(conteos, clase)
+
+            entero nuevo_conteo = 0
+            si contador_actual == nulo entonces
+                nuevo_conteo = 1
+                mapa_poner(conteos, clase, 1)
+            sino
+                nuevo_conteo = convertir_entero(contador_actual) + 1
+                mapa_poner(conteos, clase, nuevo_conteo)
+            fin_si
+
+            si nuevo_conteo > max_conteo entonces
+                max_conteo = nuevo_conteo
+                mejor_clase = clase
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar mejor_clase
+    fin_funcion
+
+    # =============================================================================
+    # DIVISIÓN DE DATOS
+    # =============================================================================
+
+    # Encuentra la mejor división para una característica específica
+    funcion mejor_division(lista X, lista y, entero feature_idx) retorna mapa
+        entero n = lista_tamano(X)
+        si n == 0 entonces retornar nulo fin_si
+
+        flotante mejor_gini = 999999.0
+        flotante mejor_umbral = 0.0
+        bool encontrado = falso
+
+        # Recopilar todos los valores únicos de esta característica
+        lista valores = crear_lista()
+        entero i = 0
+        mientras i < n hacer
+            elemento fila = lista_obtener(X, i)
+            elemento valor = nulo
+
+            # Verificar si X es multidimensional (lista de listas)
+            si es_lista(fila) entonces
+                valor = lista_obtener(fila, feature_idx)
+            sino
+                # X es unidimensional, solo hay una feature
+                valor = fila
+            fin_si
+            lista_agregar(valores, valor)
+            i = i + 1
+        fin_mientras
+
+        # Probar cada valor como umbral
+        entero j = 0
+        mientras j < n hacer
+            flotante umbral = lista_obtener(valores, j)
+
+            # Dividir datos en izquierda y derecha
+            lista y_izq = crear_lista()
+            lista y_der = crear_lista()
+
+            entero k = 0
+            mientras k < n hacer
+                flotante val_k = lista_obtener(valores, k)
+                elemento etiqueta = lista_obtener(y, k)
+
+                si val_k <= umbral entonces
+                    lista_agregar(y_izq, etiqueta)
+                sino
+                    lista_agregar(y_der, etiqueta)
+                fin_si
+                k = k + 1
+            fin_mientras
+
+            # Calcular Gini ponderado
+            entero n_izq = lista_tamano(y_izq)
+            entero n_der = lista_tamano(y_der)
+
+            si n_izq > 0 y n_der > 0 entonces
+                flotante gini_izq = este.calcular_gini(y_izq)
+                flotante gini_der = este.calcular_gini(y_der)
+                flotante gini_ponderado = (n_izq / n) * gini_izq + (n_der / n) * gini_der
+
+                si gini_ponderado < mejor_gini entonces
+                    mejor_gini = gini_ponderado
+                    mejor_umbral = umbral
+                    encontrado = verdadero
+                fin_si
+            fin_si
+
+            j = j + 1
+        fin_mientras
+
+        mapa res_division = mapa_crear()
+        mapa_poner(res_division, "gini", mejor_gini)
+        mapa_poner(res_division, "umbral", mejor_umbral)
+        mapa_poner(res_division, "encontrado", encontrado)
+        retornar res_division
+    fin_funcion
+
+    # Encuentra la mejor característica y umbral para dividir
+    funcion mejor_division_completa(lista X, lista y, entero num_features) retorna mapa
+        flotante mejor_gini = 999999.0
+        entero mejor_feature = 0
+        flotante mejor_umbral = 0.0
+        bool encontrado = falso
+
+        # Probar cada característica
+        entero feature = 0
+        mientras feature < num_features hacer
+            mapa division = este.mejor_division(X, y, feature)
+
+            si division != nulo entonces
+                elemento enc = mapa_obtener(division, "encontrado")
+                si enc == verdadero entonces
+                    flotante gini = mapa_obtener(division, "gini")
+                    si gini < mejor_gini entonces
+                        mejor_gini = gini
+                        mejor_feature = feature
+                        mejor_umbral = mapa_obtener(division, "umbral")
+                        encontrado = verdadero
+                    fin_si
+                fin_si
+            fin_si
+
+            feature = feature + 1
+        fin_mientras
+
+        mapa res_mejor = mapa_crear()
+        mapa_poner(res_mejor, "feature", mejor_feature)
+        mapa_poner(res_mejor, "umbral", mejor_umbral)
+        mapa_poner(res_mejor, "gini", mejor_gini)
+        mapa_poner(res_mejor, "encontrado", encontrado)
+        retornar res_mejor
+    fin_funcion
+
+    # Divide X e y según un criterio
+    funcion dividir_datos(lista X, lista y, entero feature_idx, flotante umbral) retorna mapa
+        lista X_izq = crear_lista()
+        lista y_izq = crear_lista()
+        lista X_der = crear_lista()
+        lista y_der = crear_lista()
+
+        entero n = lista_tamano(X)
+        entero i = 0
+        mientras i < n hacer
+            elemento fila = lista_obtener(X, i)
+            elemento etiqueta = lista_obtener(y, i)
+
+            flotante valor = 0.0
+            si es_lista(fila) entonces
+                valor = lista_obtener(fila, feature_idx)
+            sino
+                valor = fila
+            fin_si
+
+            si valor <= umbral entonces
+                lista_agregar(X_izq, fila)
+                lista_agregar(y_izq, etiqueta)
+            sino
+                lista_agregar(X_der, fila)
+                lista_agregar(y_der, etiqueta)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        mapa res_datos = mapa_crear()
+        mapa_poner(res_datos, "X_izq", X_izq)
+        mapa_poner(res_datos, "y_izq", y_izq)
+        mapa_poner(res_datos, "X_der", X_der)
+        mapa_poner(res_datos, "y_der", y_der)
+        retornar res_datos
+    fin_funcion
+
+    # =============================================================================
+    # CONSTRUCCIÓN RECURSIVA DEL ÁRBOL
+    # =============================================================================
+
+    funcion construir_arbol(lista X, lista y, entero profundidad, entero max_prof, entero num_features) retorna mapa
+        entero n = lista_tamano(y)
+
+        # Casos base: crear nodo hoja
+        # 1. Alcanzamos profundidad máxima
+        # 2. Muy pocas muestras
+        # 3. Todas las muestras son de la misma clase
+        si profundidad >= max_prof o n <= 1 entonces
+            mapa nodo_hoja = mapa_crear()
+            mapa_poner(nodo_hoja, "tipo", "hoja")
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "muestras", n)
+            retornar nodo_hoja
+        fin_si
+
+        # Verificar si todas las muestras son de la misma clase
+        flotante gini_actual = este.calcular_gini(y)
+        si gini_actual < 0.001 entonces
+            mapa nodo_hoja = mapa_crear()
+            mapa_poner(nodo_hoja, "tipo", "hoja")
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "muestras", n)
+            retornar nodo_hoja
+        fin_si
+
+        # Encontrar mejor división
+        mapa mejor_split = este.mejor_division_completa(X, y, num_features)
+        elemento encontrado = mapa_obtener(mejor_split, "encontrado")
+
+        si encontrado == falso entonces
+            mapa nodo_hoja = mapa_crear()
+            mapa_poner(nodo_hoja, "tipo", "hoja")
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "muestras", n)
+            retornar nodo_hoja
+        fin_si
+
+        # Dividir datos
+        entero feature_idx = mapa_obtener(mejor_split, "feature")
+        flotante umbral = mapa_obtener(mejor_split, "umbral")
+
+        mapa datos_divididos = este.dividir_datos(X, y, feature_idx, umbral)
+        lista X_izq = mapa_obtener(datos_divididos, "X_izq")
+        lista y_izq = mapa_obtener(datos_divididos, "y_izq")
+        lista X_der = mapa_obtener(datos_divididos, "X_der")
+        lista y_der = mapa_obtener(datos_divididos, "y_der")
+
+        # Si una rama queda vacía, crear hoja
+        si lista_tamano(y_izq) == 0 o lista_tamano(y_der) == 0 entonces
+            mapa nodo_hoja = mapa_crear()
+            mapa_poner(nodo_hoja, "tipo", "hoja")
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "muestras", n)
+            retornar nodo_hoja
+        fin_si
+
+        # Construir subárboles recursivamente
+        mapa hijo_izq = este.construir_arbol(X_izq, y_izq, profundidad + 1, max_prof, num_features)
+        mapa hijo_der = este.construir_arbol(X_der, y_der, profundidad + 1, max_prof, num_features)
+
+        # Crear nodo interno
+        mapa nodo_interno = mapa_crear()
+        mapa_poner(nodo_interno, "tipo", "interno")
+        mapa_poner(nodo_interno, "feature", feature_idx)
+        mapa_poner(nodo_interno, "umbral", umbral)
+        mapa_poner(nodo_interno, "gini", mapa_obtener(mejor_split, "gini"))
+        mapa_poner(nodo_interno, "muestras", n)
+        mapa_poner(nodo_interno, "izquierda", hijo_izq)
+        mapa_poner(nodo_interno, "derecha", hijo_der)
+
+        retornar nodo_interno
+    fin_funcion
+
+    # =============================================================================
+    # FUNCIÓN PRINCIPAL DE ENTRENAMIENTO
+    # =============================================================================
+
+    funcion arbol_decision_clasificacion_fit(lista X, lista y, entero max_profundidad) retorna mapa
+        si no este.validar_lista_numerica(y) entonces
+            imprimir "[ERROR] Lista y no es valida"
+            retornar nulo
+        fin_si
+
+        entero n = lista_tamano(X)
+        si n == 0 o lista_tamano(y) == 0 o n != lista_tamano(y) entonces
+            imprimir "[ERROR] Dimensiones de X e y no coinciden"
+            retornar nulo
+        fin_si
+
+        si max_profundidad <= 0 entonces
+            max_profundidad = 10
+        fin_si
+
+        # Determinar número de características
+        entero num_features = 1
+        elemento primera_fila = lista_obtener(X, 0)
+        si es_lista(primera_fila) entonces
+            num_features = lista_tamano(primera_fila)
+        fin_si
+
+        # Construir el árbol
+        mapa arbol = este.construir_arbol(X, y, 0, max_profundidad, num_features)
+
+        # Agregar metadatos
+        mapa modelo = mapa_crear()
+        mapa_poner(modelo, "arbol", arbol)
+        mapa_poner(modelo, "num_features", num_features)
+        mapa_poner(modelo, "max_profundidad", max_profundidad)
+        mapa_poner(modelo, "num_muestras", n)
+
+        retornar modelo
+    fin_funcion
+
+    # =============================================================================
+    # PREDICCIÓN
+    # =============================================================================
+
+    # Predice la clase para una muestra individual navegando el árbol
+    funcion predecir_muestra(mapa nodo, lista x_nuevo) retorna elemento
+        texto tipo = mapa_obtener(nodo, "tipo")
+
+        # Si es hoja, retornar la clase
+        si tipo == "hoja" entonces
+            retornar mapa_obtener(nodo, "clase")
+        fin_si
+
+        # Si es nodo interno, navegar según el umbral
+        entero feature_idx = mapa_obtener(nodo, "feature")
+        flotante umbral = mapa_obtener(nodo, "umbral")
+
+        flotante valor = 0.0
+        si es_lista(x_nuevo) entonces
+            valor = lista_obtener(x_nuevo, feature_idx)
+        sino
+            valor = convertir_flotante(x_nuevo)
+        fin_si
+
+        si valor <= umbral entonces
+            mapa hijo_izq = mapa_obtener(nodo, "izquierda")
+            retornar este.predecir_muestra(hijo_izq, x_nuevo)
+        sino
+            mapa hijo_der = mapa_obtener(nodo, "derecha")
+            retornar este.predecir_muestra(hijo_der, x_nuevo)
+        fin_si
+    fin_funcion
+
+    funcion arbol_decision_predecir(mapa modelo, lista x_nuevo) retorna elemento
+        si modelo == nulo entonces
+            imprimir "[ERROR] Modelo nulo"
+            retornar nulo
+        fin_si
+
+        mapa arbol = mapa_obtener(modelo, "arbol")
+        si arbol == nulo entonces
+            imprimir "[ERROR] Arbol nulo en modelo"
+            retornar nulo
+        fin_si
+
+        retornar este.predecir_muestra(arbol, x_nuevo)
+    fin_funcion
+
+    # Predicción por lotes
+    funcion arbol_decision_predecir_batch(mapa modelo, lista X_test) retorna lista
+        lista predicciones = crear_lista()
+
+        entero i = 0
+        mientras i < lista_tamano(X_test) hacer
+            elemento muestra = lista_obtener(X_test, i)
+            elemento prediccion = este.arbol_decision_predecir(modelo, muestra)
+            lista_agregar(predicciones, prediccion)
+            i = i + 1
+        fin_mientras
+
+        retornar predicciones
+    fin_funcion
+
+    # =============================================================================
+    # IMPORTANCIA DE CARACTERÍSTICAS
+    # =============================================================================
+
+    # Calcula la importancia de features recursivamente
+    funcion calcular_importancia_recursivo(mapa nodo, lista importancias, entero n_total) retorna lista
+        texto tipo = mapa_obtener(nodo, "tipo")
+
+        si tipo == "hoja" entonces
+            retornar importancias
+        fin_si
+
+        # Nodo interno: sumar importancia
+        entero feature_idx = mapa_obtener(nodo, "feature")
+        flotante gini = mapa_obtener(nodo, "gini")
+        entero n_muestras = mapa_obtener(nodo, "muestras")
+
+        # Importancia = reducción de Gini ponderada por número de muestras
+        flotante importancia_inc = gini * (n_muestras / n_total)
+
+        flotante imp_actual = lista_obtener(importancias, feature_idx)
+        importancias = este.establecer_en_lista(importancias, feature_idx, imp_actual + importancia_inc)
+
+        # Recursión en hijos
+        mapa hijo_izq = mapa_obtener(nodo, "izquierda")
+        mapa hijo_der = mapa_obtener(nodo, "derecha")
+
+        importancias = este.calcular_importancia_recursivo(hijo_izq, importancias, n_total)
+        importancias = este.calcular_importancia_recursivo(hijo_der, importancias, n_total)
+
+        retornar importancias
+    fin_funcion
+
+    funcion arbol_importancia_features(mapa modelo) retorna lista
+        si modelo == nulo entonces
+            retornar nulo
+        fin_si
+
+        entero num_features = mapa_obtener(modelo, "num_features")
+        entero n_total = mapa_obtener(modelo, "num_muestras")
+
+        # Inicializar importancias a 0
+        lista importancias = crear_lista()
+        entero i = 0
+        mientras i < num_features hacer
+            lista_agregar(importancias, 0.0)
+            i = i + 1
+        fin_mientras
+
+        # Calcular importancias
+        mapa arbol = mapa_obtener(modelo, "arbol")
+        importancias = este.calcular_importancia_recursivo(arbol, importancias, n_total)
+
+        # Normalizar importancias para que sumen 1
+        flotante suma_total = 0.0
+        entero j = 0
+        mientras j < num_features hacer
+            suma_total = suma_total + lista_obtener(importancias, j)
+            j = j + 1
+        fin_mientras
+
+        si suma_total > 0.0 entonces
+            lista importancias_norm = crear_lista()
+            entero k = 0
+            mientras k < num_features hacer
+                flotante imp_norm = lista_obtener(importancias, k) / suma_total
+                lista_agregar(importancias_norm, imp_norm)
+                k = k + 1
+            fin_mientras
+            retornar importancias_norm
+        fin_si
+
+        retornar importancias
+    fin_funcion
+
+    # =============================================================================
+    # UTILIDADES ADICIONALES
+    # =============================================================================
+
+    # Función auxiliar para verificar si un elemento es una lista
+    funcion es_lista(elemento obj) retorna bool
+        # Jasboot no tiene type checking nativo
+        # Asumimos que el objeto pasado es una lista válida
+        # (evitamos intentar/atrapar por bug del compilador)
+        retornar verdadero
+    fin_funcion
+
+    # Profundidad del árbol
+    funcion calcular_profundidad_arbol(mapa nodo) retorna entero
+        si nodo == nulo entonces
+            retornar 0
+        fin_si
+
+        texto tipo = mapa_obtener(nodo, "tipo")
+        si tipo == "hoja" entonces
+            retornar 1
+        fin_si
+
+        mapa hijo_izq = mapa_obtener(nodo, "izquierda")
+        mapa hijo_der = mapa_obtener(nodo, "derecha")
+
+        entero prof_izq = este.calcular_profundidad_arbol(hijo_izq)
+        entero prof_der = este.calcular_profundidad_arbol(hijo_der)
+
+        si prof_izq > prof_der entonces
+            retornar prof_izq + 1
+        sino
+            retornar prof_der + 1
+        fin_si
+    fin_funcion
+
+    # Número de nodos en el árbol
+    funcion contar_nodos(mapa nodo) retorna entero
+        si nodo == nulo entonces
+            retornar 0
+        fin_si
+
+        texto tipo = mapa_obtener(nodo, "tipo")
+        si tipo == "hoja" entonces
+            retornar 1
+        fin_si
+
+        mapa hijo_izq = mapa_obtener(nodo, "izquierda")
+        mapa hijo_der = mapa_obtener(nodo, "derecha")
+
+        retornar 1 + este.contar_nodos(hijo_izq) + este.contar_nodos(hijo_der)
+    fin_funcion
+
+    # Descripción del modelo entrenado
+    funcion describir_modelo(mapa modelo)
+        si modelo == nulo entonces
+            imprimir "[ERROR] Modelo nulo"
+            retornar
+        fin_si
+
+        este.describir()
+        imprimir "Caracteristicas: " + mapa_obtener(modelo, "num_features")
+        imprimir "Profundidad maxima: " + mapa_obtener(modelo, "max_profundidad")
+        imprimir "Muestras entrenadas: " + mapa_obtener(modelo, "num_muestras")
+
+        mapa arbol = mapa_obtener(modelo, "arbol")
+        entero num_nodos = este.contar_nodos(arbol)
+        entero profundidad_real = este.calcular_profundidad_arbol(arbol)
+
+        imprimir "Nodos totales: " + num_nodos
+        imprimir "Profundidad real: " + profundidad_real
+    fin_funcion
+
+fin_clase
+
+# Exportar la clase
+enviar { ArbolesDecision }

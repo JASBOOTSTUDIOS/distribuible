@@ -1,0 +1,53 @@
+# =============================================================================
+# CLASE BASE PARA ANALÍTICA NEURONAL
+# =============================================================================
+
+enviar clase AnalizadorBase
+    texto nombre_analizador
+    texto version_analizador
+    
+    # Constructor base
+    funcion inicializar(texto nombre, texto version)
+        este.nombre_analizador = nombre
+        este.version_analizador = version
+    fin_funcion
+    
+    # Método para describir el componente
+    funcion describir()
+        imprimir "--- " + este.nombre_analizador + " (" + este.version_analizador + ") ---"
+    fin_funcion
+    
+    # Validación básica de datos numéricos
+    funcion validar_lista_numerica(lista datos) retorna bool
+        si datos == nulo o lista_tamano(datos) == 0 entonces
+            retornar falso
+        fin_si
+        
+        entero i = 0
+        mientras i < lista_tamano(datos) hacer
+            elemento v = lista_obtener(datos, i)
+            si v == nulo o v == "indefinido" entonces
+                retornar falso
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        retornar verdadero
+    fin_funcion
+    
+    # Simulación de lista_poner (reconstruye la lista)
+    funcion establecer_en_lista(lista origen, entero indice, elemento nuevo_valor) retorna lista
+        lista nueva = crear_lista()
+        entero n = lista_tamano(origen)
+        entero i = 0
+        mientras i < n hacer
+            si i == indice entonces
+                lista_agregar(nueva, nuevo_valor)
+            sino
+                lista_agregar(nueva, lista_obtener(origen, i))
+            fin_si
+            i = i + 1
+        fin_mientras
+        retornar nueva
+    fin_funcion
+fin_clase

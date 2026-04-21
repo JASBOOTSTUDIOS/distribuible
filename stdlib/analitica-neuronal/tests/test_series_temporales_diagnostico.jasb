@@ -1,0 +1,94 @@
+# =============================================================================
+# TEST DE DIAGNÓSTICO - SERIES TEMPORALES
+# =============================================================================
+# Propósito: Identificar problemas con funciones de series temporales
+# =============================================================================
+
+usar todas de "../analitica.jasb"
+
+principal
+    imprimir "=== TEST DE DIAGNÓSTICO - SERIES TEMPORALES ==="
+    
+    # Inicializar la fachada
+    inicializar_fachada()
+    
+    # Datos de prueba - serie simple
+    lista datos_serie = crear_lista()
+    lista_agregar(datos_serie, 10.0)
+    lista_agregar(datos_serie, 15.0)
+    lista_agregar(datos_serie, 12.0)
+    lista_agregar(datos_serie, 20.0)
+    lista_agregar(datos_serie, 18.0)
+    lista_agregar(datos_serie, 25.0)
+    lista_agregar(datos_serie, 22.0)
+    lista_agregar(datos_serie, 30.0)
+    lista_agregar(datos_serie, 28.0)
+    
+    imprimir "Datos de serie temporal:"
+    imprimir "Serie: [10.0, 15.0, 12.0, 20.0, 18.0, 25.0, 22.0, 30.0, 28.0]"
+    imprimir ""
+    
+    # Test 1: Suavizamiento Exponencial Simple
+    imprimir "=== TEST 1: Suavizamiento Exponencial Simple ==="
+    lista resultado_exp = g_analitica.series.suavizamiento_exponencial_simple(datos_serie, 0.3)
+    entero tam_exp = lista_tamano(resultado_exp)
+    imprimir "Resultado (alfa=0.3): " + str_desde_numero(tam_exp) + " puntos"
+    
+    # Test 2: Suavizamiento Doble (Holt)
+    imprimir "=== TEST 2: Suavizamiento Doble (Holt) ==="
+    lista resultado_holt = g_analitica.series.suavizamiento_exponencial_doble(datos_serie, 0.5, 0.2)
+    entero tam_holt = lista_tamano(resultado_holt)
+    imprimir "Resultado (alfa=0.5, beta=0.2): " + str_desde_numero(tam_holt) + " puntos"
+    
+    # Test 3: Media Móvil Simple
+    imprimir "=== TEST 3: Media Móvil Simple ==="
+    lista resultado_mm = g_analitica.series.media_movil_simple(datos_serie, 3)
+    entero tam_mm = lista_tamano(resultado_mm)
+    imprimir "Resultado (ventana=3): " + str_desde_numero(tam_mm) + " puntos"
+    
+    # Test 4: Autocorrelación
+    imprimir "=== TEST 4: Autocorrelación ==="
+    flotante resultado_autocorr = g_analitica.series.autocorrelacion(datos_serie, 1)
+    imprimir "Resultado (lag=1): " + str_desde_numero(resultado_autocorr)
+    
+    # Test 5: Datos vacíos
+    imprimir "=== TEST 5: Series Temporales con Datos Vacíos ==="
+    lista datos_vacios = crear_lista()
+    lista resultado_vacio = g_analitica.series.suavizamiento_exponencial_simple(datos_vacios, 0.5)
+    entero tam_vacio = lista_tamano(resultado_vacio)
+    imprimir "Resultado (datos vacíos): " + str_desde_numero(tam_vacio) + " puntos"
+    
+        
+imprimir ""
+    imprimir "=== ANÁLISIS DE RESULTADOS ==="
+    
+    si tam_exp == 0 entonces
+        imprimir "PROBLEMA CRÍTICO: Suavizamiento exponencial retorna lista vacía"
+    sino
+        imprimir "Suavizamiento exponencial funciona"
+    fin_si
+    
+    si tam_holt == 0 entonces
+        imprimir "PROBLEMA CRÍTICO: Suavizamiento doble retorna lista vacía"
+    sino
+        imprimir "Suavizamiento doble funciona"
+    fin_si
+    
+    si tam_mm == 0 entonces
+        imprimir "PROBLEMA CRÍTICO: Media móvil retorna lista vacía"
+    sino
+        imprimir "Media móvil funciona"
+    fin_si
+    
+    si resultado_autocorr == 0.0 entonces
+        imprimir "PROBLEMA CRÍTICO: Autocorrelación retorna 0.0"
+    sino
+        imprimir "Autocorrelación funciona"
+    fin_si
+    
+    imprimir ""
+    imprimir "=== CONCLUSIÓN ==="
+    imprimir "Si todos los resultados son 0.0 o listas vacías, el problema está en la implementación de series temporales"
+    imprimir "Si algunos resultados son correctos, el problema está en casos específicos"
+    
+fin_principal

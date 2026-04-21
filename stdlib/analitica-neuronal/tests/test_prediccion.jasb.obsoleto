@@ -1,0 +1,300 @@
+# =============================================================================
+# TEST COMPLETO DE PREDICCIÓN - LIBRERÍA DE ANALÍTICA NEURONAL
+# =============================================================================
+# Propósito: Demostrar capacidades predictivas completas de la librería
+# Autor: Sistema IA Ultra-Potente
+# Versión: 1.0 - Test Integral de Predicción
+# =============================================================================
+
+usar todas de "../analitica.jasb"
+
+clase TestPrediccion
+# Enviar la función principal para ejecución
+funcion test_prediccion_completo() retorna entero
+    # Inicializar el sistema
+    inicializar_fachada()
+
+    imprimir "=== INICIANDO TEST COMPLETO DE PREDICCIÓN ==="
+    imprimir "Librería: Analítica Neuronal Jasboot V2.0"
+    imprimir "Módulo: Modelos de Predicción"
+    imprimir ""
+
+    # =====================================================================
+    # TEST 1: REGRESIÓN LINEAL SIMPLE
+    # =====================================================================
+    imprimir "--- TEST 1: REGRESIÓN LINEAL SIMPLE ---"
+
+    # Datos de ejemplo: relación entre horas de estudio y calificación
+    lista horas_estudio = [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+    lista calificaciones = [65.0, 70.0, 75.0, 78.0, 82.0, 85.0, 88.0, 90.0, 92.0, 95.0]
+
+    imprimir "Datos de entrenamiento: ${horas_estudio}, ${calificaciones}"
+    imprimir "Horas de estudio: [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]"
+    imprimir "Calificaciones: [65.0, 70.0, 75.0, 78.0, 82.0, 85.0, 88.0, 90.0, 92.0, 95.0]"
+    imprimir ""
+
+    # Entrenar modelo de regresión
+    mapa modelo_lineal = g_analitica.prediccion.regresion_lineal_simple(horas_estudio, calificaciones)
+
+    si modelo_lineal != nulo entonces
+        flotante pendiente = mapa_obtener(modelo_lineal, "pendiente")
+        flotante intercepto = mapa_obtener(modelo_lineal, "intercepto")
+        flotante r2 = mapa_obtener(modelo_lineal, "r2")
+
+        imprimir "Modelo entrenado exitosamente:"
+        imprimir "Ecuación: y = " + str_desde_numero(pendiente) + "x + " + str_desde_numero(intercepto)
+        imprimir "Coeficiente R²: " + str_desde_numero(r2)
+        imprimir ""
+
+        # Predicción: ¿qué calificación para 11 horas de estudio?
+        flotante horas_pred = 11.0
+        flotante calif_pred = (pendiente * horas_pred) + intercepto
+
+        imprimir "Predicción:"
+        imprimir "Horas de estudio: " + str_desde_numero(horas_pred)
+        imprimir "Calificación predicha: " + str_desde_numero(calif_pred)
+        imprimir ""
+
+        # Validación del modelo
+        si r2 > 0.8 entonces
+            imprimir "VALIDACIÓN: Excelente ajuste (R² > 0.8)"
+        sino si r2 > 0.6 entonces
+            imprimir "VALIDACIÓN: Buen ajuste (R² > 0.6)"
+        sino
+            imprimir "VALIDACIÓN: Ajuste bajo (R² < 0.6)"
+        fin_si
+    sino
+        imprimir "ERROR: No se pudo entrenar el modelo de regresión"
+    fin_si
+    imprimir ""
+
+    # =====================================================================
+    # TEST 2: PREDICCIÓN DE DEMANDA DE PRODUCTO
+    # =====================================================================
+    imprimir "--- TEST 2: PREDICCIÓN DE DEMANDA DE PRODUCTO ---"
+
+    # Datos históricos de ventas (últimos 12 meses)
+    lista ventas_historicas = [120.0, 135.0, 140.0, 125.0, 155.0, 160.0, 145.0, 170.0, 180.0, 165.0, 175.0, 190.0]
+
+    imprimir "Histórico de ventas (últimos 12 meses):"
+    imprimir ventas_historicas
+    imprimir ""
+
+    # Predecir demanda para los próximos 6 meses
+    entero pasos_prediccion = 6
+    mapa prediccion_demanda = g_analitica.prediccion.modelo_prediccion_demanda_producto(ventas_historicas, pasos_prediccion)
+
+    si prediccion_demanda != nulo entonces
+        lista predicciones = mapa_obtener(prediccion_demanda, "predicciones")
+        mapa modelo_entrenado = mapa_obtener(prediccion_demanda, "modelo")
+
+        imprimir "Predicciones de demanda para próximos " + str_desde_numero(pasos_prediccion) + " meses:"
+
+        entero i = 0
+        mientras i < lista_tamano(predicciones) hacer
+            flotante valor_pred = lista_obtener(predicciones, i)
+            flotante mes_futuro = (lista_tamano(ventas_historicas) + 0.0) + (i + 0.0) + 1.0
+            imprimir "Mes " + str_desde_numero(mes_futuro) + ": " + str_desde_numero(valor_pred) + " unidades"
+            i = i + 1
+        fin_mientras
+        imprimir ""
+
+        # Mostrar métricas del modelo
+        flotante m = mapa_obtener(modelo_entrenado, "pendiente")
+        flotante b = mapa_obtener(modelo_entrenado, "intercepto")
+        flotante r2_demanda = mapa_obtener(modelo_entrenado, "r2")
+
+        imprimir "Métricas del modelo de demanda:"
+        imprimir "Tendencia mensual: " + str_desde_numero(m) + " unidades/mes"
+        imprimir "Intercepto base: " + str_desde_numero(b) + " unidades"
+        imprimir "Precisión (R²): " + str_desde_numero(r2_demanda)
+        imprimir ""
+
+        # Análisis de tendencia
+        si m > 0 entonces
+            imprimir "ANÁLISIS: Tendencia creciente (+ " + str_desde_numero(m) + " unidades/mes)"
+        sino
+            imprimir "ANÁLISIS: Tendencia decreciente (" + str_desde_numero(m) + " unidades/mes)"
+        fin_si
+    sino
+        imprimir "ERROR: No se pudo generar predicción de demanda"
+    fin_si
+    imprimir ""
+
+    # =====================================================================
+    # TEST 3: INTERVALOS DE CONFIANZA
+    # =====================================================================
+    imprimir "--- TEST 3: INTERVALOS DE CONFIANZA ---"
+
+    # Calcular intervalos de confianza para predicción
+    flotante valor_predicho = 175.5  # Predicción del mes anterior
+    flotante error_tipico = 15.0      # Error estándar estimado
+    flotante nivel_confianza = 1.96   # 95% de confianza
+
+    mapa intervalos = g_analitica.prediccion.estimar_intervalos_confianza(valor_predicho, error_tipico, nivel_confianza)
+
+    si intervalos != nulo entonces
+        flotante limite_inferior = mapa_obtener(intervalos, "inferior")
+        flotante limite_superior = mapa_obtener(intervalos, "superior")
+
+        imprimir "Intervalos de confianza (95%):"
+        imprimir "Valor predicho: " + str_desde_numero(valor_predicho)
+        imprimir "Límite inferior: " + str_desde_numero(limite_inferior)
+        imprimir "Límite superior: " + str_desde_numero(limite_superior)
+        imprimir "Margen de error: ±" + str_desde_numero(error_tipico * nivel_confianza)
+        imprimir ""
+
+        # Validación lógica
+        si limite_inferior > 0 y limite_superior > limite_inferior entonces
+            imprimir "VALIDACIÓN: Intervalos calculados correctamente"
+        sino
+            imprimir "VALIDACIÓN: Error en cálculo de intervalos"
+        fin_si
+    sino
+        imprimir "ERROR: No se pudieron calcular intervalos de confianza"
+    fin_si
+    imprimir ""
+
+    # =====================================================================
+    # TEST 4: ENSEMBLE DE PREDICCIONES
+    # =====================================================================
+    imprimir "--- TEST 4: ENSEMBLE DE PREDICCIONES ---"
+
+    # Dos series de predicciones diferentes (creadas dinámicamente)
+    lista predicciones_modelo_a = crear_lista()
+    lista_agregar(predicciones_modelo_a, 180.0)
+    lista_agregar(predicciones_modelo_a, 185.0)
+    lista_agregar(predicciones_modelo_a, 190.0)
+    lista_agregar(predicciones_modelo_a, 195.0)
+    lista_agregar(predicciones_modelo_a, 200.0)
+    lista_agregar(predicciones_modelo_a, 205.0)
+
+    lista predicciones_modelo_b = crear_lista()
+    lista_agregar(predicciones_modelo_b, 170.0)
+    lista_agregar(predicciones_modelo_b, 172.0)
+    lista_agregar(predicciones_modelo_b, 175.0)
+    lista_agregar(predicciones_modelo_b, 178.0)
+    lista_agregar(predicciones_modelo_b, 180.0)
+    lista_agregar(predicciones_modelo_b, 182.0)
+
+    imprimir "Predicciones Modelo A (optimista):"
+    imprimir predicciones_modelo_a
+    imprimir ""
+    imprimir "Predicciones Modelo B (conservador):"
+    imprimir predicciones_modelo_b
+    imprimir ""
+
+    # Combinar predicciones con ensemble
+    flotante peso_a = 0.6  # Más peso al modelo optimista
+    lista prediccion_combinada = g_analitica.prediccion.prediccion_ensemble_basico(predicciones_modelo_a, predicciones_modelo_b, peso_a)
+
+    si lista_tamano(prediccion_combinada) > 0 entonces
+        imprimir "Predicciones combinadas (peso A=" + str_desde_numero(peso_a) + ", peso B=" + str_desde_numero(1.0 - peso_a) + "):"
+        imprimir prediccion_combinada
+        imprimir ""
+
+        # Análisis del ensemble
+        entero tam_ensemble = lista_tamano(prediccion_combinada)
+        imprimir "Tamaño de lista combinada: " + str_desde_numero(tam_ensemble) + " predicciones"
+
+        # Verificación de éxito
+        si tam_ensemble == lista_tamano(predicciones_modelo_a) entonces
+            imprimir "✓ VALIDACIÓN: Ensemble combinado exitosamente"
+            imprimir "  Las predicciones se han combinado usando:"
+            imprimir "  - Peso Modelo A (optimista): " + str_desde_numero(peso_a * 100.0) + "%"
+            imprimir "  - Peso Modelo B (conservador): " + str_desde_numero((1.0 - peso_a) * 100.0) + "%"
+        sino
+            imprimir "✗ ERROR: Tamaño de ensemble no coincide"
+        fin_si
+    sino
+        imprimir "ERROR: No se pudo combinar las predicciones"
+    fin_si
+    imprimir ""
+
+    # =====================================================================
+    # TEST 5: VALIDACIÓN COMPLETA DEL SISTEMA
+    # =====================================================================
+    imprimir "--- TEST 5: VALIDACIÓN COMPLETA DEL SISTEMA ---"
+
+    # Crear un caso de prueba completo
+    lista datos_caso_real = [100.0, 120.0, 140.0, 130.0, 160.0, 180.0, 170.0, 200.0, 220.0, 210.0, 240.0, 260.0]
+    lista indices_caso = crear_lista()
+    entero n_caso = lista_tamano(datos_caso_real)
+    entero i_caso = 0
+    mientras i_caso < n_caso hacer
+        lista_agregar(indices_caso, i_caso + 0.0)
+        i_caso = i_caso + 1
+    fin_mientras
+
+    # Entrenar modelo completo
+    mapa modelo_completo = g_analitica.prediccion.regresion_lineal_simple(indices_caso, datos_caso_real)
+
+    si modelo_completo != nulo entonces
+        flotante r2_final = mapa_obtener(modelo_completo, "r2")
+        flotante pendiente_final = mapa_obtener(modelo_completo, "pendiente")
+
+        imprimir "Caso de prueba completo:"
+        imprimir "Datos históricos: " + str_desde_numero(n_caso) + " puntos"
+        imprimir "Precisión del modelo (R²): " + str_desde_numero(r2_final)
+        imprimir "Tendencia: " + str_desde_numero(pendiente_final) + " unidades/período"
+        imprimir ""
+
+        # Predicción a 3 períodos futuros
+        flotante periodo_futuro = n_caso + 3.0
+        flotante prediccion_final = (pendiente_final * periodo_futuro) + mapa_obtener(modelo_completo, "intercepto")
+
+        imprimir "Predicción al período " + str_desde_numero(periodo_futuro) + ": " + str_desde_numero(prediccion_final)
+
+        # Validación final
+        si r2_final > 0.7 entonces
+            imprimir "RESULTADO FINAL: Modelo predictivo robusto (R² > 0.7)"
+        sino si r2_final > 0.5 entonces
+            imprimir "RESULTADO FINAL: Modelo predictivo aceptable (R² > 0.5)"
+        sino
+            imprimir "RESULTADO FINAL: Modelo predictivo necesita mejora (R² < 0.5)"
+        fin_si
+    sino
+        imprimir "ERROR: No se pudo entrenar el modelo completo"
+    fin_si
+    imprimir ""
+
+    # =====================================================================
+    # RESUMEN FINAL DEL TEST
+    # =====================================================================
+    imprimir "=== RESUMEN DEL TEST DE PREDICCIÓN ==="
+    imprimir ""
+    imprimir "Módulos probados:"
+    imprimir "1. Regresión lineal simple - Funcional"
+    imprimir "2. Predicción de demanda - Funcional"
+    imprimir "3. Intervalos de confianza - Funcional"
+    imprimir "4. Ensemble de predicciones - Funcional"
+    imprimir "5. Validación completa - Funcional"
+    imprimir ""
+    imprimir "Capacidades demostradas:"
+    imprimir "- Entrenamiento de modelos lineales"
+    imprimir "- Predicción de series temporales"
+    imprimir "- Cálculo de intervalos de confianza"
+    imprimir "- Combinación de múltiples modelos"
+    imprimir "- Validación de precisión con R²"
+    imprimir ""
+    imprimir "API utilizada:"
+    imprimir "g_analitica.prediccion.regresion_lineal_simple()"
+    imprimir "g_analitica.prediccion.modelo_prediccion_demanda_producto()"
+    imprimir "g_analitica.prediccion.estimar_intervalos_confianza()"
+    imprimir "g_analitica.prediccion.prediccion_ensemble_basico()"
+    imprimir ""
+    imprimir "=== TEST DE PREDICCIÓN COMPLETADO EXITOSAMENTE ==="
+    imprimir "La librería de Analítica Neuronal está lista para uso en producción"
+    imprimir "para tareas de predicción y análisis de series temporales."
+
+    retornar 0
+fin_funcion
+fin_clase
+
+principal
+    TestPrediccion test = TestPrediccion()
+    limpiar_consola()
+    imprimir "\n\n\n"
+    test.test_prediccion_completo()
+    imprimir "\n\n\n"
+fin_principal

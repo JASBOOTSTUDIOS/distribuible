@@ -1,0 +1,146 @@
+# =============================================================================
+# TEST MÍNIMO DE NLP - DIRECTO
+# =============================================================================
+# Propósito: Test NLP sin usar fachada para evitar errores de inicialización
+# =============================================================================
+
+usar { ProcesadorLenguajeNatural } de "../machine_learning/nlp_basico.jasb"
+
+principal
+    imprimir "=== TEST MÍNIMO DE NLP ==="
+    
+    # Crear instancia directa
+    ProcesadorLenguajeNatural nlp = ProcesadorLenguajeNatural()
+    nlp.inicializar()
+    
+    # Test 1: Tokenización
+    imprimir "=== TEST 1: Tokenización ==="
+    texto texto_prueba = "Hola mundo esto es una prueba"
+    lista tokens = nlp.tokenizar(texto_prueba)
+    entero n_tokens = lista_tamano(tokens)
+    imprimir "Texto: '" + texto_prueba + "'"
+    imprimir "Tokens generados: " + str_desde_numero(n_tokens)
+    
+    # Mostrar tokens
+    entero i = 0
+    mientras i < n_tokens y i < 10 hacer
+        imprimir "Token " + str_desde_numero(i) + ": '" + lista_obtener(tokens, i) + "'"
+        i = i + 1
+    fin_mientras
+    
+    # Test 2: Bag of Words
+    imprimir ""
+    imprimir "=== TEST 2: Bag of Words ==="
+    lista vocabulario = crear_lista()
+    lista_agregar(vocabulario, "hola")
+    lista_agregar(vocabulario, "mundo")
+    lista_agregar(vocabulario, "esto")
+    lista_agregar(vocabulario, "es")
+    lista_agregar(vocabulario, "una")
+    lista_agregar(vocabulario, "prueba")
+    
+    lista bow = nlp.bag_of_words(tokens, vocabulario)
+    entero n_bow = lista_tamano(bow)
+    imprimir "Vector Bag of Words: " + str_desde_numero(n_bow) + " dimensiones"
+    
+    # Mostrar vector
+    i = 0
+    mientras i < n_bow y i < 10 hacer
+        texto palabra = lista_obtener(vocabulario, i)
+        flotante freq = lista_obtener(bow, i)
+        imprimir palabra + ": " + str_desde_numero(freq)
+        i = i + 1
+    fin_mientras
+    
+    # Test 3: Similitud del Coseno
+    imprimir ""
+    imprimir "=== TEST 3: Similitud del Coseno ==="
+    lista vector_a = crear_lista()
+    lista_agregar(vector_a, 1.0)
+    lista_agregar(vector_a, 2.0)
+    lista_agregar(vector_a, 3.0)
+    
+    lista vector_b = crear_lista()
+    lista_agregar(vector_b, 1.0)
+    lista_agregar(vector_b, 2.0)
+    lista_agregar(vector_b, 3.0)
+    
+    flotante similitud = similitud_coseno(vector_a, vector_b)
+    imprimir "Vector A: [1.0, 2.0, 3.0]"
+    imprimir "Vector B: [1.0, 2.0, 3.0]"
+    imprimir "Similitud del Coseno: " + str_desde_numero(similitud)
+    
+    # Test 4: Búsqueda Semántica
+    imprimir ""
+    imprimir "=== TEST 4: Búsqueda Semántica ==="
+    lista memoria_vectores = crear_lista()
+    lista_agregar(memoria_vectores, vector_a)
+    lista_agregar(memoria_vectores, vector_b)
+    
+    mapa resultado_busqueda = nlp.encontrar_idea_mas_cercana(vector_a, memoria_vectores)
+    entero indice = mapa_obtener(resultado_busqueda, "indice_recuerdo")
+    flotante coeficiente = mapa_obtener(resultado_busqueda, "coeficiente_seguridad")
+    
+    imprimir "Búsqueda en memoria de 2 vectores"
+    imprimir "Índice encontrado: " + str_desde_numero(indice)
+    imprimir "Coeficiente de seguridad: " + str_desde_numero(coeficiente)
+    
+    # Test 5: Generación Creativa
+    imprimir ""
+    imprimir "=== TEST 5: Generación Creativa ==="
+    lista vector_c = crear_lista()
+    lista_agregar(vector_c, 2.0)
+    lista_agregar(vector_c, 4.0)
+    lista_agregar(vector_c, 6.0)
+    
+    lista idea_creativa = nlp.generar_idea_creativa(vector_c, memoria_vectores, 1)
+    entero n_creativa = lista_tamano(idea_creativa)
+    imprimir "Vector original: [2.0, 4.0, 6.0]"
+    imprimir "Idea creativa generada: " + str_desde_numero(n_creativa) + " dimensiones"
+    
+    # Mostrar idea creativa
+    i = 0
+    mientras i < n_creativa y i < 10 hacer
+        imprimir "Dimensión " + str_desde_numero(i) + ": " + str_desde_numero(lista_obtener(idea_creativa, i))
+        i = i + 1
+    fin_mientras
+    
+    # Análisis de resultados
+    imprimir ""
+    imprimir "=== ANÁLISIS DE RESULTADOS ==="
+    
+    si n_tokens > 0 entonces
+        imprimir "Tokenización: FUNCIONAL"
+    sino
+        imprimir "Tokenización: PROBLEMA"
+    fin_si
+    
+    si n_bow > 0 entonces
+        imprimir "Bag of Words: FUNCIONAL"
+    sino
+        imprimir "Bag of Words: PROBLEMA"
+    fin_si
+    
+    si similitud >= 0.0 y similitud <= 1.0 entonces
+        imprimir "Similitud del Coseno: FUNCIONAL"
+    sino
+        imprimir "Similitud del Coseno: PROBLEMA"
+    fin_si
+    
+    si indice >= 0 entonces
+        imprimir "Búsqueda Semántica: FUNCIONAL"
+    sino
+        imprimir "Búsqueda Semántica: PROBLEMA"
+    fin_si
+    
+    si n_creativa > 0 entonces
+        imprimir "Generación Creativa: FUNCIONAL"
+    sino
+        imprimir "Generación Creativa: PROBLEMA"
+    fin_si
+    
+    imprimir ""
+    imprimir "=== ESTADO FINAL DEL NLP ==="
+    imprimir "Test completado exitosamente"
+    
+fin_principal

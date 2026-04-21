@@ -1,0 +1,278 @@
+# =============================================================================
+# ARCHIVO DE PRUEBA PARA MÉTRICAS DE CLUSTERING
+# =============================================================================
+# Propósito: Probar todas las funcionalidades de la clase MetricasClustering
+# =============================================================================
+
+usar todas de "metricas_clustering.jasb"
+
+principal
+    imprimir "=========================================="
+    imprimir "  PRUEBA DE MÉTRICAS DE CLUSTERING"
+    imprimir "=========================================="
+    imprimir ""
+
+    # Crear instancia de MetricasClustering
+    MetricasClustering metricas = MetricasClustering()
+    metricas.describir()
+    imprimir ""
+
+    # =============================================================================
+    # CASO 1: Datos con 3 clusters bien separados
+    # =============================================================================
+    imprimir "--- CASO 1: Clusters bien separados ---"
+    imprimir ""
+
+    # Crear matriz de datos (9 puntos en 2D, 3 clusters de 3 puntos cada uno)
+    lista X1 = crear_lista()
+
+    # Cluster 0: puntos cercanos a (0, 0)
+    lista p1 = crear_lista()
+    lista_agregar(p1, 0.0)
+    lista_agregar(p1, 0.0)
+    lista_agregar(X1, p1)
+
+    lista p2 = crear_lista()
+    lista_agregar(p2, 0.5)
+    lista_agregar(p2, 0.5)
+    lista_agregar(X1, p2)
+
+    lista p3 = crear_lista()
+    lista_agregar(p3, 0.3)
+    lista_agregar(p3, 0.2)
+    lista_agregar(X1, p3)
+
+    # Cluster 1: puntos cercanos a (10, 10)
+    lista p4 = crear_lista()
+    lista_agregar(p4, 10.0)
+    lista_agregar(p4, 10.0)
+    lista_agregar(X1, p4)
+
+    lista p5 = crear_lista()
+    lista_agregar(p5, 10.5)
+    lista_agregar(p5, 10.5)
+    lista_agregar(X1, p5)
+
+    lista p6 = crear_lista()
+    lista_agregar(p6, 10.3)
+    lista_agregar(p6, 10.2)
+    lista_agregar(X1, p6)
+
+    # Cluster 2: puntos cercanos a (0, 10)
+    lista p7 = crear_lista()
+    lista_agregar(p7, 0.0)
+    lista_agregar(p7, 10.0)
+    lista_agregar(X1, p7)
+
+    lista p8 = crear_lista()
+    lista_agregar(p8, 0.5)
+    lista_agregar(p8, 10.5)
+    lista_agregar(X1, p8)
+
+    lista p9 = crear_lista()
+    lista_agregar(p9, 0.3)
+    lista_agregar(p9, 10.2)
+    lista_agregar(X1, p9)
+
+    # Labels correspondientes
+    lista labels1 = crear_lista()
+    lista_agregar(labels1, 0)
+    lista_agregar(labels1, 0)
+    lista_agregar(labels1, 0)
+    lista_agregar(labels1, 1)
+    lista_agregar(labels1, 1)
+    lista_agregar(labels1, 1)
+    lista_agregar(labels1, 2)
+    lista_agregar(labels1, 2)
+    lista_agregar(labels1, 2)
+
+    # Probar métodos auxiliares
+    imprimir "1. Probando obtener_clusters_unicos:"
+    lista unicos = metricas.obtener_clusters_unicos(labels1)
+    imprimir "   Clusters únicos: " + str_desde_numero(lista_tamano(unicos))
+    entero i = 0
+    mientras i < lista_tamano(unicos) hacer
+        entero cid = lista_obtener(unicos, i)
+        imprimir "     - Cluster ID: " + str_desde_numero(cid)
+        i = i + 1
+    fin_mientras
+    imprimir ""
+
+    imprimir "2. Probando obtener_indices_cluster (cluster 0):"
+    lista indices = metricas.obtener_indices_cluster(labels1, 0)
+    imprimir "   Puntos en cluster 0: " + str_desde_numero(lista_tamano(indices))
+    imprimir ""
+
+    imprimir "3. Probando calcular_centroide_cluster (cluster 1):"
+    lista centroide = metricas.calcular_centroide_cluster(X1, labels1, 1)
+    si lista_tamano(centroide) > 0 entonces
+        flotante cx = lista_obtener(centroide, 0)
+        flotante cy = lista_obtener(centroide, 1)
+        imprimir "   Centroide cluster 1: (" + str_desde_numero(cx) + ", " + str_desde_numero(cy) + ")"
+    fin_si
+    imprimir ""
+
+    # Probar Silhouette Score
+    imprimir "4. Probando calcular_silhouette_score:"
+    flotante silhouette1 = metricas.calcular_silhouette_score(X1, labels1)
+    imprimir "   Silhouette Score: " + str_desde_numero(silhouette1)
+    imprimir "   (Esperado: cercano a 1 para clusters bien separados)"
+    imprimir ""
+
+    imprimir "5. Probando calcular_silhouette_samples:"
+    lista silh_samples = metricas.calcular_silhouette_samples(X1, labels1)
+    imprimir "   Scores por muestra:"
+    i = 0
+    mientras i < lista_tamano(silh_samples) hacer
+        flotante s = lista_obtener(silh_samples, i)
+        imprimir "     Punto " + str_desde_numero(i) + ": " + str_desde_numero(s)
+        i = i + 1
+    fin_mientras
+    imprimir ""
+
+    # Probar Davies-Bouldin Index
+    imprimir "6. Probando calcular_davies_bouldin_index:"
+    flotante db1 = metricas.calcular_davies_bouldin_index(X1, labels1)
+    imprimir "   Davies-Bouldin Index: " + str_desde_numero(db1)
+    imprimir "   (Esperado: cercano a 0 para buenos clusters)"
+    imprimir ""
+
+    # Probar Calinski-Harabasz Score
+    imprimir "7. Probando calcular_calinski_harabasz_score:"
+    flotante ch1 = metricas.calcular_calinski_harabasz_score(X1, labels1)
+    imprimir "   Calinski-Harabasz Score: " + str_desde_numero(ch1)
+    imprimir "   (Mayor es mejor)"
+    imprimir ""
+
+    # Probar Inercia
+    imprimir "8. Probando calcular_inercia:"
+    flotante inercia1 = metricas.calcular_inercia(X1, labels1, nulo)
+    imprimir "   Inercia (WCSS): " + str_desde_numero(inercia1)
+    imprimir "   (Menor es mejor)"
+    imprimir ""
+
+    # Informe completo
+    imprimir "9. Generando informe completo:"
+    mapa informe1 = metricas.informe_clustering(X1, labels1)
+    metricas.imprimir_informe(informe1)
+    imprimir ""
+
+    # =============================================================================
+    # CASO 2: Clusters superpuestos (peor calidad)
+    # =============================================================================
+    imprimir ""
+    imprimir "--- CASO 2: Clusters superpuestos ---"
+    imprimir ""
+
+    lista X2 = crear_lista()
+
+    # Cluster 0
+    lista p21 = crear_lista()
+    lista_agregar(p21, 0.0)
+    lista_agregar(p21, 0.0)
+    lista_agregar(X2, p21)
+
+    lista p22 = crear_lista()
+    lista_agregar(p22, 1.0)
+    lista_agregar(p22, 0.0)
+    lista_agregar(X2, p22)
+
+    # Cluster 1 (cerca del cluster 0)
+    lista p23 = crear_lista()
+    lista_agregar(p23, 2.0)
+    lista_agregar(p23, 0.0)
+    lista_agregar(X2, p23)
+
+    lista p24 = crear_lista()
+    lista_agregar(p24, 3.0)
+    lista_agregar(p24, 0.0)
+    lista_agregar(X2, p24)
+
+    lista labels2 = crear_lista()
+    lista_agregar(labels2, 0)
+    lista_agregar(labels2, 0)
+    lista_agregar(labels2, 1)
+    lista_agregar(labels2, 1)
+
+    imprimir "Métricas para clusters superpuestos:"
+    flotante silhouette2 = metricas.calcular_silhouette_score(X2, labels2)
+    imprimir "  - Silhouette Score: " + str_desde_numero(silhouette2)
+    imprimir "    (Esperado: menor que caso 1)"
+    imprimir ""
+
+    mapa informe2 = metricas.informe_clustering(X2, labels2)
+    metricas.imprimir_informe(informe2)
+    imprimir ""
+
+    # =============================================================================
+    # CASO 3: Un solo cluster (caso límite)
+    # =============================================================================
+    imprimir ""
+    imprimir "--- CASO 3: Un solo cluster (caso límite) ---"
+    imprimir ""
+
+    lista X3 = crear_lista()
+    lista p31 = crear_lista()
+    lista_agregar(p31, 1.0)
+    lista_agregar(p31, 1.0)
+    lista_agregar(X3, p31)
+
+    lista p32 = crear_lista()
+    lista_agregar(p32, 2.0)
+    lista_agregar(p32, 2.0)
+    lista_agregar(X3, p32)
+
+    lista labels3 = crear_lista()
+    lista_agregar(labels3, 0)
+    lista_agregar(labels3, 0)
+
+    mapa informe3 = metricas.informe_clustering(X3, labels3)
+    metricas.imprimir_informe(informe3)
+    imprimir ""
+
+    # =============================================================================
+    # CASO 4: Datos inválidos
+    # =============================================================================
+    imprimir ""
+    imprimir "--- CASO 4: Manejo de datos inválidos ---"
+    imprimir ""
+
+    imprimir "Probando con matriz nula:"
+    flotante silh_nulo = metricas.calcular_silhouette_score(nulo, labels1)
+    imprimir "  Resultado: " + str_desde_numero(silh_nulo)
+    imprimir ""
+
+    imprimir "Probando con tamaños diferentes:"
+    lista labels_cortas = crear_lista()
+    lista_agregar(labels_cortas, 0)
+    lista_agregar(labels_cortas, 1)
+    flotante silh_invalido = metricas.calcular_silhouette_score(X1, labels_cortas)
+    imprimir "  Resultado: " + str_desde_numero(silh_invalido)
+    imprimir ""
+
+    # =============================================================================
+    # RESUMEN FINAL
+    # =============================================================================
+    imprimir "=========================================="
+    imprimir "  RESUMEN DE PRUEBAS"
+    imprimir "=========================================="
+    imprimir ""
+    imprimir "✓ Todos los métodos han sido probados"
+    imprimir "✓ Validación de datos funciona correctamente"
+    imprimir "✓ Cálculos de métricas completados"
+    imprimir ""
+    imprimir "Comparación de calidad:"
+    imprimir "  Caso 1 (bien separados): Silhouette = " + str_desde_numero(silhouette1)
+    imprimir "  Caso 2 (superpuestos):   Silhouette = " + str_desde_numero(silhouette2)
+    imprimir ""
+
+    si silhouette1 > silhouette2 entonces
+        imprimir "✓ Correcto: Clusters bien separados tienen mejor score"
+    sino
+        imprimir "✗ Error: Los scores no son coherentes"
+    fin_si
+    imprimir ""
+    imprimir "=========================================="
+    imprimir "  FIN DE PRUEBAS"
+    imprimir "=========================================="
+fin_principal

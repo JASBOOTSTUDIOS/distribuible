@@ -1,0 +1,467 @@
+# =============================================================================
+# MÓDULO DE MÉTRICAS DE REGRESIÓN
+# =============================================================================
+# Propósito: Proporcionar una clase con métodos para evaluar modelos de regresión
+#           mediante diversas métricas de error y precisión.
+#
+# Funcionalidades principales:
+# 1. MAE (Mean Absolute Error)
+# 2. MSE (Mean Squared Error)
+# 3. RMSE (Root Mean Squared Error)
+# 4. MAPE (Mean Absolute Percentage Error)
+# 5. R² Score (Coeficiente de determinación)
+# 6. Varianza explicada
+# 7. Error máximo
+# 8. Informe completo de métricas
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase MetricasRegresion extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Métricas de Regresión", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES DE VALIDACIÓN
+    # =============================================================================
+
+    # Método: validar_listas_regresion
+    # Propósito: Verificar que las listas de valores reales y predichos sean válidas
+    # Parámetros: y_real, y_pred - listas a comparar
+    # Retorna: bool indicando si son válidas
+    funcion validar_listas_regresion(lista y_real, lista y_pred) retorna bool
+        # Verificar que no sean nulas
+        si y_real == nulo entonces
+            imprimir "[ERROR] Lista y_real es nula"
+            retornar falso
+        fin_si
+
+        si y_pred == nulo entonces
+            imprimir "[ERROR] Lista y_pred es nula"
+            retornar falso
+        fin_si
+
+        # Verificar tamaños
+        entero n_real = lista_tamano(y_real)
+        entero n_pred = lista_tamano(y_pred)
+
+        si n_real == 0 entonces
+            imprimir "[ERROR] Lista y_real está vacía"
+            retornar falso
+        fin_si
+
+        si n_pred == 0 entonces
+            imprimir "[ERROR] Lista y_pred está vacía"
+            retornar falso
+        fin_si
+
+        si n_real != n_pred entonces
+            imprimir "[ERROR] Las listas tienen tamaños diferentes: " + str_desde_numero(n_real) + " vs " + str_desde_numero(n_pred)
+            retornar falso
+        fin_si
+
+        # Verificar que contengan datos numéricos válidos
+        si no padre.validar_lista_numerica(y_real) entonces
+            imprimir "[ERROR] Lista y_real contiene valores no numéricos"
+            retornar falso
+        fin_si
+
+        si no padre.validar_lista_numerica(y_pred) entonces
+            imprimir "[ERROR] Lista y_pred contiene valores no numéricos"
+            retornar falso
+        fin_si
+
+        retornar verdadero
+    fin_funcion
+
+    # =============================================================================
+    # MÉTRICAS DE ERROR
+    # =============================================================================
+
+    # Método: calcular_mae
+    # Propósito: Calcular el Mean Absolute Error (Error Absoluto Medio)
+    # Fórmula: MAE = (1/n) * Σ|y_real - y_pred|
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor de MAE
+    funcion calcular_mae(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -1.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        flotante suma_errores = 0.0
+        entero i = 0
+
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            flotante error = real - pred
+            suma_errores = suma_errores + valor_absoluto(error)
+            i = i + 1
+        fin_mientras
+
+        retornar suma_errores / n
+    fin_funcion
+
+    # Método: calcular_mse
+    # Propósito: Calcular el Mean Squared Error (Error Cuadrático Medio)
+    # Fórmula: MSE = (1/n) * Σ(y_real - y_pred)²
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor de MSE
+    funcion calcular_mse(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -1.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        flotante suma_errores_cuadrados = 0.0
+        entero i = 0
+
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            flotante error = real - pred
+            suma_errores_cuadrados = suma_errores_cuadrados + (error * error)
+            i = i + 1
+        fin_mientras
+
+        retornar suma_errores_cuadrados / n
+    fin_funcion
+
+    # Método: calcular_rmse
+    # Propósito: Calcular el Root Mean Squared Error (Raíz del Error Cuadrático Medio)
+    # Fórmula: RMSE = √MSE
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor de RMSE
+    funcion calcular_rmse(lista y_real, lista y_pred) retorna flotante
+        flotante mse = este.calcular_mse(y_real, y_pred)
+        si mse < 0.0 entonces
+            retornar -1.0
+        fin_si
+        retornar raiz_cuadrada(mse)
+    fin_funcion
+
+    # Método: calcular_mape
+    # Propósito: Calcular el Mean Absolute Percentage Error (Error Porcentual Absoluto Medio)
+    # Fórmula: MAPE = (100/n) * Σ|(y_real - y_pred) / y_real|
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor de MAPE (en porcentaje)
+    funcion calcular_mape(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -1.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        flotante suma_porcentajes = 0.0
+        entero i = 0
+        entero valores_validos = 0
+
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+
+            # Evitar división por cero
+            si valor_absoluto(real) > 0.0001 entonces
+                flotante error = real - pred
+                flotante porcentaje = valor_absoluto(error / real)
+                suma_porcentajes = suma_porcentajes + porcentaje
+                valores_validos = valores_validos + 1
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        si valores_validos == 0 entonces
+            imprimir "[ADVERTENCIA] No hay valores válidos para calcular MAPE (todos los valores reales son cero)"
+            retornar 0.0
+        fin_si
+
+        retornar (suma_porcentajes / valores_validos) * 100.0
+    fin_funcion
+
+    # Método: calcular_max_error
+    # Propósito: Calcular el error máximo entre valores reales y predichos
+    # Fórmula: max(|y_real - y_pred|)
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor del error máximo
+    funcion calcular_max_error(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -1.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        flotante max_err = 0.0
+        entero i = 0
+
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            flotante error = valor_absoluto(real - pred)
+
+            si error > max_err entonces
+                max_err = error
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar max_err
+    fin_funcion
+
+    # =============================================================================
+    # MÉTRICAS DE BONDAD DE AJUSTE
+    # =============================================================================
+
+    # Método: calcular_media
+    # Propósito: Calcular la media de una lista de valores
+    # Parámetros: datos - lista de valores
+    # Retorna: flotante con la media
+    funcion calcular_media(lista datos) retorna flotante
+        entero n = lista_tamano(datos)
+        si n == 0 entonces
+            retornar 0.0
+        fin_si
+
+        flotante suma = 0.0
+        entero i = 0
+        mientras i < n hacer
+            suma = suma + lista_obtener(datos, i)
+            i = i + 1
+        fin_mientras
+
+        retornar suma / n
+    fin_funcion
+
+    # Método: calcular_r2_score
+    # Propósito: Calcular el coeficiente de determinación R²
+    # Fórmula: R² = 1 - (SS_res / SS_tot)
+    #          SS_res = Σ(y_real - y_pred)²
+    #          SS_tot = Σ(y_real - media(y_real))²
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con el valor de R² (1 = ajuste perfecto, 0 = sin ajuste)
+    funcion calcular_r2_score(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -999.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        flotante media_real = este.calcular_media(y_real)
+
+        # Calcular SS_res (suma de residuos al cuadrado)
+        flotante ss_res = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            flotante residuo = real - pred
+            ss_res = ss_res + (residuo * residuo)
+            i = i + 1
+        fin_mientras
+
+        # Calcular SS_tot (suma total de cuadrados)
+        flotante ss_tot = 0.0
+        i = 0
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante diferencia = real - media_real
+            ss_tot = ss_tot + (diferencia * diferencia)
+            i = i + 1
+        fin_mientras
+
+        # Evitar división por cero
+        si ss_tot == 0.0 entonces
+            imprimir "[ADVERTENCIA] SS_tot es cero, todos los valores reales son iguales"
+            retornar 1.0
+        fin_si
+
+        retornar 1.0 - (ss_res / ss_tot)
+    fin_funcion
+
+    # Método: calcular_explained_variance
+    # Propósito: Calcular la varianza explicada
+    # Fórmula: 1 - Var(y_real - y_pred) / Var(y_real)
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: flotante con la varianza explicada (1 = perfecto, 0 = sin explicación)
+    funcion calcular_explained_variance(lista y_real, lista y_pred) retorna flotante
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            retornar -999.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+
+        # Calcular residuos
+        lista residuos = crear_lista()
+        entero i = 0
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            lista_agregar(residuos, real - pred)
+            i = i + 1
+        fin_mientras
+
+        # Calcular varianza de y_real
+        flotante media_real = este.calcular_media(y_real)
+        flotante var_real = 0.0
+        i = 0
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante diff = real - media_real
+            var_real = var_real + (diff * diff)
+            i = i + 1
+        fin_mientras
+        var_real = var_real / n
+
+        # Calcular varianza de residuos
+        flotante media_residuos = este.calcular_media(residuos)
+        flotante var_residuos = 0.0
+        i = 0
+        mientras i < n hacer
+            flotante residuo = lista_obtener(residuos, i)
+            flotante diff = residuo - media_residuos
+            var_residuos = var_residuos + (diff * diff)
+            i = i + 1
+        fin_mientras
+        var_residuos = var_residuos / n
+
+        # Evitar división por cero
+        si var_real == 0.0 entonces
+            imprimir "[ADVERTENCIA] Varianza de y_real es cero"
+            retornar 1.0
+        fin_si
+
+        retornar 1.0 - (var_residuos / var_real)
+    fin_funcion
+
+    # =============================================================================
+    # INFORME COMPLETO
+    # =============================================================================
+
+    # Método: informe_metricas_regresion
+    # Propósito: Generar un informe completo con todas las métricas de regresión
+    # Parámetros: y_real, y_pred - listas de valores reales y predichos
+    # Retorna: mapa con todas las métricas calculadas
+    funcion informe_metricas_regresion(lista y_real, lista y_pred) retorna mapa
+        mapa informe = mapa_crear()
+
+        si no este.validar_listas_regresion(y_real, y_pred) entonces
+            mapa_poner(informe, "error", "Listas inválidas")
+            retornar informe
+        fin_si
+
+        # Calcular todas las métricas
+        flotante mae = este.calcular_mae(y_real, y_pred)
+        flotante mse = este.calcular_mse(y_real, y_pred)
+        flotante rmse = este.calcular_rmse(y_real, y_pred)
+        flotante mape = este.calcular_mape(y_real, y_pred)
+        flotante r2 = este.calcular_r2_score(y_real, y_pred)
+        flotante explained_var = este.calcular_explained_variance(y_real, y_pred)
+        flotante max_err = este.calcular_max_error(y_real, y_pred)
+
+        # Agregar al informe
+        mapa_poner(informe, "mae", mae)
+        mapa_poner(informe, "mse", mse)
+        mapa_poner(informe, "rmse", rmse)
+        mapa_poner(informe, "mape", mape)
+        mapa_poner(informe, "r2_score", r2)
+        mapa_poner(informe, "explained_variance", explained_var)
+        mapa_poner(informe, "max_error", max_err)
+        mapa_poner(informe, "n_muestras", lista_tamano(y_real))
+
+        # Mostrar informe
+        imprimir "=========================================="
+        imprimir "INFORME DE MÉTRICAS DE REGRESIÓN"
+        imprimir "=========================================="
+        imprimir "Número de muestras: " + str_desde_numero(lista_tamano(y_real))
+        imprimir "------------------------------------------"
+        imprimir "Métricas de Error:"
+        imprimir "  MAE (Error Absoluto Medio):      " + str_desde_numero(mae)
+        imprimir "  MSE (Error Cuadrático Medio):    " + str_desde_numero(mse)
+        imprimir "  RMSE (Raíz Error Cuadrático):    " + str_desde_numero(rmse)
+        imprimir "  MAPE (Error Porcentual):         " + str_desde_numero(mape) + "%"
+        imprimir "  Error Máximo:                    " + str_desde_numero(max_err)
+        imprimir "------------------------------------------"
+        imprimir "Métricas de Bondad de Ajuste:"
+        imprimir "  R² Score:                        " + str_desde_numero(r2)
+        imprimir "  Varianza Explicada:              " + str_desde_numero(explained_var)
+        imprimir "=========================================="
+
+        retornar informe
+    fin_funcion
+
+    # Método: comparar_modelos
+    # Propósito: Comparar dos modelos de regresión basándose en sus predicciones
+    # Parámetros: y_real, y_pred1, y_pred2, nombre_modelo1, nombre_modelo2
+    # Retorna: mapa con comparación de métricas
+    funcion comparar_modelos(lista y_real, lista y_pred1, lista y_pred2, texto nombre1, texto nombre2) retorna mapa
+        mapa comparacion = mapa_crear()
+
+        # Validar entrada
+        si no este.validar_listas_regresion(y_real, y_pred1) entonces
+            mapa_poner(comparacion, "error", "Predicciones del modelo 1 inválidas")
+            retornar comparacion
+        fin_si
+
+        si no este.validar_listas_regresion(y_real, y_pred2) entonces
+            mapa_poner(comparacion, "error", "Predicciones del modelo 2 inválidas")
+            retornar comparacion
+        fin_si
+
+        # Calcular métricas para ambos modelos
+        flotante mae1 = este.calcular_mae(y_real, y_pred1)
+        flotante mae2 = este.calcular_mae(y_real, y_pred2)
+        flotante rmse1 = este.calcular_rmse(y_real, y_pred1)
+        flotante rmse2 = este.calcular_rmse(y_real, y_pred2)
+        flotante r2_1 = este.calcular_r2_score(y_real, y_pred1)
+        flotante r2_2 = este.calcular_r2_score(y_real, y_pred2)
+
+        # Guardar en mapa
+        mapa_poner(comparacion, "modelo1_nombre", nombre1)
+        mapa_poner(comparacion, "modelo1_mae", mae1)
+        mapa_poner(comparacion, "modelo1_rmse", rmse1)
+        mapa_poner(comparacion, "modelo1_r2", r2_1)
+
+        mapa_poner(comparacion, "modelo2_nombre", nombre2)
+        mapa_poner(comparacion, "modelo2_mae", mae2)
+        mapa_poner(comparacion, "modelo2_rmse", rmse2)
+        mapa_poner(comparacion, "modelo2_r2", r2_2)
+
+        # Determinar mejor modelo
+        texto mejor = ""
+        si r2_1 > r2_2 entonces
+            mejor = nombre1
+        sino
+            si r2_2 > r2_1 entonces
+                mejor = nombre2
+            sino
+                mejor = "Empate"
+            fin_si
+        fin_si
+        mapa_poner(comparacion, "mejor_modelo", mejor)
+
+        # Mostrar comparación
+        imprimir "=========================================="
+        imprimir "COMPARACIÓN DE MODELOS DE REGRESIÓN"
+        imprimir "=========================================="
+        imprimir "Modelo 1: " + nombre1
+        imprimir "  MAE:   " + str_desde_numero(mae1)
+        imprimir "  RMSE:  " + str_desde_numero(rmse1)
+        imprimir "  R²:    " + str_desde_numero(r2_1)
+        imprimir "------------------------------------------"
+        imprimir "Modelo 2: " + nombre2
+        imprimir "  MAE:   " + str_desde_numero(mae2)
+        imprimir "  RMSE:  " + str_desde_numero(rmse2)
+        imprimir "  R²:    " + str_desde_numero(r2_2)
+        imprimir "=========================================="
+        imprimir "Mejor modelo (por R²): " + mejor
+        imprimir "=========================================="
+
+        retornar comparacion
+    fin_funcion
+
+fin_clase
+
+enviar { MetricasRegresion }

@@ -1,0 +1,12 @@
+{
+  "nombre": "analitica-neuronal",
+  "version": "0.0.1",
+  "descripcion": "Librería completa de analítica, estadística, probabilidad y machine learning para Jasboot",
+  "autor": "Equipo Jasboot",
+  "licencia": "MIT",
+  "principal": "analitica.jasb",
+  "jasboot": "^1.0.0",
+  "tipo": "biblioteca",
+  "repositorio": "https://github.com/jasboot/analitica-neuronal",
+  "homepage": "https://github.com/jasboot/analitica-neuronal#readme"
+}

@@ -1,0 +1,437 @@
+# =============================================================================
+# NORMALIZACIÓN DE DATOS - PREPROCESAMIENTO
+# =============================================================================
+# Métodos de normalización y escalado de datos para análisis estadístico
+# y machine learning.
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+enviar clase Normalizacion extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        este.nombre_analizador = "Normalizacion"
+        este.version_analizador = "1.0.0"
+    fin_funcion
+
+    # =============================================================================
+    # MIN-MAX SCALER (Normalización entre 0 y 1)
+    # =============================================================================
+
+    funcion min_max_scaler_fit(lista datos) retorna mapa
+        si no este.validar_lista_numerica(datos) entonces
+            imprimir "[ERROR] Datos inválidos para min_max_scaler_fit"
+            retornar nulo
+        fin_si
+
+        flotante min_val = este.calcular_minimo(datos)
+        flotante max_val = este.calcular_maximo(datos)
+
+        mapa scaler = mapa_crear()
+        mapa_poner(scaler, "min", min_val)
+        mapa_poner(scaler, "max", max_val)
+        mapa_poner(scaler, "tipo", "min_max")
+
+        retornar scaler
+    fin_funcion
+
+    funcion min_max_scaler_transform(lista datos, mapa scaler) retorna lista
+        si no este.validar_lista_numerica(datos) o scaler == nulo entonces
+            imprimir "[ERROR] Datos o scaler inválidos para min_max_scaler_transform"
+            retornar nulo
+        fin_si
+
+        flotante min_val = mapa_obtener(scaler, "min")
+        flotante max_val = mapa_obtener(scaler, "max")
+        flotante rango = max_val - min_val
+
+        si rango == 0.0 entonces
+            imprimir "[WARN] Rango es cero, retornando datos sin cambios"
+            retornar datos
+        fin_si
+
+        lista datos_norm = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            flotante x_norm = (x - min_val) / rango
+            lista_agregar(datos_norm, x_norm)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_norm
+    fin_funcion
+
+    # =============================================================================
+    # STANDARD SCALER (Z-score normalization)
+    # =============================================================================
+
+    funcion standard_scaler_fit(lista datos) retorna mapa
+        si no este.validar_lista_numerica(datos) entonces
+            imprimir "[ERROR] Datos inválidos para standard_scaler_fit"
+            retornar nulo
+        fin_si
+
+        flotante media = este.calcular_media(datos)
+        flotante desviacion = este.calcular_desviacion_estandar(datos)
+
+        mapa scaler = mapa_crear()
+        mapa_poner(scaler, "media", media)
+        mapa_poner(scaler, "desviacion", desviacion)
+        mapa_poner(scaler, "tipo", "standard")
+
+        retornar scaler
+    fin_funcion
+
+    funcion standard_scaler_transform(lista datos, mapa scaler) retorna lista
+        si no este.validar_lista_numerica(datos) o scaler == nulo entonces
+            imprimir "[ERROR] Datos o scaler inválidos para standard_scaler_transform"
+            retornar nulo
+        fin_si
+
+        flotante media = mapa_obtener(scaler, "media")
+        flotante desviacion = mapa_obtener(scaler, "desviacion")
+
+        si desviacion == 0.0 entonces
+            imprimir "[WARN] Desviación estándar es cero, retornando datos sin cambios"
+            retornar datos
+        fin_si
+
+        lista datos_norm = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            flotante x_norm = (x - media) / desviacion
+            lista_agregar(datos_norm, x_norm)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_norm
+    fin_funcion
+
+    # =============================================================================
+    # ROBUST SCALER (Normalización robusta usando mediana e IQR)
+    # =============================================================================
+
+    funcion robust_scaler_fit(lista datos) retorna mapa
+        si no este.validar_lista_numerica(datos) entonces
+            imprimir "[ERROR] Datos inválidos para robust_scaler_fit"
+            retornar nulo
+        fin_si
+
+        flotante mediana = este.calcular_mediana(datos)
+        flotante iqr = este.calcular_iqr(datos)
+
+        mapa scaler = mapa_crear()
+        mapa_poner(scaler, "mediana", mediana)
+        mapa_poner(scaler, "iqr", iqr)
+        mapa_poner(scaler, "tipo", "robust")
+
+        retornar scaler
+    fin_funcion
+
+    funcion robust_scaler_transform(lista datos, mapa scaler) retorna lista
+        si no este.validar_lista_numerica(datos) o scaler == nulo entonces
+            imprimir "[ERROR] Datos o scaler inválidos para robust_scaler_transform"
+            retornar nulo
+        fin_si
+
+        flotante mediana = mapa_obtener(scaler, "mediana")
+        flotante iqr = mapa_obtener(scaler, "iqr")
+
+        si iqr == 0.0 entonces
+            imprimir "[WARN] IQR es cero, retornando datos sin cambios"
+            retornar datos
+        fin_si
+
+        lista datos_norm = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            flotante x_norm = (x - mediana) / iqr
+            lista_agregar(datos_norm, x_norm)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_norm
+    fin_funcion
+
+    # =============================================================================
+    # L2 NORMALIZATION (Normalización por norma L2)
+    # =============================================================================
+
+    funcion normalize_l2(lista datos) retorna lista
+        si no este.validar_lista_numerica(datos) entonces
+            imprimir "[ERROR] Datos inválidos para normalize_l2"
+            retornar nulo
+        fin_si
+
+        flotante norma = este.calcular_norma_l2(datos)
+
+        si norma == 0.0 entonces
+            imprimir "[WARN] Norma L2 es cero, retornando datos sin cambios"
+            retornar datos
+        fin_si
+
+        lista datos_norm = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            flotante x_norm = x / norma
+            lista_agregar(datos_norm, x_norm)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_norm
+    fin_funcion
+
+    # =============================================================================
+    # INVERSE TRANSFORM (Reversión a escala original)
+    # =============================================================================
+
+    funcion inverse_transform(lista datos_norm, mapa scaler) retorna lista
+        si no este.validar_lista_numerica(datos_norm) o scaler == nulo entonces
+            imprimir "[ERROR] Datos o scaler inválidos para inverse_transform"
+            retornar nulo
+        fin_si
+
+        texto tipo = mapa_obtener(scaler, "tipo")
+        lista datos_orig = nulo
+
+        si tipo == "min_max" entonces
+            datos_orig = este.inverse_min_max(datos_norm, scaler)
+        sino si tipo == "standard" entonces
+            datos_orig = este.inverse_standard(datos_norm, scaler)
+        sino si tipo == "robust" entonces
+            datos_orig = este.inverse_robust(datos_norm, scaler)
+        sino
+            imprimir "[ERROR] Tipo de scaler desconocido: " + tipo
+            retornar nulo
+        fin_si
+
+        retornar datos_orig
+    fin_funcion
+
+    # =============================================================================
+    # FUNCIONES AUXILIARES PRIVADAS
+    # =============================================================================
+
+    funcion calcular_minimo(lista datos) retorna flotante
+        flotante min_val = lista_obtener(datos, 0)
+        entero i = 1
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            si x < min_val entonces
+                min_val = x
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        retornar min_val
+    fin_funcion
+
+    funcion calcular_maximo(lista datos) retorna flotante
+        flotante max_val = lista_obtener(datos, 0)
+        entero i = 1
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            si x > max_val entonces
+                max_val = x
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        retornar max_val
+    fin_funcion
+
+    funcion calcular_media(lista datos) retorna flotante
+        flotante suma = 0.0
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            suma = suma + x
+            i = i + 1
+        fin_mientras
+
+        retornar suma / n
+    fin_funcion
+
+    funcion calcular_desviacion_estandar(lista datos) retorna flotante
+        flotante media = este.calcular_media(datos)
+        flotante suma_cuadrados = 0.0
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            flotante diff = x - media
+            suma_cuadrados = suma_cuadrados + (diff * diff)
+            i = i + 1
+        fin_mientras
+
+        flotante varianza = suma_cuadrados / n
+        retornar raiz_cuadrada(varianza)
+    fin_funcion
+
+    funcion calcular_mediana(lista datos) retorna flotante
+        lista datos_ordenados = este.ordenar_lista(datos)
+        entero n = lista_tamano(datos_ordenados)
+        entero mitad = n / 2
+
+        si n % 2 == 0 entonces
+            flotante val1 = lista_obtener(datos_ordenados, mitad - 1)
+            flotante val2 = lista_obtener(datos_ordenados, mitad)
+            retornar (val1 + val2) / 2.0
+        sino
+            retornar lista_obtener(datos_ordenados, mitad)
+        fin_si
+    fin_funcion
+
+    funcion calcular_iqr(lista datos) retorna flotante
+        lista datos_ordenados = este.ordenar_lista(datos)
+        entero n = lista_tamano(datos_ordenados)
+
+        flotante q1 = este.calcular_percentil(datos_ordenados, 25.0)
+        flotante q3 = este.calcular_percentil(datos_ordenados, 75.0)
+
+        retornar q3 - q1
+    fin_funcion
+
+    funcion calcular_percentil(lista datos_ordenados, flotante p) retorna flotante
+        entero n = lista_tamano(datos_ordenados)
+        flotante indice = (p / 100.0) * (n - 1)
+        entero indice_bajo = indice
+        flotante fraccion = indice - indice_bajo
+
+        si indice_bajo >= n - 1 entonces
+            retornar lista_obtener(datos_ordenados, n - 1)
+        fin_si
+
+        flotante val_bajo = lista_obtener(datos_ordenados, indice_bajo)
+        flotante val_alto = lista_obtener(datos_ordenados, indice_bajo + 1)
+
+        retornar val_bajo + fraccion * (val_alto - val_bajo)
+    fin_funcion
+
+    funcion calcular_norma_l2(lista datos) retorna flotante
+        flotante suma_cuadrados = 0.0
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            flotante x = lista_obtener(datos, i)
+            suma_cuadrados = suma_cuadrados + (x * x)
+            i = i + 1
+        fin_mientras
+
+        retornar raiz_cuadrada(suma_cuadrados)
+    fin_funcion
+
+    funcion ordenar_lista(lista datos) retorna lista
+        lista copia = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos)
+
+        mientras i < n hacer
+            lista_agregar(copia, lista_obtener(datos, i))
+            i = i + 1
+        fin_mientras
+
+        # Bubble sort simple
+        entero j = 0
+        mientras j < n - 1 hacer
+            entero k = 0
+            mientras k < n - j - 1 hacer
+                flotante val1 = lista_obtener(copia, k)
+                flotante val2 = lista_obtener(copia, k + 1)
+
+                si val1 > val2 entonces
+                    copia = este.establecer_en_lista(copia, k, val2)
+                    copia = este.establecer_en_lista(copia, k + 1, val1)
+                fin_si
+                k = k + 1
+            fin_mientras
+            j = j + 1
+        fin_mientras
+
+        retornar copia
+    fin_funcion
+
+    # =============================================================================
+    # FUNCIONES DE REVERSIÓN
+    # =============================================================================
+
+    funcion inverse_min_max(lista datos_norm, mapa scaler) retorna lista
+        flotante min_val = mapa_obtener(scaler, "min")
+        flotante max_val = mapa_obtener(scaler, "max")
+        flotante rango = max_val - min_val
+
+        lista datos_orig = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos_norm)
+
+        mientras i < n hacer
+            flotante x_norm = lista_obtener(datos_norm, i)
+            flotante x_orig = x_norm * rango + min_val
+            lista_agregar(datos_orig, x_orig)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_orig
+    fin_funcion
+
+    funcion inverse_standard(lista datos_norm, mapa scaler) retorna lista
+        flotante media = mapa_obtener(scaler, "media")
+        flotante desviacion = mapa_obtener(scaler, "desviacion")
+
+        lista datos_orig = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos_norm)
+
+        mientras i < n hacer
+            flotante x_norm = lista_obtener(datos_norm, i)
+            flotante x_orig = x_norm * desviacion + media
+            lista_agregar(datos_orig, x_orig)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_orig
+    fin_funcion
+
+    funcion inverse_robust(lista datos_norm, mapa scaler) retorna lista
+        flotante mediana = mapa_obtener(scaler, "mediana")
+        flotante iqr = mapa_obtener(scaler, "iqr")
+
+        lista datos_orig = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(datos_norm)
+
+        mientras i < n hacer
+            flotante x_norm = lista_obtener(datos_norm, i)
+            flotante x_orig = x_norm * iqr + mediana
+            lista_agregar(datos_orig, x_orig)
+            i = i + 1
+        fin_mientras
+
+        retornar datos_orig
+    fin_funcion
+
+fin_clase
+
+enviar { Normalizacion }

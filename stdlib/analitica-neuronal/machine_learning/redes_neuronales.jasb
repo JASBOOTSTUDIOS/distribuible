@@ -1,0 +1,592 @@
+# =============================================================================
+# REDES NEURONALES - PERCEPTRÓN MULTICAPA
+# Implementación de redes neuronales con backpropagation
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+# =============================================================================
+# FUNCIONES DE ACTIVACIÓN
+# =============================================================================
+
+funcion activacion_relu(flotante x) retorna flotante
+    si x > 0.0 entonces
+        retornar x
+    sino
+        retornar 0.0
+    fin_si
+fin_funcion
+
+funcion activacion_sigmoid(flotante x) retorna flotante
+    # Evitar overflow
+    si x < -20.0 entonces retornar 0.0 fin_si
+    si x > 20.0 entonces retornar 1.0 fin_si
+
+    flotante exp_val = exponencial(-x)
+    retornar 1.0 / (1.0 + exp_val)
+fin_funcion
+
+funcion activacion_tanh(flotante x) retorna flotante
+    # tanh(x) = (e^x - e^-x) / (e^x + e^-x)
+    si x > 20.0 entonces retornar 1.0 fin_si
+    si x < -20.0 entonces retornar -1.0 fin_si
+
+    flotante exp_pos = exponencial(x)
+    flotante exp_neg = exponencial(-x)
+    retornar (exp_pos - exp_neg) / (exp_pos + exp_neg)
+fin_funcion
+
+# =============================================================================
+# DERIVADAS DE FUNCIONES DE ACTIVACIÓN
+# =============================================================================
+
+funcion derivada_relu(flotante x) retorna flotante
+    si x > 0.0 entonces
+        retornar 1.0
+    sino
+        retornar 0.0
+    fin_si
+fin_funcion
+
+funcion derivada_sigmoid(flotante x) retorna flotante
+    flotante sig = activacion_sigmoid(x)
+    retornar sig * (1.0 - sig)
+fin_funcion
+
+funcion derivada_tanh(flotante x) retorna flotante
+    flotante tanh_val = activacion_tanh(x)
+    retornar 1.0 - (tanh_val * tanh_val)
+fin_funcion
+
+# =============================================================================
+# CLASE REDES NEURONALES
+# =============================================================================
+
+enviar clase RedesNeuronales extiende AnalizadorBase
+    entero seed_global
+
+    funcion inicializar()
+        este.inicializar_base("RedesNeuronales", "1.0.0")
+        este.seed_global = 42
+    fin_funcion
+
+    funcion inicializar_base(texto nombre, texto version)
+        este.nombre_analizador = nombre
+        este.version_analizador = version
+    fin_funcion
+
+    # =========================================================================
+    # GENERACIÓN DE NÚMEROS PSEUDO-ALEATORIOS (LCG)
+    # =========================================================================
+
+    funcion generar_aleatorio_seed(entero seed) retorna flotante
+        # Linear Congruential Generator
+        entero num_a = 1664525
+        entero num_c = 1013904223
+        entero num_m = 2147483647
+
+        entero nuevo_seed = ((num_a * seed + num_c) % num_m)
+        este.seed_global = nuevo_seed
+
+        # Normalizar a [0, 1]
+        flotante val = nuevo_seed / num_m
+        si val < 0.0 entonces val = -val fin_si
+        retornar val
+    fin_funcion
+
+    funcion aleatorio_rango(flotante min_val, flotante max_val) retorna flotante
+        flotante r = este.generar_aleatorio_seed(este.seed_global)
+        retornar min_val + r * (max_val - min_val)
+    fin_funcion
+
+    # =========================================================================
+    # INICIALIZACIÓN DE PESOS
+    # =========================================================================
+
+    funcion inicializar_pesos(entero n_entrada, entero n_salida, entero seed) retorna lista
+        este.seed_global = seed
+        lista matriz = crear_lista()
+
+        # Xavier/Glorot initialization: [-sqrt(6/(n_in + n_out)), sqrt(6/(n_in + n_out))]
+        flotante suma = n_entrada + n_salida
+        flotante limite = raiz_cuadrada(6.0 / suma)
+
+        entero i = 0
+        mientras i < n_entrada hacer
+            lista fila = crear_lista()
+            entero j = 0
+            mientras j < n_salida hacer
+                flotante peso = este.aleatorio_rango(-limite, limite)
+                lista_agregar(fila, peso)
+                j = j + 1
+            fin_mientras
+            lista_agregar(matriz, fila)
+            i = i + 1
+        fin_mientras
+
+        retornar matriz
+    fin_funcion
+
+    funcion inicializar_sesgos(entero n_salida) retorna lista
+        lista sesgos = crear_lista()
+        entero i = 0
+        mientras i < n_salida hacer
+            lista_agregar(sesgos, 0.0)
+            i = i + 1
+        fin_mientras
+        retornar sesgos
+    fin_funcion
+
+    # =========================================================================
+    # APLICAR ACTIVACIÓN A UNA CAPA COMPLETA
+    # =========================================================================
+
+    funcion aplicar_activacion_capa(lista valores, texto tipo_act) retorna lista
+        lista _resultado = crear_lista()
+        entero n = lista_tamano(valores)
+        entero i = 0
+
+        mientras i < n hacer
+            flotante val = lista_obtener(valores, i)
+            flotante activado = 0.0
+
+            si tipo_act == "relu" entonces
+                activado = activacion_relu(val)
+            sino si tipo_act == "sigmoid" entonces
+                activado = activacion_sigmoid(val)
+            sino si tipo_act == "tanh" entonces
+                activado = activacion_tanh(val)
+            sino
+                activado = val  # Lineal
+            fin_si
+
+            lista_agregar(_resultado, activado)
+            i = i + 1
+        fin_mientras
+
+        retornar _resultado
+    fin_funcion
+
+    funcion aplicar_derivada_capa(lista valores, texto tipo_act) retorna lista
+        lista _resultado = crear_lista()
+        entero n = lista_tamano(valores)
+        entero i = 0
+
+        mientras i < n hacer
+            flotante val = lista_obtener(valores, i)
+            flotante derivada = 0.0
+
+            si tipo_act == "relu" entonces
+                derivada = derivada_relu(val)
+            sino si tipo_act == "sigmoid" entonces
+                derivada = derivada_sigmoid(val)
+            sino si tipo_act == "tanh" entonces
+                derivada = derivada_tanh(val)
+            sino
+                derivada = 1.0  # Lineal
+            fin_si
+
+            lista_agregar(_resultado, derivada)
+            i = i + 1
+        fin_mientras
+
+        retornar _resultado
+    fin_funcion
+
+    # =========================================================================
+    # MULTIPLICACIÓN MATRIZ-VECTOR
+    # =========================================================================
+
+    funcion multiplicar_matriz_vector(lista matriz, lista vector) retorna lista
+        lista _resultado = crear_lista()
+        entero n_filas = lista_tamano(matriz)
+
+        entero i = 0
+        mientras i < n_filas hacer
+            lista fila = lista_obtener(matriz, i)
+            entero n_cols = lista_tamano(fila)
+
+            flotante suma = 0.0
+            entero j = 0
+            mientras j < n_cols hacer
+                flotante peso = lista_obtener(fila, j)
+                flotante entrada = lista_obtener(vector, j)
+                suma = suma + (peso * entrada)
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(_resultado, suma)
+            i = i + 1
+        fin_mientras
+
+        retornar _resultado
+    fin_funcion
+
+    funcion sumar_vectores(lista a, lista b) retorna lista
+        lista _resultado = crear_lista()
+        entero n = lista_tamano(a)
+        entero i = 0
+
+        mientras i < n hacer
+            flotante val_a = lista_obtener(a, i)
+            flotante val_b = lista_obtener(b, i)
+            lista_agregar(_resultado, val_a + val_b)
+            i = i + 1
+        fin_mientras
+
+        retornar _resultado
+    fin_funcion
+
+    # =========================================================================
+    # FORWARD PASS
+    # =========================================================================
+
+    funcion forward_pass(lista x, mapa modelo) retorna mapa
+        # Extraer capas del modelo
+        lista pesos_capas = mapa_obtener(modelo, "pesos")
+        lista sesgos_capas = mapa_obtener(modelo, "sesgos")
+        texto activacion = mapa_obtener(modelo, "activacion")
+
+        # Almacenar activaciones y valores pre-activación
+        mapa activaciones = mapa_crear()
+        lista todas_activaciones = crear_lista()
+        lista todos_z = crear_lista()
+
+        # Primera capa es la entrada
+        lista_agregar(todas_activaciones, x)
+
+        entero n_capas = lista_tamano(pesos_capas)
+        lista entrada_actual = x
+        entero i = 0
+
+        mientras i < n_capas hacer
+            lista pesos = lista_obtener(pesos_capas, i)
+            lista sesgos = lista_obtener(sesgos_capas, i)
+
+            # z = W * entrada + b
+            lista z = este.multiplicar_matriz_vector(pesos, entrada_actual)
+            z = este.sumar_vectores(z, sesgos)
+            lista_agregar(todos_z, z)
+
+            # Aplicar activación (excepto última capa que es lineal)
+            lista a = z
+            si i < (n_capas - 1) entonces
+                a = este.aplicar_activacion_capa(z, activacion)
+            sino
+                # Última capa: activación lineal o sigmoid para clasificación
+                a = este.aplicar_activacion_capa(z, "sigmoid")
+            fin_si
+
+            lista_agregar(todas_activaciones, a)
+            entrada_actual = a
+            i = i + 1
+        fin_mientras
+
+        mapa_poner(activaciones, "z", todos_z)
+        mapa_poner(activaciones, "a", todas_activaciones)
+        mapa_poner(activaciones, "salida", entrada_actual)
+
+        retornar activaciones
+    fin_funcion
+
+    # =========================================================================
+    # BACKWARD PASS (Backpropagation)
+    # =========================================================================
+
+    funcion backward_pass(lista x, flotante flot_y, mapa activaciones, mapa modelo, flotante lr) retorna mapa
+        lista pesos_capas = mapa_obtener(modelo, "pesos")
+        lista sesgos_capas = mapa_obtener(modelo, "sesgos")
+        texto activacion = mapa_obtener(modelo, "activacion")
+
+        lista todos_z = mapa_obtener(activaciones, "z")
+        lista todas_a = mapa_obtener(activaciones, "a")
+
+        entero n_capas = lista_tamano(pesos_capas)
+
+        # Calcular error en la salida
+        lista salida = lista_obtener(todas_a, n_capas)
+        flotante y_pred = lista_obtener(salida, 0)
+        flotante error_salida = y_pred - flot_y
+
+        # Inicializar delta de la última capa
+        lista delta = crear_lista()
+        lista_agregar(delta, error_salida)
+
+        # Backpropagation hacia atrás
+        entero capa = n_capas - 1
+        mientras capa >= 0 hacer
+            lista z_capa = lista_obtener(todos_z, capa)
+            lista a_prev = lista_obtener(todas_a, capa)
+            lista pesos = lista_obtener(pesos_capas, capa)
+            lista sesgos = lista_obtener(sesgos_capas, capa)
+
+            # Actualizar pesos y sesgos de esta capa
+            entero n_neuronas = lista_tamano(delta)
+            entero n_entradas = lista_tamano(a_prev)
+
+            # Actualizar sesgos: b = b - lr * delta
+            lista nuevos_sesgos = crear_lista()
+            entero i = 0
+            mientras i < n_neuronas hacer
+                flotante sesgo = lista_obtener(sesgos, i)
+                flotante d = lista_obtener(delta, i)
+                lista_agregar(nuevos_sesgos, sesgo - (lr * d))
+                i = i + 1
+            fin_mientras
+
+            # Actualizar pesos: W[i][j] = W[i][j] - lr * delta[j] * a_prev[i]
+            lista nuevos_pesos = crear_lista()
+            i = 0
+            mientras i < n_entradas hacer
+                lista fila = lista_obtener(pesos, i)
+                lista nueva_fila = crear_lista()
+
+                entero j = 0
+                mientras j < n_neuronas hacer
+                    flotante peso = lista_obtener(fila, j)
+                    flotante a_val = lista_obtener(a_prev, i)
+                    flotante d = lista_obtener(delta, j)
+                    flotante nuevo_peso = peso - (lr * d * a_val)
+                    lista_agregar(nueva_fila, nuevo_peso)
+                    j = j + 1
+                fin_mientras
+
+                lista_agregar(nuevos_pesos, nueva_fila)
+                i = i + 1
+            fin_mientras
+
+            # Guardar pesos y sesgos actualizados
+            pesos_capas = este.establecer_en_lista(pesos_capas, capa, nuevos_pesos)
+            sesgos_capas = este.establecer_en_lista(sesgos_capas, capa, nuevos_sesgos)
+
+            # Calcular delta para la capa anterior
+            si capa > 0 entonces
+                lista nuevo_delta = crear_lista()
+
+                # delta_prev[i] = sum(W[i][j] * delta[j]) * derivada_activacion(z_prev[i])
+                entero i = 0
+                mientras i < n_entradas hacer
+                    flotante suma = 0.0
+                    entero j = 0
+                    mientras j < n_neuronas hacer
+                        lista fila = lista_obtener(pesos, i)
+                        flotante peso = lista_obtener(fila, j)
+                        flotante d = lista_obtener(delta, j)
+                        suma = suma + (peso * d)
+                        j = j + 1
+                    fin_mientras
+
+                    # Aplicar derivada de activación
+                    lista z_prev = lista_obtener(todos_z, capa - 1)
+                    flotante z_val = lista_obtener(z_prev, i)
+                    flotante derivada = 0.0
+
+                    si activacion == "relu" entonces
+                        derivada = derivada_relu(z_val)
+                    sino si activacion == "sigmoid" entonces
+                        derivada = derivada_sigmoid(z_val)
+                    sino si activacion == "tanh" entonces
+                        derivada = derivada_tanh(z_val)
+                    sino
+                        derivada = 1.0
+                    fin_si
+
+                    lista_agregar(nuevo_delta, suma * derivada)
+                    i = i + 1
+                fin_mientras
+
+                delta = nuevo_delta
+            fin_si
+
+            capa = capa - 1
+        fin_mientras
+
+        # Crear modelo actualizado
+        mapa modelo_actualizado = mapa_crear()
+        mapa_poner(modelo_actualizado, "pesos", pesos_capas)
+        mapa_poner(modelo_actualizado, "sesgos", sesgos_capas)
+        mapa_poner(modelo_actualizado, "activacion", activacion)
+
+        retornar modelo_actualizado
+    fin_funcion
+
+    # =========================================================================
+    # ENTRENAMIENTO DEL PERCEPTRÓN MULTICAPA
+    # =========================================================================
+
+    funcion perceptron_multicapa_fit(lista X, lista lista_y, lista capas_ocultas, flotante learning_rate, entero epochs) retorna mapa
+        # Validar datos
+        entero n_samples = lista_tamano(X)
+        si n_samples == 0 o lista_tamano(lista_y) != n_samples entonces
+            imprimir "[ERROR] Datos de entrada inválidos"
+            retornar mapa_crear()
+        fin_si
+
+        # Obtener dimensiones
+        lista x_primero = lista_obtener(X, 0)
+        entero n_features = lista_tamano(x_primero)
+        entero n_capas_ocultas = lista_tamano(capas_ocultas)
+
+        # Construir arquitectura de la red
+        lista arquitectura = crear_lista()
+        lista_agregar(arquitectura, n_features)
+
+        entero i = 0
+        mientras i < n_capas_ocultas hacer
+            entero n_neuronas = lista_obtener(capas_ocultas, i)
+            lista_agregar(arquitectura, n_neuronas)
+            i = i + 1
+        fin_mientras
+        lista_agregar(arquitectura, 1)  # Capa de salida (1 neurona)
+
+        # Inicializar pesos y sesgos
+        lista pesos_capas = crear_lista()
+        lista sesgos_capas = crear_lista()
+
+        entero n_capas_totales = lista_tamano(arquitectura) - 1
+        entero capa = 0
+        mientras capa < n_capas_totales hacer
+            entero n_entrada = lista_obtener(arquitectura, capa)
+            entero n_salida = lista_obtener(arquitectura, capa + 1)
+
+            lista pesos = este.inicializar_pesos(n_entrada, n_salida, este.seed_global + capa)
+            lista sesgos = este.inicializar_sesgos(n_salida)
+
+            lista_agregar(pesos_capas, pesos)
+            lista_agregar(sesgos_capas, sesgos)
+
+            capa = capa + 1
+        fin_mientras
+
+        # Crear modelo inicial
+        mapa modelo = mapa_crear()
+        mapa_poner(modelo, "pesos", pesos_capas)
+        mapa_poner(modelo, "sesgos", sesgos_capas)
+        mapa_poner(modelo, "activacion", "relu")
+
+        # Entrenamiento
+        imprimir "Entrenando red neuronal..."
+        entero epoch = 0
+        mientras epoch < epochs hacer
+            flotante error_total = 0.0
+
+            entero idx = 0
+            mientras idx < n_samples hacer
+                lista x_sample = lista_obtener(X, idx)
+                flotante y_sample = lista_obtener(lista_y, idx)
+
+                # Forward pass
+                mapa activaciones = este.forward_pass(x_sample, modelo)
+
+                # Calcular error
+                lista salida = mapa_obtener(activaciones, "salida")
+                flotante y_pred = lista_obtener(salida, 0)
+                flotante error = (y_pred - y_sample) * (y_pred - y_sample)
+                error_total = error_total + error
+
+                # Backward pass
+                modelo = este.backward_pass(x_sample, y_sample, activaciones, modelo, learning_rate)
+
+                idx = idx + 1
+            fin_mientras
+
+            flotante mse = error_total / n_samples
+
+            # Mostrar progreso cada 100 epochs
+            si (epoch % 100) == 0 entonces
+                imprimir "Epoch " + epoch + " - MSE: " + mse
+            fin_si
+
+            epoch = epoch + 1
+        fin_mientras
+
+        imprimir "Entrenamiento completado"
+        retornar modelo
+    fin_funcion
+
+    # =========================================================================
+    # PREDICCIÓN
+    # =========================================================================
+
+    funcion perceptron_predecir(mapa modelo, lista x_nuevo) retorna flotante
+        mapa activaciones = este.forward_pass(x_nuevo, modelo)
+        lista salida = mapa_obtener(activaciones, "salida")
+        retornar lista_obtener(salida, 0)
+    fin_funcion
+
+    funcion perceptron_predecir_batch(mapa modelo, lista X_test) retorna lista
+        lista predicciones = crear_lista()
+        entero n = lista_tamano(X_test)
+
+        entero i = 0
+        mientras i < n hacer
+            lista x = lista_obtener(X_test, i)
+            flotante pred = este.perceptron_predecir(modelo, x)
+            lista_agregar(predicciones, pred)
+            i = i + 1
+        fin_mientras
+
+        retornar predicciones
+    fin_funcion
+
+    # =========================================================================
+    # UTILIDADES
+    # =========================================================================
+
+    funcion calcular_precision(lista y_real, lista y_pred, flotante umbral) retorna flotante
+        si lista_tamano(y_real) != lista_tamano(y_pred) entonces
+            retornar 0.0
+        fin_si
+
+        entero n = lista_tamano(y_real)
+        entero correctos = 0
+        entero i = 0
+
+        mientras i < n hacer
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+
+            # Clasificación binaria con umbral
+            flotante pred_clase = 0.0
+            si pred >= umbral entonces pred_clase = 1.0 fin_si
+
+            si pred_clase == real entonces
+                correctos = correctos + 1
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar correctos / n
+    fin_funcion
+
+    funcion establecer_en_lista(lista origen, entero indice, elemento nuevo_valor) retorna lista
+        lista nueva = crear_lista()
+        entero n = lista_tamano(origen)
+        entero i = 0
+        mientras i < n hacer
+            si i == indice entonces
+                lista_agregar(nueva, nuevo_valor)
+            sino
+                lista_agregar(nueva, lista_obtener(origen, i))
+            fin_si
+            i = i + 1
+        fin_mientras
+        retornar nueva
+    fin_funcion
+fin_clase
+
+# =============================================================================
+# EXPORTAR
+# =============================================================================
+
+enviar {
+    RedesNeuronales,
+    activacion_relu,
+    activacion_sigmoid,
+    activacion_tanh,
+    derivada_relu,
+    derivada_sigmoid,
+    derivada_tanh
+}

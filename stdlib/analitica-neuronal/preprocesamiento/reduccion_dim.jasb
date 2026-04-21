@@ -1,0 +1,710 @@
+# =============================================================================
+# REDUCCIÓN DE DIMENSIONALIDAD - PREPROCESAMIENTO
+# =============================================================================
+# Implementación de PCA (Principal Component Analysis) y técnicas de reducción
+# de dimensionalidad para análisis de datos multivariados.
+# =============================================================================
+
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase ReduccionDimensionalidad extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        este.nombre_analizador = "ReduccionDimensionalidad"
+        este.version_analizador = "1.0.0"
+    fin_funcion
+
+    # =============================================================================
+    # PCA - PRINCIPAL COMPONENT ANALYSIS
+    # =============================================================================
+
+    funcion pca_fit(lista X_matriz, entero n_componentes) retorna mapa
+        si X_matriz == nulo o lista_tamano(X_matriz) == 0 entonces
+            imprimir "[ERROR] Matriz de datos inválida para PCA"
+            retornar nulo
+        fin_si
+
+        # Obtener dimensiones de la matriz
+        entero n_muestras = lista_tamano(X_matriz)
+        lista primera_fila = lista_obtener(X_matriz, 0)
+        entero n_features = lista_tamano(primera_fila)
+
+        si n_componentes <= 0 o n_componentes > n_features entonces
+            imprimir "[ERROR] n_componentes debe estar entre 1 y " + n_features
+            retornar nulo
+        fin_si
+
+        # Paso 1: Centrar los datos (restar media por columna)
+        mapa datos_centrados_info = este.centrar_datos(X_matriz)
+        lista X_centrada = mapa_obtener(datos_centrados_info, "X_centrada")
+        lista media = mapa_obtener(datos_centrados_info, "media")
+
+        # Paso 2: Calcular matriz de covarianza
+        lista matriz_cov = este.calcular_matriz_covarianza(X_centrada)
+
+        # Paso 3: Calcular autovalores y autovectores
+        lista autovalores = crear_lista()
+        lista autovectores = crear_lista()
+
+        si n_features == 2 entonces
+            # Caso especial para 2D - método analítico
+            autovalores = este.calcular_autovalores_2x2(matriz_cov)
+            autovectores = este.calcular_autovectores_2x2(matriz_cov, autovalores)
+        sino
+            # Caso general - método de potencias iterativo
+            mapa eigen_result = este.calcular_eigen_iterativo(matriz_cov, n_componentes)
+            autovalores = mapa_obtener(eigen_result, "autovalores")
+            autovectores = mapa_obtener(eigen_result, "autovectores")
+        fin_si
+
+        # Paso 4: Seleccionar los n_componentes principales
+        lista componentes_principales = crear_lista()
+        lista varianza_explicada = crear_lista()
+        flotante suma_autovalores = este.sumar_lista(autovalores)
+
+        entero i = 0
+        mientras i < n_componentes hacer
+            lista_agregar(componentes_principales, lista_obtener(autovectores, i))
+
+            flotante eigenval = lista_obtener(autovalores, i)
+            flotante var_explicada = eigenval / suma_autovalores
+            lista_agregar(varianza_explicada, var_explicada)
+
+            i = i + 1
+        fin_mientras
+
+        # Crear modelo PCA
+        mapa modelo_pca = mapa_crear()
+        mapa_poner(modelo_pca, "componentes_principales", componentes_principales)
+        mapa_poner(modelo_pca, "varianza_explicada", varianza_explicada)
+        mapa_poner(modelo_pca, "media", media)
+        mapa_poner(modelo_pca, "n_componentes", n_componentes)
+        mapa_poner(modelo_pca, "n_features", n_features)
+
+        retornar modelo_pca
+    fin_funcion
+
+    funcion pca_transform(lista X_matriz, mapa modelo_pca) retorna lista
+        si X_matriz == nulo o modelo_pca == nulo entonces
+            imprimir "[ERROR] Datos o modelo PCA inválidos"
+            retornar nulo
+        fin_si
+
+        lista media = mapa_obtener(modelo_pca, "media")
+        lista componentes = mapa_obtener(modelo_pca, "componentes_principales")
+        entero n_componentes = mapa_obtener(modelo_pca, "n_componentes")
+
+        # Centrar los datos usando la media del modelo
+        lista X_centrada = este.centrar_con_media(X_matriz, media)
+
+        # Proyectar datos en componentes principales
+        lista X_transformada = crear_lista()
+        entero n_muestras = lista_tamano(X_centrada)
+
+        entero i = 0
+        mientras i < n_muestras hacer
+            lista fila = lista_obtener(X_centrada, i)
+            lista fila_proyectada = crear_lista()
+
+            entero j = 0
+            mientras j < n_componentes hacer
+                lista componente = lista_obtener(componentes, j)
+                flotante proyeccion = producto_punto(fila, componente)
+                lista_agregar(fila_proyectada, proyeccion)
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(X_transformada, fila_proyectada)
+            i = i + 1
+        fin_mientras
+
+        retornar X_transformada
+    fin_funcion
+
+    funcion pca_inverse_transform(lista X_reducida, mapa modelo_pca) retorna lista
+        si X_reducida == nulo o modelo_pca == nulo entonces
+            imprimir "[ERROR] Datos reducidos o modelo PCA inválidos"
+            retornar nulo
+        fin_si
+
+        lista media = mapa_obtener(modelo_pca, "media")
+        lista componentes = mapa_obtener(modelo_pca, "componentes_principales")
+        entero n_componentes = mapa_obtener(modelo_pca, "n_componentes")
+        entero n_features = mapa_obtener(modelo_pca, "n_features")
+
+        # Reconstruir datos desde componentes principales
+        lista X_reconstruida = crear_lista()
+        entero n_muestras = lista_tamano(X_reducida)
+
+        entero i = 0
+        mientras i < n_muestras hacer
+            lista fila_reducida = lista_obtener(X_reducida, i)
+            lista fila_reconstruida = crear_lista()
+
+            # Inicializar con ceros
+            entero k = 0
+            mientras k < n_features hacer
+                lista_agregar(fila_reconstruida, 0.0)
+                k = k + 1
+            fin_mientras
+
+            # Reconstruir usando componentes principales
+            entero j = 0
+            mientras j < n_componentes hacer
+                flotante coef = lista_obtener(fila_reducida, j)
+                lista componente = lista_obtener(componentes, j)
+
+                entero f = 0
+                mientras f < n_features hacer
+                    flotante val_actual = lista_obtener(fila_reconstruida, f)
+                    flotante componente_val = lista_obtener(componente, f)
+                    flotante nuevo_val = val_actual + (coef * componente_val)
+                    fila_reconstruida = este.establecer_en_lista(fila_reconstruida, f, nuevo_val)
+                    f = f + 1
+                fin_mientras
+
+                j = j + 1
+            fin_mientras
+
+            # Agregar la media de vuelta
+            entero m = 0
+            mientras m < n_features hacer
+                flotante val_centrada = lista_obtener(fila_reconstruida, m)
+                flotante media_val = lista_obtener(media, m)
+                flotante val_original = val_centrada + media_val
+                fila_reconstruida = este.establecer_en_lista(fila_reconstruida, m, val_original)
+                m = m + 1
+            fin_mientras
+
+            lista_agregar(X_reconstruida, fila_reconstruida)
+            i = i + 1
+        fin_mientras
+
+        retornar X_reconstruida
+    fin_funcion
+
+    # =============================================================================
+    # ANÁLISIS DE VARIANZA
+    # =============================================================================
+
+    funcion varianza_explicada_acumulada(mapa modelo_pca) retorna lista
+        si modelo_pca == nulo entonces
+            imprimir "[ERROR] Modelo PCA inválido"
+            retornar nulo
+        fin_si
+
+        lista varianza_explicada = mapa_obtener(modelo_pca, "varianza_explicada")
+        lista varianza_acumulada = crear_lista()
+
+        flotante acumulado = 0.0
+        entero i = 0
+        entero n = lista_tamano(varianza_explicada)
+
+        mientras i < n hacer
+            flotante varianza = lista_obtener(varianza_explicada, i)
+            acumulado = acumulado + varianza
+            lista_agregar(varianza_acumulada, acumulado)
+            i = i + 1
+        fin_mientras
+
+        retornar varianza_acumulada
+    fin_funcion
+
+    funcion seleccionar_n_componentes_por_varianza(lista X_matriz, flotante varianza_minima) retorna entero
+        si X_matriz == nulo o varianza_minima <= 0.0 o varianza_minima > 1.0 entonces
+            imprimir "[ERROR] Parámetros inválidos para selección de componentes"
+            retornar 1
+        fin_si
+
+        # Obtener número total de features
+        lista primera_fila = lista_obtener(X_matriz, 0)
+        entero n_features = lista_tamano(primera_fila)
+
+        # Entrenar PCA con todos los componentes
+        mapa modelo_completo = este.pca_fit(X_matriz, n_features)
+        si modelo_completo == nulo entonces
+            retornar 1
+        fin_si
+
+        # Calcular varianza acumulada
+        lista var_acumulada = este.varianza_explicada_acumulada(modelo_completo)
+
+        # Encontrar el número mínimo de componentes
+        entero n_componentes = 1
+        entero i = 0
+
+        mientras i < lista_tamano(var_acumulada) hacer
+            flotante valor_var = lista_obtener(var_acumulada, i)
+            si valor_var >= varianza_minima entonces
+                n_componentes = i + 1
+                retornar n_componentes
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        retornar n_features
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES - CENTRADO DE DATOS
+    # =============================================================================
+
+    funcion centrar_datos(lista X_matriz) retorna mapa
+        entero n_muestras = lista_tamano(X_matriz)
+        lista primera_fila = lista_obtener(X_matriz, 0)
+        entero n_features = lista_tamano(primera_fila)
+
+        # Calcular media por columna
+        lista media = crear_lista()
+        entero j = 0
+        mientras j < n_features hacer
+            flotante suma = 0.0
+            entero i = 0
+            mientras i < n_muestras hacer
+                lista fila = lista_obtener(X_matriz, i)
+                flotante valor = lista_obtener(fila, j)
+                suma = suma + valor
+                i = i + 1
+            fin_mientras
+            flotante media_col = suma / n_muestras
+            lista_agregar(media, media_col)
+            j = j + 1
+        fin_mientras
+
+        # Centrar datos
+        lista X_centrada = crear_lista()
+        entero i = 0
+        mientras i < n_muestras hacer
+            lista fila_original = lista_obtener(X_matriz, i)
+            lista fila_centrada = crear_lista()
+
+            entero k = 0
+            mientras k < n_features hacer
+                flotante valor = lista_obtener(fila_original, k)
+                flotante media_val = lista_obtener(media, k)
+                flotante valor_centrado = valor - media_val
+                lista_agregar(fila_centrada, valor_centrado)
+                k = k + 1
+            fin_mientras
+
+            lista_agregar(X_centrada, fila_centrada)
+            i = i + 1
+        fin_mientras
+
+        mapa res_centrado = mapa_crear()
+        mapa_poner(res_centrado, "X_centrada", X_centrada)
+        mapa_poner(res_centrado, "media", media)
+
+        retornar res_centrado
+    fin_funcion
+
+    funcion centrar_con_media(lista X_matriz, lista media) retorna lista
+        entero n_muestras = lista_tamano(X_matriz)
+        lista primera_fila = lista_obtener(X_matriz, 0)
+        entero n_features = lista_tamano(primera_fila)
+
+        lista X_centrada = crear_lista()
+        entero i = 0
+
+        mientras i < n_muestras hacer
+            lista fila_original = lista_obtener(X_matriz, i)
+            lista fila_centrada = crear_lista()
+
+            entero j = 0
+            mientras j < n_features hacer
+                flotante valor = lista_obtener(fila_original, j)
+                flotante media_val = lista_obtener(media, j)
+                flotante valor_centrado = valor - media_val
+                lista_agregar(fila_centrada, valor_centrado)
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(X_centrada, fila_centrada)
+            i = i + 1
+        fin_mientras
+
+        retornar X_centrada
+    fin_funcion
+
+    # =============================================================================
+    # MATRIZ DE COVARIANZA
+    # =============================================================================
+
+    funcion calcular_matriz_covarianza(lista X_centrada) retorna lista
+        entero n_muestras = lista_tamano(X_centrada)
+        lista primera_fila = lista_obtener(X_centrada, 0)
+        entero n_features = lista_tamano(primera_fila)
+
+        # Matriz de covarianza n_features x n_features
+        lista matriz_cov = crear_lista()
+
+        entero i = 0
+        mientras i < n_features hacer
+            lista fila_cov = crear_lista()
+
+            entero j = 0
+            mientras j < n_features hacer
+                # Calcular covarianza entre feature i y feature j
+                flotante suma = 0.0
+
+                entero k = 0
+                mientras k < n_muestras hacer
+                    lista muestra = lista_obtener(X_centrada, k)
+                    flotante val_i = lista_obtener(muestra, i)
+                    flotante val_j = lista_obtener(muestra, j)
+                    suma = suma + (val_i * val_j)
+                    k = k + 1
+                fin_mientras
+
+                flotante cov = suma / (n_muestras - 1)
+                lista_agregar(fila_cov, cov)
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(matriz_cov, fila_cov)
+            i = i + 1
+        fin_mientras
+
+        retornar matriz_cov
+    fin_funcion
+
+    # =============================================================================
+    # AUTOVALORES Y AUTOVECTORES (2D - MÉTODO ANALÍTICO)
+    # =============================================================================
+
+    funcion calcular_autovalores_2x2(lista matriz_cov) retorna lista
+        # Para matriz 2x2: [[a, b], [c, d]]
+        lista fila0 = lista_obtener(matriz_cov, 0)
+        lista fila1 = lista_obtener(matriz_cov, 1)
+
+        flotante a = lista_obtener(fila0, 0)
+        flotante b = lista_obtener(fila0, 1)
+        flotante c = lista_obtener(fila1, 0)
+        flotante d = lista_obtener(fila1, 1)
+
+        # Autovalores: λ = (a+d)/2 ± sqrt((a+d)²/4 - (ad-bc))
+        flotante traza = a + d
+        flotante determinante = (a * d) - (b * c)
+
+        flotante parte1 = traza / 2.0
+        flotante discriminante = ((traza * traza) / 4.0) - determinante
+        flotante parte2 = raiz_cuadrada(valor_absoluto(discriminante))
+
+        flotante lambda1 = parte1 + parte2
+        flotante lambda2 = parte1 - parte2
+
+        # Ordenar de mayor a menor
+        lista autovalores = crear_lista()
+        si lambda1 >= lambda2 entonces
+            lista_agregar(autovalores, lambda1)
+            lista_agregar(autovalores, lambda2)
+        sino
+            lista_agregar(autovalores, lambda2)
+            lista_agregar(autovalores, lambda1)
+        fin_si
+
+        retornar autovalores
+    fin_funcion
+
+    funcion calcular_autovectores_2x2(lista matriz_cov, lista autovalores) retorna lista
+        lista fila0 = lista_obtener(matriz_cov, 0)
+        lista fila1 = lista_obtener(matriz_cov, 1)
+
+        flotante a = lista_obtener(fila0, 0)
+        flotante b = lista_obtener(fila0, 1)
+        flotante c = lista_obtener(fila1, 0)
+        flotante d = lista_obtener(fila1, 1)
+
+        lista autovectores = crear_lista()
+
+        entero i = 0
+        mientras i < lista_tamano(autovalores) hacer
+            flotante lambda = lista_obtener(autovalores, i)
+
+            # Para cada autovalor, calcular autovector
+            # (A - λI)v = 0
+            lista autovector = crear_lista()
+
+            # Determinar qué método usar
+            bool usar_metodo_b = valor_absoluto(b) > 0.0001
+            bool usar_metodo_c = valor_absoluto(c) > 0.0001
+
+            flotante v1 = 0.0
+            flotante v2 = 0.0
+
+            si usar_metodo_b entonces
+                # v = [b, λ-a]
+                v1 = b
+                v2 = lambda - a
+            fin_si
+
+            si no usar_metodo_b y usar_metodo_c entonces
+                # v = [λ-d, c]
+                v1 = lambda - d
+                v2 = c
+            fin_si
+
+            si no usar_metodo_b y no usar_metodo_c entonces
+                # Matriz diagonal
+                si i == 0 entonces
+                    v1 = 1.0
+                    v2 = 0.0
+                fin_si
+                si i != 0 entonces
+                    v1 = 0.0
+                    v2 = 1.0
+                fin_si
+            fin_si
+
+            # Normalizar vector
+            flotante norma = raiz_cuadrada((v1 * v1) + (v2 * v2))
+            si norma > 0.0001 entonces
+                lista_agregar(autovector, v1 / norma)
+                lista_agregar(autovector, v2 / norma)
+            sino
+                lista_agregar(autovector, v1)
+                lista_agregar(autovector, v2)
+            fin_si
+
+            lista_agregar(autovectores, autovector)
+            i = i + 1
+        fin_mientras
+
+        retornar autovectores
+    fin_funcion
+
+    # =============================================================================
+    # AUTOVALORES Y AUTOVECTORES (MÉTODO ITERATIVO - POWER METHOD)
+    # =============================================================================
+
+    funcion calcular_eigen_iterativo(lista matriz_cov, entero n_componentes) retorna mapa
+        entero n_features = lista_tamano(matriz_cov)
+        lista autovalores = crear_lista()
+        lista autovectores = crear_lista()
+
+        # Copiar matriz para deflación
+        lista matriz_trabajo = este.copiar_matriz(matriz_cov)
+
+        entero comp = 0
+        mientras comp < n_componentes hacer
+            # Método de potencias para encontrar el autovalor dominante
+            mapa eigen = este.metodo_potencias(matriz_trabajo, n_features)
+
+            flotante autovalor = mapa_obtener(eigen, "autovalor")
+            lista autovector = mapa_obtener(eigen, "autovector")
+
+            lista_agregar(autovalores, autovalor)
+            lista_agregar(autovectores, autovector)
+
+            # Deflación: A' = A - λvv^T
+            matriz_trabajo = este.deflacion_matriz(matriz_trabajo, autovalor, autovector)
+
+            comp = comp + 1
+        fin_mientras
+
+        mapa res_eigen = mapa_crear()
+        mapa_poner(res_eigen, "autovalores", autovalores)
+        mapa_poner(res_eigen, "autovectores", autovectores)
+
+        retornar res_eigen
+    fin_funcion
+
+    funcion metodo_potencias(lista matriz, entero n) retorna mapa
+        # Vector inicial aleatorio normalizado
+        lista v = este.vector_inicial_normalizado(n)
+
+        entero iteraciones = 0
+        entero max_iter = 100
+        flotante tolerancia = 0.0001
+
+        mientras iteraciones < max_iter hacer
+            # v_new = A * v
+            lista v_new = este.multiplicar_matriz_vector(matriz, v)
+
+            # Normalizar v_new
+            flotante norma = este.norma_vector(v_new)
+            v_new = este.normalizar_vector(v_new, norma)
+
+            # Verificar convergencia
+            flotante diff = este.diferencia_vectores(v, v_new)
+            si diff < tolerancia entonces
+                v = v_new
+                iteraciones = max_iter  # Salir del bucle
+            sino
+                v = v_new
+            fin_si
+
+            iteraciones = iteraciones + 1
+        fin_mientras
+
+        # Calcular autovalor: λ = v^T * A * v
+        lista Av = este.multiplicar_matriz_vector(matriz, v)
+        flotante autovalor = producto_punto(v, Av)
+
+        mapa res_potencia = mapa_crear()
+        mapa_poner(res_potencia, "autovalor", autovalor)
+        mapa_poner(res_potencia, "autovector", v)
+
+        retornar res_potencia
+    fin_funcion
+
+    funcion deflacion_matriz(lista matriz, flotante autovalor, lista autovector) retorna lista
+        entero n = lista_tamano(matriz)
+        lista matriz_nueva = crear_lista()
+
+        entero i = 0
+        mientras i < n hacer
+            lista fila_nueva = crear_lista()
+
+            entero j = 0
+            mientras j < n hacer
+                lista fila = lista_obtener(matriz, i)
+                flotante valor_original = lista_obtener(fila, j)
+
+                flotante vi = lista_obtener(autovector, i)
+                flotante vj = lista_obtener(autovector, j)
+
+                flotante valor_nuevo = valor_original - (autovalor * vi * vj)
+                lista_agregar(fila_nueva, valor_nuevo)
+
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(matriz_nueva, fila_nueva)
+            i = i + 1
+        fin_mientras
+
+        retornar matriz_nueva
+    fin_funcion
+
+    # =============================================================================
+    # OPERACIONES AUXILIARES DE VECTORES Y MATRICES
+    # =============================================================================
+
+    funcion vector_inicial_normalizado(entero n) retorna lista
+        lista v = crear_lista()
+
+        # Crear vector [1, 2, 3, ..., n] normalizado
+        flotante suma_cuadrados = 0.0
+        entero i = 0
+        mientras i < n hacer
+            flotante val = i + 1
+            lista_agregar(v, val)
+            suma_cuadrados = suma_cuadrados + (val * val)
+            i = i + 1
+        fin_mientras
+
+        flotante norma = raiz_cuadrada(suma_cuadrados)
+
+        # Normalizar
+        i = 0
+        mientras i < n hacer
+            flotante val = lista_obtener(v, i)
+            v = este.establecer_en_lista(v, i, val / norma)
+            i = i + 1
+        fin_mientras
+
+        retornar v
+    fin_funcion
+
+    funcion multiplicar_matriz_vector(lista matriz, lista vector) retorna lista
+        entero n = lista_tamano(matriz)
+        lista res_vector = crear_lista()
+
+        entero i = 0
+        mientras i < n hacer
+            lista fila = lista_obtener(matriz, i)
+            flotante suma = producto_punto(fila, vector)
+            lista_agregar(res_vector, suma)
+            i = i + 1
+        fin_mientras
+
+        retornar res_vector
+    fin_funcion
+
+    funcion norma_vector(lista vector) retorna flotante
+        flotante suma = 0.0
+        entero i = 0
+        entero n = lista_tamano(vector)
+
+        mientras i < n hacer
+            flotante val = lista_obtener(vector, i)
+            suma = suma + (val * val)
+            i = i + 1
+        fin_mientras
+
+        retornar raiz_cuadrada(suma)
+    fin_funcion
+
+    funcion normalizar_vector(lista vector, flotante norma) retorna lista
+        lista normalizado = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(vector)
+
+        mientras i < n hacer
+            flotante val = lista_obtener(vector, i)
+            lista_agregar(normalizado, val / norma)
+            i = i + 1
+        fin_mientras
+
+        retornar normalizado
+    fin_funcion
+
+    funcion diferencia_vectores(lista v1, lista v2) retorna flotante
+        flotante suma_dif = 0.0
+        entero i = 0
+        entero n = lista_tamano(v1)
+
+        mientras i < n hacer
+            flotante val1 = lista_obtener(v1, i)
+            flotante val2 = lista_obtener(v2, i)
+            flotante dif = valor_absoluto(val1 - val2)
+            suma_dif = suma_dif + dif
+            i = i + 1
+        fin_mientras
+
+        retornar suma_dif
+    fin_funcion
+
+    funcion copiar_matriz(lista matriz) retorna lista
+        lista copia = crear_lista()
+        entero i = 0
+        entero n = lista_tamano(matriz)
+
+        mientras i < n hacer
+            lista fila = lista_obtener(matriz, i)
+            lista fila_copia = crear_lista()
+
+            entero j = 0
+            entero m = lista_tamano(fila)
+            mientras j < m hacer
+                lista_agregar(fila_copia, lista_obtener(fila, j))
+                j = j + 1
+            fin_mientras
+
+            lista_agregar(copia, fila_copia)
+            i = i + 1
+        fin_mientras
+
+        retornar copia
+    fin_funcion
+
+    funcion sumar_lista(lista valores) retorna flotante
+        flotante suma = 0.0
+        entero i = 0
+        entero n = lista_tamano(valores)
+
+        mientras i < n hacer
+            flotante val = lista_obtener(valores, i)
+            suma = suma + val
+            i = i + 1
+        fin_mientras
+
+        retornar suma
+    fin_funcion
+
+fin_clase
+
+enviar { ReduccionDimensionalidad }

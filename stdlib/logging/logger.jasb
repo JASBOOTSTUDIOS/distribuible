@@ -1,0 +1,247 @@
+# SISTEMA DE LOGGING JASBOOT
+# Clase modular de logging con archivo y memoria neuronal
+
+# Constantes de nivel de log
+enviar constante entero LOG_DEBUG = 0
+enviar constante entero LOG_INFO = 1
+enviar constante entero LOG_ERROR = 2
+
+# Clase Logger principal
+clase Logger
+    texto archivo_salida
+    entero nivel_minimo
+    bool activar_archivo
+    bool activar_memoria_neuronal
+    texto nombre_modulo
+    texto buffer_archivo
+    entero contador_buffer
+    entero MAX_BUFFER
+    
+    # Constructor manual
+    funcion inicializar_logger(texto archivo, entero nivel_min, bool arch, bool mem_neuronal, texto modulo)
+        este.archivo_salida = archivo
+        este.nivel_minimo = nivel_min
+        este.activar_archivo = arch
+        este.activar_memoria_neuronal = mem_neuronal
+        este.nombre_modulo = modulo
+        este.buffer_archivo = ""
+        este.contador_buffer = 0
+        este.MAX_BUFFER = 100
+        
+        # Inicializar memoria neuronal para logs si está activada
+        si este.activar_memoria_neuronal entonces
+            recordar("logger_config_modulo_" + este.nombre_modulo)
+            recordar("logger_config_nivel_" + str_desde_numero(este.nivel_minimo))
+        fin_si
+    fin_funcion
+    
+    # Método privado: Obtener timestamp actual
+    funcion obtener_timestamp() retorna texto
+        retornar obtener_timestamp()
+    fin_funcion
+    
+    # Método privado: Formatear mensaje de log
+    funcion formatear_mensaje(entero nivel, texto mensaje) retorna texto
+        texto nivel_texto = "DESCONOCIDO"
+        
+        si nivel == LOG_DEBUG entonces
+            nivel_texto = "DEBUG"
+        sino si nivel == LOG_INFO entonces
+            nivel_texto = "INFO"
+        sino si nivel == LOG_ERROR entonces
+            nivel_texto = "ERROR"
+        fin_si
+        
+        texto timestamp = este.obtener_timestamp()
+        retornar "[" + timestamp + "] [" + nivel_texto + "] [" + este.nombre_modulo + "] " + mensaje
+    fin_funcion
+    
+    # Método privado: Escribir en archivo (con buffer para rendimiento)
+    funcion escribir_archivo(texto mensaje)
+        # Agregar al buffer
+        este.buffer_archivo = este.buffer_archivo + mensaje + "\n"
+        este.contador_buffer = este.contador_buffer + 1
+        
+        # Escribir cuando el buffer está lleno
+        si este.contador_buffer >= este.MAX_BUFFER entonces
+            este.vaciar_buffer_archivo()
+        fin_si
+    fin_funcion
+    
+    # Método privado: Vaciar buffer a archivo
+    funcion vaciar_buffer_archivo()
+        intentar
+            entero archivo_handle = abrir_archivo(este.archivo_salida, "a")
+            escribir_archivo(archivo_handle, este.buffer_archivo)
+            cerrar_archivo(archivo_handle)
+            
+            # Resetear buffer
+            este.buffer_archivo = ""
+            este.contador_buffer = 0
+        atrapar error
+            # Silencioso para no afectar rendimiento
+        fin_intentar
+    fin_funcion
+    
+    # Método privado: Almacenar en memoria neuronal
+    funcion almacenar_memoria_neuronal(entero nivel, texto mensaje)
+        si este.activar_memoria_neuronal entonces
+            texto timestamp_log = este.obtener_timestamp()
+            texto nivel_str = str_desde_numero(nivel)
+            texto clave_log = "log_" + timestamp_log + "_" + nivel_str
+            texto datos_log = "modulo:" + este.nombre_modulo + "|nivel:" + nivel_str + "|mensaje:" + mensaje
+            
+            recordar(clave_log + "|" + datos_log)
+            
+            # Asociación para análisis posterior
+            asociar "log_" + nivel_str con clave_log
+            asociar "log_modulo_" + este.nombre_modulo con clave_log
+        fin_si
+    fin_funcion
+    
+    # Método principal de logging
+    funcion log(entero nivel, texto mensaje)
+        # Verificar nivel mínimo
+        si nivel < este.nivel_minimo entonces
+            retornar
+        fin_si
+        
+        # Formatear mensaje
+        texto mensaje_formateado = este.formatear_mensaje(nivel, mensaje)
+        
+        # Escribir en archivo si está activado
+        si este.activar_archivo entonces
+            este.escribir_archivo(mensaje_formateado)
+        fin_si
+        
+        # Almacenar en memoria neuronal si está activado
+        si este.activar_memoria_neuronal entonces
+            este.almacenar_memoria_neuronal(nivel, mensaje)
+        fin_si
+    fin_funcion
+    
+    # Métodos de conveniencia por nivel
+    funcion debug(texto mensaje)
+        este.log(LOG_DEBUG, mensaje)
+    fin_funcion
+    
+    funcion info(texto mensaje)
+        este.log(LOG_INFO, mensaje)
+    fin_funcion
+    
+    funcion error(texto mensaje)
+        este.log(LOG_ERROR, mensaje)
+    fin_funcion
+    
+    # Método: Forzar escritura de buffer
+    funcion flush()
+        este.vaciar_buffer_archivo()
+    fin_funcion
+    
+    # Método: Buscar logs en memoria neuronal
+    funcion buscar_logs(texto filtro) retorna lista
+        lista resultados = crear_lista()
+        
+        si este.activar_memoria_neuronal entonces
+            # Buscar logs del módulo actual
+            lista logs_modulo = asociados_lista_de("log_modulo_" + este.nombre_modulo, 10, 1)
+            
+            # Filtrar por texto si se proporcionó
+            si longitud_texto(filtro) > 0 entonces
+                entero i = 0
+                mientras i < lista_tamano(logs_modulo) hacer
+                    texto clave_log = lista_obtener(logs_modulo, i)
+                    texto datos_log = buscar(clave_log)
+                    
+                    si contiene_texto(datos_log, filtro) entonces
+                        lista_agregar(resultados, datos_log)
+                    fin_si
+                    
+                    i = i + 1
+                fin_mientras
+            sino
+                resultados = logs_modulo
+            fin_si
+        fin_si
+        
+        retornar resultados
+    fin_funcion
+    
+    # Método: Obtener estadísticas de logging
+    funcion obtener_estadisticas() retorna mapa
+        mapa stats = mapa_crear()
+        
+        si este.activar_memoria_neuronal entonces
+            lista logs_debug = asociados_lista_de("log_0", 10, 1)
+            lista logs_info = asociados_lista_de("log_1", 10, 1)
+            lista logs_error = asociados_lista_de("log_2", 10, 1)
+            
+            mapa_poner(stats, "total_debug", lista_tamano(logs_debug))
+            mapa_poner(stats, "total_info", lista_tamano(logs_info))
+            mapa_poner(stats, "total_error", lista_tamano(logs_error))
+            mapa_poner(stats, "total_general", lista_tamano(logs_debug) + lista_tamano(logs_info) + lista_tamano(logs_error))
+        fin_si
+        
+        retornar stats
+    fin_funcion
+fin_clase
+
+# Variables globales para el logger por defecto (declaradas después de la clase)
+Logger _logger_global = Logger()
+bool _logger_inicializado = falso
+
+# Función para inicializar logger global
+funcion inicializar_logger_global(texto archivo, entero nivel_min, bool arch, bool mem_neuronal, texto modulo) retorna texto
+    _logger_global.inicializar_logger(archivo, nivel_min, arch, mem_neuronal, modulo)
+    _logger_inicializado = verdadero
+    retornar "Logger inicializado"
+fin_funcion
+
+# Función para usar logger global directamente
+funcion log_global_debug(texto mensaje) retorna texto
+    si _logger_inicializado == falso entonces
+        inicializar_logger_global("jasboot.log", LOG_INFO, verdadero, verdadero, "JASBOOT")
+    fin_si
+    _logger_global.debug(mensaje)
+    retornar "Debug log enviado"
+fin_funcion
+
+funcion log_global_info(texto mensaje) retorna texto
+    si _logger_inicializado == falso entonces
+        inicializar_logger_global("jasboot.log", LOG_INFO, verdadero, verdadero, "JASBOOT")
+    fin_si
+    _logger_global.info(mensaje)
+    retornar "Info log enviado"
+fin_funcion
+
+funcion log_global_error(texto mensaje) retorna texto
+    si _logger_inicializado == falso entonces
+        inicializar_logger_global("jasboot.log", LOG_INFO, verdadero, verdadero, "JASBOOT")
+    fin_si
+    _logger_global.error(mensaje)
+    retornar "Error log enviado"
+fin_funcion
+
+funcion flush_global() retorna texto
+    si _logger_inicializado == falso entonces
+        inicializar_logger_global("jasboot.log", LOG_INFO, verdadero, verdadero, "JASBOOT")
+    fin_si
+    _logger_global.flush()
+    retornar "Buffer flushed"
+fin_funcion
+
+
+enviar {
+    # Tipos y estado global
+    Logger,
+    _logger_global,
+    _logger_inicializado,
+    
+    # Funciones públicas
+    inicializar_logger_global,
+    log_global_debug,
+    log_global_info,
+    log_global_error,
+    flush_global
+}
+# Sin exportaciones por ahora - para probar compilación

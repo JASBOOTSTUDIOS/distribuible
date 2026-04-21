@@ -1,0 +1,222 @@
+{
+  "folders": [
+    {
+      "name": "Jasboot Development",
+      "path": ".."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "*.jasb": "jasboot"
+    },
+    "editor.tokenColorCustomizations": {
+      "[jasboot]": {
+        "comments": "#6A9955",
+        "keywords": "#0000FF",
+        "strings": "#008000",
+        "numbers": "#098658",
+        "functions": "#795E26",
+        "variables": "#001080"
+      }
+    },
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.minimap.enabled": true,
+    "editor.fontSize": 14,
+    "editor.fontFamily": "Consolas, 'Courier New', monospace",
+    "editor.lineHeight": 1.4,
+    "editor.renderWhitespace": "selection",
+    "editor.rulers": [80, 120],
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": false,
+    "editor.suggestSelection": "first",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.snippetSuggestions": "top",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 1000,
+    "workbench.colorTheme": "Default Dark+",
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.showTabs": true,
+    "workbench.editor.tabCloseButton": "right",
+    "explorer.confirmDelete": false,
+    "search.smartCase": true,
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe",
+    "extensions.autoUpdate": false,
+    "extensions.ignoreRecommendations": false,
+    "[jasboot]": {
+      "editor.defaultFormatter": "vscode.json-language-features",
+      "editor.quickSuggestions": {
+        "comments": false,
+        "strings": true,
+        "other": true
+      },
+      "editor.suggest.insertMode": "replace",
+      "editor.wordBasedSuggestions": true,
+      "editor.semanticHighlighting.enabled": true,
+      "editor.inlayHints.enabled": true,
+      "editor.lightbulb.enabled": "on",
+      "editor.codeLens": "on"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-json",
+      "formulahendry.auto-rename-tag",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "ms-vscode.powershell"
+    ],
+    "unwantedRecommendations": [
+      "ms-vscode.vscode-typescript-next",
+      "ms-vscode.javascript"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Depurar Jasboot",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "args": [
+          "${file}",
+          "--debug"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": [
+          "<node_internals>/**"
+        ],
+        "preLaunchTask": "Compilar Jasboot",
+        "sourceMaps": false,
+        "outFiles": [
+          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+        ]
+      },
+      {
+        "name": "Ejecutar Jasboot (sin depuración)",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+        "args": [
+          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+        ],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": [
+          "<node_internals>/**"
+        ],
+        "preLaunchTask": "Compilar Jasboot",
+        "sourceMaps": false
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Compilar Jasboot",
+        "type": "shell",
+        "command": "node",
+        "args": [
+          "${workspaceFolder}/.vscode/run-jasb.cjs",
+          "${file}"
+        ],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        },
+        "problemMatcher": {
+          "owner": "jasboot",
+          "fileLocation": "absolute",
+          "pattern": {
+            "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        }
+      },
+      {
+        "label": "Ejecutar Jasboot",
+        "type": "shell",
+        "command": "sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+        "args": [
+          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+        ],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "new"
+        },
+        "dependsOn": "Compilar Jasboot"
+      },
+      {
+        "label": "Compilar y Ejecutar",
+        "type": "shell",
+        "command": "node",
+        "args": [
+          "${workspaceFolder}/.vscode/run-jasb.cjs",
+          "${file}",
+          "&&",
+          "sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+        ],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "new"
+        },
+        "problemMatcher": {
+          "owner": "jasboot",
+          "fileLocation": "absolute",
+          "pattern": {
+            "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        }
+      }
+    ]
+  },
+  "keybindings": [
+    {
+      "key": "ctrl+shift+j",
+      "command": "workbench.action.terminal.sendSequence",
+      "args": {
+        "text": "node '${workspaceFolder}/.vscode/run-jasb.cjs' '${file}'\u000D"
+      },
+      "when": "editorTextFocus && editorLangId == 'jasboot'"
+    },
+    {
+      "key": "ctrl+shift+b",
+      "command": "workbench.action.tasks.runTask",
+      "args": "Compilar Jasboot"
+    },
+    {
+      "key": "ctrl+shift+r",
+      "command": "workbench.action.tasks.runTask",
+      "args": "Ejecutar Jasboot"
+    }
+  ]
+}

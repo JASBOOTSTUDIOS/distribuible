@@ -1,0 +1,375 @@
+# =============================================================================
+# SPLIT DE DATOS - VALIDACIÓN CRUZADA
+# Clase para dividir datos en conjuntos de entrenamiento, validación y prueba
+# =============================================================================
+
+usar todas de "../base.jasb"
+
+clase SplitDatos extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        este.nombre_analizador = "SplitDatos"
+        este.version_analizador = "1.0.0"
+    fin_funcion
+
+    # =============================================================================
+    # GENERADOR DE NÚMEROS PSEUDO-ALEATORIOS (LCG)
+    # =============================================================================
+
+    funcion generar_random(entero seed, entero min, entero max) retorna entero
+        # Linear Congruential Generator
+        # X(n+1) = (a * X(n) + c) mod m
+        entero a = 1664525
+        entero c = 1013904223
+        entero m = 2147483647
+
+        entero valor = (a * seed + c) % m
+        si valor < 0 entonces
+            valor = -valor
+        fin_si
+
+        entero rango = max - min + 1
+        retornar min + (valor % rango)
+    fin_funcion
+
+    # =============================================================================
+    # SHUFFLE DE DATOS CON ALGORITMO FISHER-YATES
+    # =============================================================================
+
+    funcion shuffle_datos(lista X, lista y, entero seed) retorna mapa
+        # Validar entradas
+        si X == nulo o y == nulo entonces
+            imprimir "[ERROR] Listas X o y son nulas"
+            retornar nulo
+        fin_si
+
+        entero n = lista_tamano(X)
+        entero m = lista_tamano(y)
+
+        si n == 0 o m == 0 entonces
+            imprimir "[ERROR] Listas vacías"
+            retornar nulo
+        fin_si
+
+        si n != m entonces
+            imprimir "[ERROR] X e y deben tener el mismo tamaño"
+            retornar nulo
+        fin_si
+
+        # Copiar listas para no modificar originales
+        lista X_shuffle = crear_lista()
+        lista y_shuffle = crear_lista()
+
+        entero i = 0
+        mientras i < n hacer
+            lista_agregar(X_shuffle, lista_obtener(X, i))
+            lista_agregar(y_shuffle, lista_obtener(y, i))
+            i = i + 1
+        fin_mientras
+
+        # Fisher-Yates shuffle
+        entero j = n - 1
+        entero current_seed = seed
+
+        mientras j > 0 hacer
+            # Generar índice aleatorio
+            current_seed = este.generar_random(current_seed, 0, 1000000)
+            entero rand_idx = current_seed % (j + 1)
+
+            # Intercambiar X[j] con X[rand_idx]
+            elemento temp_x = lista_obtener(X_shuffle, j)
+            elemento rand_x = lista_obtener(X_shuffle, rand_idx)
+            X_shuffle = este.establecer_en_lista(X_shuffle, j, rand_x)
+            X_shuffle = este.establecer_en_lista(X_shuffle, rand_idx, temp_x)
+
+            # Intercambiar y[j] con y[rand_idx]
+            elemento temp_y = lista_obtener(y_shuffle, j)
+            elemento rand_y = lista_obtener(y_shuffle, rand_idx)
+            y_shuffle = este.establecer_en_lista(y_shuffle, j, rand_y)
+            y_shuffle = este.establecer_en_lista(y_shuffle, rand_idx, temp_y)
+
+            j = j - 1
+        fin_mientras
+
+        # Retornar resultado
+        mapa res_shuffle = mapa_crear()
+        mapa_poner(res_shuffle, "X", X_shuffle)
+        mapa_poner(res_shuffle, "y", y_shuffle)
+
+        retornar res_shuffle
+    fin_funcion
+
+    # =============================================================================
+    # TRAIN-TEST SPLIT BÁSICO
+    # =============================================================================
+
+    funcion train_test_split(lista X, lista y, flotante test_size, entero random_seed) retorna mapa
+        # Validar entradas
+        si X == nulo o y == nulo entonces
+            imprimir "[ERROR] Listas X o y son nulas"
+            retornar nulo
+        fin_si
+
+        entero n = lista_tamano(X)
+        entero m = lista_tamano(y)
+
+        si n == 0 o m == 0 entonces
+            imprimir "[ERROR] Listas vacías"
+            retornar nulo
+        fin_si
+
+        si n != m entonces
+            imprimir "[ERROR] X e y deben tener el mismo tamaño"
+            retornar nulo
+        fin_si
+
+        # Validar test_size
+        si test_size <= 0.0 o test_size >= 1.0 entonces
+            imprimir "[ERROR] test_size debe estar entre 0.0 y 1.0"
+            retornar nulo
+        fin_si
+
+        # Mezclar datos
+        mapa shuffled = este.shuffle_datos(X, y, random_seed)
+        si shuffled == nulo entonces
+            retornar nulo
+        fin_si
+
+        lista X_shuffled = mapa_obtener(shuffled, "X")
+        lista y_shuffled = mapa_obtener(shuffled, "y")
+
+        # Calcular punto de división
+        flotante test_size_float = n * test_size
+        entero test_count = test_size_float
+
+        si test_count == 0 entonces
+            test_count = 1
+        fin_si
+
+        si test_count >= n entonces
+            test_count = n - 1
+        fin_si
+
+        entero train_count = n - test_count
+
+        # Crear conjuntos
+        lista X_train = crear_lista()
+        lista X_test = crear_lista()
+        lista y_train = crear_lista()
+        lista y_test = crear_lista()
+
+        # Llenar train
+        entero i = 0
+        mientras i < train_count hacer
+            lista_agregar(X_train, lista_obtener(X_shuffled, i))
+            lista_agregar(y_train, lista_obtener(y_shuffled, i))
+            i = i + 1
+        fin_mientras
+
+        # Llenar test
+        mientras i < n hacer
+            lista_agregar(X_test, lista_obtener(X_shuffled, i))
+            lista_agregar(y_test, lista_obtener(y_shuffled, i))
+            i = i + 1
+        fin_mientras
+
+        # Retornar resultado
+        mapa res_split = mapa_crear()
+        mapa_poner(res_split, "X_train", X_train)
+        mapa_poner(res_split, "X_test", X_test)
+        mapa_poner(res_split, "y_train", y_train)
+        mapa_poner(res_split, "y_test", y_test)
+
+        retornar res_split
+    fin_funcion
+
+    # =============================================================================
+    # SPLIT TEMPORAL (SIN MEZCLAR)
+    # Para series temporales donde el orden importa
+    # =============================================================================
+
+    funcion split_temporal(lista datos, flotante test_size) retorna mapa
+        # Validar entradas
+        si datos == nulo entonces
+            imprimir "[ERROR] Lista de datos es nula"
+            retornar nulo
+        fin_si
+
+        entero n = lista_tamano(datos)
+
+        si n == 0 entonces
+            imprimir "[ERROR] Lista vacía"
+            retornar nulo
+        fin_si
+
+        # Validar test_size
+        si test_size <= 0.0 o test_size >= 1.0 entonces
+            imprimir "[ERROR] test_size debe estar entre 0.0 y 1.0"
+            retornar nulo
+        fin_si
+
+        # Calcular punto de división
+        flotante test_size_float = n * test_size
+        entero test_count = test_size_float
+
+        si test_count == 0 entonces
+            test_count = 1
+        fin_si
+
+        si test_count >= n entonces
+            test_count = n - 1
+        fin_si
+
+        entero train_count = n - test_count
+
+        # Crear conjuntos (mantener orden temporal)
+        lista train = crear_lista()
+        lista test = crear_lista()
+
+        # Llenar train (datos más antiguos)
+        entero i = 0
+        mientras i < train_count hacer
+            lista_agregar(train, lista_obtener(datos, i))
+            i = i + 1
+        fin_mientras
+
+        # Llenar test (datos más recientes)
+        mientras i < n hacer
+            lista_agregar(test, lista_obtener(datos, i))
+            i = i + 1
+        fin_mientras
+
+        # Retornar resultado
+        mapa res_temporal = mapa_crear()
+        mapa_poner(res_temporal, "train", train)
+        mapa_poner(res_temporal, "test", test)
+        mapa_poner(res_temporal, "train_size", train_count)
+        mapa_poner(res_temporal, "test_size", test_count)
+
+        retornar res_temporal
+    fin_funcion
+
+    # =============================================================================
+    # TRAIN-VALIDATION-TEST SPLIT (3 CONJUNTOS)
+    # =============================================================================
+
+    funcion train_validation_test_split(lista X, lista y, flotante val_size, flotante test_size, entero seed) retorna mapa
+        # Validar entradas
+        si X == nulo o y == nulo entonces
+            imprimir "[ERROR] Listas X o y son nulas"
+            retornar nulo
+        fin_si
+
+        entero n = lista_tamano(X)
+        entero m = lista_tamano(y)
+
+        si n == 0 o m == 0 entonces
+            imprimir "[ERROR] Listas vacías"
+            retornar nulo
+        fin_si
+
+        si n != m entonces
+            imprimir "[ERROR] X e y deben tener el mismo tamaño"
+            retornar nulo
+        fin_si
+
+        # Validar porcentajes
+        si val_size <= 0.0 o val_size >= 1.0 entonces
+            imprimir "[ERROR] val_size debe estar entre 0.0 y 1.0"
+            retornar nulo
+        fin_si
+
+        si test_size <= 0.0 o test_size >= 1.0 entonces
+            imprimir "[ERROR] test_size debe estar entre 0.0 y 1.0"
+            retornar nulo
+        fin_si
+
+        flotante total_size = val_size + test_size
+        si total_size >= 1.0 entonces
+            imprimir "[ERROR] val_size + test_size debe ser menor que 1.0"
+            retornar nulo
+        fin_si
+
+        # Mezclar datos
+        mapa shuffled = este.shuffle_datos(X, y, seed)
+        si shuffled == nulo entonces
+            retornar nulo
+        fin_si
+
+        lista X_shuffled = mapa_obtener(shuffled, "X")
+        lista y_shuffled = mapa_obtener(shuffled, "y")
+
+        # Calcular tamaños de conjuntos
+        flotante n_float = n
+        flotante test_count_float = n_float * test_size
+        flotante val_count_float = n_float * val_size
+
+        entero test_count = test_count_float
+        entero val_count = val_count_float
+
+        si test_count == 0 entonces
+            test_count = 1
+        fin_si
+
+        si val_count == 0 entonces
+            val_count = 1
+        fin_si
+
+        entero train_count = n - test_count - val_count
+
+        si train_count <= 0 entonces
+            imprimir "[ERROR] No hay suficientes datos para train después de split"
+            retornar nulo
+        fin_si
+
+        # Crear conjuntos
+        lista X_train = crear_lista()
+        lista X_val = crear_lista()
+        lista X_test = crear_lista()
+        lista y_train = crear_lista()
+        lista y_val = crear_lista()
+        lista y_test = crear_lista()
+
+        # Llenar train (primeros datos)
+        entero i = 0
+        mientras i < train_count hacer
+            lista_agregar(X_train, lista_obtener(X_shuffled, i))
+            lista_agregar(y_train, lista_obtener(y_shuffled, i))
+            i = i + 1
+        fin_mientras
+
+        # Llenar validation (datos intermedios)
+        entero val_end = train_count + val_count
+        mientras i < val_end hacer
+            lista_agregar(X_val, lista_obtener(X_shuffled, i))
+            lista_agregar(y_val, lista_obtener(y_shuffled, i))
+            i = i + 1
+        fin_mientras
+
+        # Llenar test (últimos datos)
+        mientras i < n hacer
+            lista_agregar(X_test, lista_obtener(X_shuffled, i))
+            lista_agregar(y_test, lista_obtener(y_shuffled, i))
+            i = i + 1
+        fin_mientras
+
+        # Retornar resultado
+        mapa res_triple = mapa_crear()
+        mapa_poner(res_triple, "X_train", X_train)
+        mapa_poner(res_triple, "X_val", X_val)
+        mapa_poner(res_triple, "X_test", X_test)
+        mapa_poner(res_triple, "y_train", y_train)
+        mapa_poner(res_triple, "y_val", y_val)
+        mapa_poner(res_triple, "y_test", y_test)
+        mapa_poner(res_triple, "train_size", train_count)
+        mapa_poner(res_triple, "val_size", val_count)
+        mapa_poner(res_triple, "test_size", test_count)
+
+        retornar res_triple
+    fin_funcion
+
+fin_clase
+
+# Exportar clase
+enviar { SplitDatos }

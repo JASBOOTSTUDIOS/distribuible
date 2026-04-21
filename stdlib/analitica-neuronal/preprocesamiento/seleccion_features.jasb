@@ -1,0 +1,15 @@
+# =============================================================================
+# Jasboot - Selección de Features para Preprocesamiento
+# =============================================================================
+# ARCHIVO TEMPORALMENTE DESHABILITADO
+# Requiere reescritura completa de sintaxis
+
+usar todas de "../base.jasb"
+
+clase SeleccionFeatures extiende AnalizadorBase
+    funcion inicializar()
+        padre.inicializar("SeleccionFeatures", "V1.0 - DESHABILITADO")
+    fin_funcion
+fin_clase
+
+enviar { SeleccionFeatures }

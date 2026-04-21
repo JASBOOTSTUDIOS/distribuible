@@ -1,0 +1,105 @@
+# =============================================================================
+# LIBRERÍA DE MATEMÁTICAS BÁSICA PARA JASBOOT
+# =============================================================================
+
+funcion valor_absoluto(flotante x) retorna flotante
+    si x < 0 entonces retornar -x sino retornar x fin_si
+fin_funcion
+
+funcion raiz_cuadrada(flotante n) retorna flotante
+    si n < 0.0 entonces retornar 0.0 fin_si
+    si n == 0.0 entonces retornar 0.0 fin_si
+    flotante x = n
+    flotante i = 0.0
+    mientras i < 20.0 hacer
+        flotante div_res = n / x
+        flotante suma_res = x + div_res
+        x = 0.5 * suma_res
+        i = i + 1.0
+    fin_mientras
+    retornar x
+fin_funcion
+
+funcion potencia(flotante base_val, flotante exp_val) retorna flotante
+    si exp_val == 0 entonces retornar 1.0 fin_si
+    si exp_val == 1 entonces retornar base_val fin_si
+    flotante res = 1.0
+    flotante e = exp_val
+    si exp_val < 0 entonces e = -exp_val fin_si
+    flotante i = 0.0
+    mientras i < e hacer
+        res = res * base_val
+        i = i + 1.0
+    fin_mientras
+    si exp_val < 0 entonces retornar 1.0 / res sino retornar res fin_si
+fin_funcion
+
+funcion exponencial(flotante x) retorna flotante
+    flotante res = 1.0
+    flotante term = 1.0
+    entero i = 1
+    mientras i < 20 hacer
+        term = term * x / i
+        res = res + term
+        i = i + 1
+    fin_mientras
+    retornar res
+fin_funcion
+
+# Función helper para convertir elemento a texto (para mapas)
+funcion valor_a_texto(elemento val) retorna texto
+    # Convierte un valor de tipo elemento a texto
+    # Esto es necesario para usar valores como claves de mapa
+    # Por ahora, asumimos que el valor es un número o ya es texto
+    # En el futuro se puede extender para otros tipos
+
+    # Intentar convertir a texto usando str_desde_numero si es numérico
+    # Para simplificar, convertimos todo a texto vacío si falla
+    # TODO: Mejorar conversión cuando haya más tipos disponibles
+
+    texto resultado_texto = ""
+    # Si ya es texto, devolverlo directamente
+    # Si es número, usar conversión
+    # Por ahora retornamos cadena vacía como fallback
+    retornar resultado_texto
+fin_funcion
+
+# =============================================================================
+# OPERACIONES VECTORIALES (Semántica & NLP)
+# =============================================================================
+
+funcion producto_punto(lista vector_a, lista vector_b) retorna flotante
+    entero n_a = lista_tamano(vector_a)
+    entero n_b = lista_tamano(vector_b)
+    si n_a != n_b o n_a == 0 entonces retornar 0.0 fin_si
+
+    flotante dot = 0.0
+    entero i = 0
+    mientras i < n_a hacer
+        flotante val_a = lista_obtener(vector_a, i)
+        flotante val_b = lista_obtener(vector_b, i)
+        dot = dot + (val_a * val_b)
+        i = i + 1
+    fin_mientras
+    retornar dot
+fin_funcion
+
+funcion similitud_coseno(lista vector_a, lista vector_b) retorna flotante
+    flotante dot = producto_punto(vector_a, vector_b)
+    flotante mag_a = raiz_cuadrada(producto_punto(vector_a, vector_a))
+    flotante mag_b = raiz_cuadrada(producto_punto(vector_b, vector_b))
+
+    flotante den = mag_a * mag_b
+    si den == 0.0 entonces retornar 0.0 fin_si
+    retornar dot / den
+fin_funcion
+
+enviar {
+    valor_a_texto,
+    valor_absoluto,
+    raiz_cuadrada,
+    potencia,
+    exponencial,
+    producto_punto,
+    similitud_coseno
+}

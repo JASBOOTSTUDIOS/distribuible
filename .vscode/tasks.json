@@ -1,0 +1,83 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compilar Jasboot",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "${file}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": {
+        "owner": "jasboot",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "identifier": "jasboot-compile"
+    },
+    {
+      "label": "Ejecutar Jasboot",
+      "type": "shell",
+      "command": "sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+      "args": [
+        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "dependsOn": "jasboot-compile",
+      "identifier": "jasboot-run"
+    },
+    {
+      "label": "Compilar y Ejecutar",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "${file}",
+        "&&",
+        "sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new"
+      },
+      "problemMatcher": {
+        "owner": "jasboot",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "identifier": "jasboot-build-run"
+    }
+  ]
+}

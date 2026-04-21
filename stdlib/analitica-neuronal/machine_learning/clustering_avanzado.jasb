@@ -1,0 +1,768 @@
+# =============================================================================
+# MÓDULO DE CLUSTERING AVANZADO
+# Implementa DBSCAN, clustering jerárquico y métricas de calidad
+# =============================================================================
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+enviar clase ClusteringAvanzado extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Clustering Avanzado", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # DBSCAN - Density-Based Spatial Clustering
+    # =============================================================================
+
+    funcion dbscan(lista X_matriz, flotante eps, entero min_samples) retorna mapa
+        si X_matriz == nulo o lista_tamano(X_matriz) == 0 entonces
+            retornar nulo
+        fin_si
+
+        si eps <= 0.0 o min_samples < 1 entonces
+            retornar nulo
+        fin_si
+
+        entero n_puntos = lista_tamano(X_matriz)
+
+        # Inicializar labels con -2 (sin visitar)
+        lista labels = crear_lista()
+        entero i = 0
+        mientras i < n_puntos hacer
+            lista_agregar(labels, -2)
+            i = i + 1
+        fin_mientras
+
+        entero cluster_id = 0
+        i = 0
+
+        # Procesar cada punto
+        mientras i < n_puntos hacer
+            entero label_actual = lista_obtener(labels, i)
+
+            # Si ya fue visitado, continuar
+            si label_actual != -2 entonces
+                i = i + 1
+                continuar
+            fin_si
+
+            # Encontrar vecinos
+            lista vecinos = este.encontrar_vecinos_eps(X_matriz, i, eps)
+            entero n_vecinos = lista_tamano(vecinos)
+
+            # Si no tiene suficientes vecinos, marcar como ruido
+            si n_vecinos < min_samples entonces
+                labels = este.establecer_en_lista(labels, i, -1)
+            sino
+                # Es core point, expandir cluster
+                labels = este.expandir_cluster(X_matriz, labels, i, cluster_id, eps, min_samples)
+                cluster_id = cluster_id + 1
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        # Contar clusters y puntos de ruido
+        entero n_noise = 0
+        i = 0
+        mientras i < n_puntos hacer
+            si lista_obtener(labels, i) == -1 entonces
+                n_noise = n_noise + 1
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        # Preparar resultado
+        mapa res_clustering = mapa_crear()
+        mapa_poner(res_clustering, "labels", labels)
+        mapa_poner(res_clustering, "n_clusters", cluster_id)
+        mapa_poner(res_clustering, "n_noise", n_noise)
+
+        retornar res_clustering
+    fin_funcion
+
+    # =============================================================================
+    # CLUSTERING JERÁRQUICO
+    # =============================================================================
+
+    funcion clustering_jerarquico(lista X_matriz, entero n_clusters, texto metodo) retorna mapa
+        si X_matriz == nulo o lista_tamano(X_matriz) == 0 entonces
+            retornar nulo
+        fin_si
+
+        si n_clusters < 1 o n_clusters > lista_tamano(X_matriz) entonces
+            retornar nulo
+        fin_si
+
+        # Validar método
+        si metodo != "single" y metodo != "complete" y metodo != "average" entonces
+            metodo = "average"
+        fin_si
+
+        entero n_puntos = lista_tamano(X_matriz)
+
+        # Inicializar cada punto en su propio cluster
+        lista labels = crear_lista()
+        entero i = 0
+        mientras i < n_puntos hacer
+            lista_agregar(labels, i)
+            i = i + 1
+        fin_mientras
+
+        # Crear estructura de dendrograma (árbol jerárquico)
+        lista dendrogram = crear_lista()
+
+        entero n_clusters_actual = n_puntos
+        entero merge_id = n_puntos  # IDs para nuevos clusters fusionados
+
+        # Fusionar clusters hasta tener n_clusters
+        mientras n_clusters_actual > n_clusters hacer
+            # Encontrar par de clusters más cercanos
+            flotante min_distancia = 999999.0
+            entero cluster_a = -1
+            entero cluster_b = -1
+
+            # Obtener clusters únicos
+            lista clusters_unicos = crear_lista()
+            i = 0
+            mientras i < lista_tamano(labels) hacer
+                entero label = lista_obtener(labels, i)
+                bool existe = falso
+                entero j = 0
+                mientras j < lista_tamano(clusters_unicos) hacer
+                    si lista_obtener(clusters_unicos, j) == label entonces
+                        existe = verdadero
+                    fin_si
+                    j = j + 1
+                fin_mientras
+                si no existe entonces
+                    lista_agregar(clusters_unicos, label)
+                fin_si
+                i = i + 1
+            fin_mientras
+
+            # Comparar todos los pares
+            i = 0
+            mientras i < lista_tamano(clusters_unicos) hacer
+                entero j = i + 1
+                mientras j < lista_tamano(clusters_unicos) hacer
+                    entero c1 = lista_obtener(clusters_unicos, i)
+                    entero c2 = lista_obtener(clusters_unicos, j)
+
+                    flotante dist = este.calcular_distancia_entre_clusters(X_matriz, labels, c1, c2, metodo)
+
+                    si dist < min_distancia entonces
+                        min_distancia = dist
+                        cluster_a = c1
+                        cluster_b = c2
+                    fin_si
+
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+
+            # Registrar fusión en dendrograma
+            mapa fusion = mapa_crear()
+            mapa_poner(fusion, "cluster_a", cluster_a)
+            mapa_poner(fusion, "cluster_b", cluster_b)
+            mapa_poner(fusion, "distancia", min_distancia)
+            mapa_poner(fusion, "nuevo_id", merge_id)
+            lista_agregar(dendrogram, fusion)
+
+            # Fusionar clusters: reemplazar cluster_b con cluster_a
+            i = 0
+            mientras i < lista_tamano(labels) hacer
+                si lista_obtener(labels, i) == cluster_b entonces
+                    labels = este.establecer_en_lista(labels, i, cluster_a)
+                fin_si
+                i = i + 1
+            fin_mientras
+
+            n_clusters_actual = n_clusters_actual - 1
+            merge_id = merge_id + 1
+        fin_mientras
+
+        # Renumerar labels a 0..n_clusters-1
+        lista labels_finales = este.renumerar_labels(labels)
+
+        # Preparar resultado
+        mapa res_jerarquico = mapa_crear()
+        mapa_poner(res_jerarquico, "labels", labels_finales)
+        mapa_poner(res_jerarquico, "dendrogram", dendrogram)
+
+        retornar res_jerarquico
+    fin_funcion
+
+    # =============================================================================
+    # MÉTRICAS DE CALIDAD
+    # =============================================================================
+
+    funcion calcular_silhouette_score(lista X_matriz, lista labels) retorna flotante
+        si X_matriz == nulo o labels == nulo entonces
+            retornar -1.0
+        fin_si
+
+        entero n_puntos = lista_tamano(X_matriz)
+        si n_puntos != lista_tamano(labels) entonces
+            retornar -1.0
+        fin_si
+
+        flotante silhouette_sum = 0.0
+        entero puntos_validos = 0
+
+        entero i = 0
+        mientras i < n_puntos hacer
+            entero label_i = lista_obtener(labels, i)
+
+            # Ignorar ruido
+            si label_i == -1 entonces
+                i = i + 1
+                continuar
+            fin_si
+
+            # a(i): distancia promedio intra-cluster
+            flotante a_i = este.calcular_distancia_promedio_intra_cluster(X_matriz, labels, i)
+
+            # b(i): distancia promedio al cluster más cercano
+            flotante b_i = este.calcular_distancia_minima_inter_cluster(X_matriz, labels, i)
+
+            # Silhouette score para punto i
+            flotante s_i = 0.0
+            si a_i < b_i entonces
+                s_i = 1.0 - (a_i / b_i)
+            sino si a_i > b_i entonces
+                s_i = (b_i / a_i) - 1.0
+            sino
+                s_i = 0.0
+            fin_si
+
+            silhouette_sum = silhouette_sum + s_i
+            puntos_validos = puntos_validos + 1
+
+            i = i + 1
+        fin_mientras
+
+        si puntos_validos == 0 entonces
+            retornar 0.0
+        fin_si
+
+        retornar silhouette_sum / puntos_validos
+    fin_funcion
+
+    funcion calcular_davies_bouldin_index(lista X_matriz, lista labels) retorna flotante
+        si X_matriz == nulo o labels == nulo entonces
+            retornar 999999.0
+        fin_si
+
+        entero n_puntos = lista_tamano(X_matriz)
+        si n_puntos != lista_tamano(labels) entonces
+            retornar 999999.0
+        fin_si
+
+        # Obtener clusters únicos (sin ruido)
+        lista clusters_unicos = crear_lista()
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            entero label = lista_obtener(labels, i)
+            si label != -1 entonces
+                bool existe = falso
+                entero j = 0
+                mientras j < lista_tamano(clusters_unicos) hacer
+                    si lista_obtener(clusters_unicos, j) == label entonces
+                        existe = verdadero
+                    fin_si
+                    j = j + 1
+                fin_mientras
+                si no existe entonces
+                    lista_agregar(clusters_unicos, label)
+                fin_si
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        entero n_clusters = lista_tamano(clusters_unicos)
+        si n_clusters < 2 entonces
+            retornar 0.0
+        fin_si
+
+        # Calcular dispersión de cada cluster
+        lista dispersiones = crear_lista()
+        i = 0
+        mientras i < n_clusters hacer
+            entero cluster_id = lista_obtener(clusters_unicos, i)
+            flotante disp = este.calcular_dispersion_cluster(X_matriz, labels, cluster_id)
+            lista_agregar(dispersiones, disp)
+            i = i + 1
+        fin_mientras
+
+        # Calcular índice Davies-Bouldin
+        flotante db_sum = 0.0
+        i = 0
+        mientras i < n_clusters hacer
+            flotante max_ratio = 0.0
+            entero cluster_i = lista_obtener(clusters_unicos, i)
+            flotante disp_i = lista_obtener(dispersiones, i)
+
+            entero j = 0
+            mientras j < n_clusters hacer
+                si i != j entonces
+                    entero cluster_j = lista_obtener(clusters_unicos, j)
+                    flotante disp_j = lista_obtener(dispersiones, j)
+
+                    flotante dist_centroides = este.calcular_distancia_entre_centroides(X_matriz, labels, cluster_i, cluster_j)
+
+                    si dist_centroides > 0.0 entonces
+                        flotante ratio = (disp_i + disp_j) / dist_centroides
+                        si ratio > max_ratio entonces
+                            max_ratio = ratio
+                        fin_si
+                    fin_si
+                fin_si
+                j = j + 1
+            fin_mientras
+
+            db_sum = db_sum + max_ratio
+            i = i + 1
+        fin_mientras
+
+        retornar db_sum / n_clusters
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES - DBSCAN
+    # =============================================================================
+
+    funcion encontrar_vecinos_eps(lista X_matriz, entero idx, flotante eps) retorna lista
+        lista vecinos = crear_lista()
+        lista punto = lista_obtener(X_matriz, idx)
+
+        entero i = 0
+        mientras i < lista_tamano(X_matriz) hacer
+            lista otro_punto = lista_obtener(X_matriz, i)
+            flotante distancia = este.calcular_distancia_euclidiana(punto, otro_punto)
+
+            si distancia <= eps entonces
+                lista_agregar(vecinos, i)
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar vecinos
+    fin_funcion
+
+    funcion expandir_cluster(lista X_matriz, lista labels, entero idx, entero cluster_id, flotante eps, entero min_samples) retorna lista
+        # Marcar punto como parte del cluster
+        labels = este.establecer_en_lista(labels, idx, cluster_id)
+
+        # Obtener vecinos iniciales
+        lista semillas = este.encontrar_vecinos_eps(X_matriz, idx, eps)
+
+        # Procesar semillas
+        entero i = 0
+        mientras i < lista_tamano(semillas) hacer
+            entero vecino_idx = lista_obtener(semillas, i)
+            entero label_vecino = lista_obtener(labels, vecino_idx)
+
+            # Si es ruido, agregarlo al cluster
+            si label_vecino == -1 entonces
+                labels = este.establecer_en_lista(labels, vecino_idx, cluster_id)
+            fin_si
+
+            # Si no ha sido visitado
+            si label_vecino == -2 entonces
+                labels = este.establecer_en_lista(labels, vecino_idx, cluster_id)
+
+                # Verificar si es core point
+                lista vecinos_del_vecino = este.encontrar_vecinos_eps(X_matriz, vecino_idx, eps)
+
+                si lista_tamano(vecinos_del_vecino) >= min_samples entonces
+                    # Agregar nuevos vecinos a semillas
+                    entero j = 0
+                    mientras j < lista_tamano(vecinos_del_vecino) hacer
+                        entero nuevo_vecino = lista_obtener(vecinos_del_vecino, j)
+
+                        # Verificar si ya está en semillas
+                        bool ya_existe = falso
+                        entero k = 0
+                        mientras k < lista_tamano(semillas) hacer
+                            si lista_obtener(semillas, k) == nuevo_vecino entonces
+                                ya_existe = verdadero
+                            fin_si
+                            k = k + 1
+                        fin_mientras
+
+                        si no ya_existe entonces
+                            lista_agregar(semillas, nuevo_vecino)
+                        fin_si
+
+                        j = j + 1
+                    fin_mientras
+                fin_si
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        retornar labels
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES - CLUSTERING JERÁRQUICO
+    # =============================================================================
+
+    funcion calcular_distancia_entre_clusters(lista X_matriz, lista labels, entero c1, entero c2, texto metodo) retorna flotante
+        # Obtener puntos de cada cluster
+        lista puntos_c1 = crear_lista()
+        lista puntos_c2 = crear_lista()
+
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            si lista_obtener(labels, i) == c1 entonces
+                lista_agregar(puntos_c1, i)
+            sino si lista_obtener(labels, i) == c2 entonces
+                lista_agregar(puntos_c2, i)
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        si lista_tamano(puntos_c1) == 0 o lista_tamano(puntos_c2) == 0 entonces
+            retornar 999999.0
+        fin_si
+
+        # Calcular distancia según método
+        si metodo == "single" entonces
+            # Linkage mínimo (distancia entre puntos más cercanos)
+            flotante min_dist = 999999.0
+            i = 0
+            mientras i < lista_tamano(puntos_c1) hacer
+                entero idx1 = lista_obtener(puntos_c1, i)
+                lista punto1 = lista_obtener(X_matriz, idx1)
+
+                entero j = 0
+                mientras j < lista_tamano(puntos_c2) hacer
+                    entero idx2 = lista_obtener(puntos_c2, j)
+                    lista punto2 = lista_obtener(X_matriz, idx2)
+
+                    flotante dist = este.calcular_distancia_euclidiana(punto1, punto2)
+                    si dist < min_dist entonces
+                        min_dist = dist
+                    fin_si
+
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+            retornar min_dist
+
+        sino si metodo == "complete" entonces
+            # Linkage máximo (distancia entre puntos más lejanos)
+            flotante max_dist = 0.0
+            i = 0
+            mientras i < lista_tamano(puntos_c1) hacer
+                entero idx1 = lista_obtener(puntos_c1, i)
+                lista punto1 = lista_obtener(X_matriz, idx1)
+
+                entero j = 0
+                mientras j < lista_tamano(puntos_c2) hacer
+                    entero idx2 = lista_obtener(puntos_c2, j)
+                    lista punto2 = lista_obtener(X_matriz, idx2)
+
+                    flotante dist = este.calcular_distancia_euclidiana(punto1, punto2)
+                    si dist > max_dist entonces
+                        max_dist = dist
+                    fin_si
+
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+            retornar max_dist
+
+        sino
+            # Linkage promedio (distancia promedio entre todos los pares)
+            flotante suma_dist = 0.0
+            entero n_pares = 0
+
+            i = 0
+            mientras i < lista_tamano(puntos_c1) hacer
+                entero idx1 = lista_obtener(puntos_c1, i)
+                lista punto1 = lista_obtener(X_matriz, idx1)
+
+                entero j = 0
+                mientras j < lista_tamano(puntos_c2) hacer
+                    entero idx2 = lista_obtener(puntos_c2, j)
+                    lista punto2 = lista_obtener(X_matriz, idx2)
+
+                    flotante dist = este.calcular_distancia_euclidiana(punto1, punto2)
+                    suma_dist = suma_dist + dist
+                    n_pares = n_pares + 1
+
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+
+            si n_pares > 0 entonces
+                retornar suma_dist / n_pares
+            sino
+                retornar 999999.0
+            fin_si
+        fin_si
+    fin_funcion
+
+    funcion renumerar_labels(lista labels) retorna lista
+        # Crear mapeo de labels antiguos a nuevos
+        mapa mapeo = mapa_crear()
+        entero siguiente_id = 0
+
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            entero label_actual = lista_obtener(labels, i)
+
+            si no mapa_contiene(mapeo, label_actual) entonces
+                mapa_poner(mapeo, label_actual, siguiente_id)
+                siguiente_id = siguiente_id + 1
+            fin_si
+
+            i = i + 1
+        fin_mientras
+
+        # Aplicar mapeo
+        lista nuevos_labels = crear_lista()
+        i = 0
+        mientras i < lista_tamano(labels) hacer
+            entero label_actual = lista_obtener(labels, i)
+            entero nuevo_label = mapa_obtener(mapeo, label_actual)
+            lista_agregar(nuevos_labels, nuevo_label)
+            i = i + 1
+        fin_mientras
+
+        retornar nuevos_labels
+    fin_funcion
+
+    # =============================================================================
+    # MÉTODOS AUXILIARES - MÉTRICAS
+    # =============================================================================
+
+    funcion calcular_distancia_promedio_intra_cluster(lista X_matriz, lista labels, entero idx) retorna flotante
+        entero cluster_id = lista_obtener(labels, idx)
+        lista punto = lista_obtener(X_matriz, idx)
+
+        flotante suma_dist = 0.0
+        entero n_puntos = 0
+
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            si i != idx y lista_obtener(labels, i) == cluster_id entonces
+                lista otro_punto = lista_obtener(X_matriz, i)
+                flotante dist = este.calcular_distancia_euclidiana(punto, otro_punto)
+                suma_dist = suma_dist + dist
+                n_puntos = n_puntos + 1
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        si n_puntos == 0 entonces
+            retornar 0.0
+        fin_si
+
+        retornar suma_dist / n_puntos
+    fin_funcion
+
+    funcion calcular_distancia_minima_inter_cluster(lista X_matriz, lista labels, entero idx) retorna flotante
+        entero cluster_id = lista_obtener(labels, idx)
+        lista punto = lista_obtener(X_matriz, idx)
+
+        # Encontrar clusters únicos (excluyendo el propio)
+        lista otros_clusters = crear_lista()
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            entero label = lista_obtener(labels, i)
+            si label != cluster_id y label != -1 entonces
+                bool existe = falso
+                entero j = 0
+                mientras j < lista_tamano(otros_clusters) hacer
+                    si lista_obtener(otros_clusters, j) == label entonces
+                        existe = verdadero
+                    fin_si
+                    j = j + 1
+                fin_mientras
+                si no existe entonces
+                    lista_agregar(otros_clusters, label)
+                fin_si
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        si lista_tamano(otros_clusters) == 0 entonces
+            retornar 0.0
+        fin_si
+
+        # Calcular distancia promedio a cada otro cluster
+        flotante min_dist_promedio = 999999.0
+
+        entero k = 0
+        mientras k < lista_tamano(otros_clusters) hacer
+            entero otro_cluster = lista_obtener(otros_clusters, k)
+
+            flotante suma_dist = 0.0
+            entero n_puntos = 0
+
+            i = 0
+            mientras i < lista_tamano(labels) hacer
+                si lista_obtener(labels, i) == otro_cluster entonces
+                    lista otro_punto = lista_obtener(X_matriz, i)
+                    flotante dist = este.calcular_distancia_euclidiana(punto, otro_punto)
+                    suma_dist = suma_dist + dist
+                    n_puntos = n_puntos + 1
+                fin_si
+                i = i + 1
+            fin_mientras
+
+            si n_puntos > 0 entonces
+                flotante dist_promedio = suma_dist / n_puntos
+                si dist_promedio < min_dist_promedio entonces
+                    min_dist_promedio = dist_promedio
+                fin_si
+            fin_si
+
+            k = k + 1
+        fin_mientras
+
+        retornar min_dist_promedio
+    fin_funcion
+
+    funcion calcular_dispersion_cluster(lista X_matriz, lista labels, entero cluster_id) retorna flotante
+        # Calcular centroide
+        lista centroide = este.calcular_centroide_cluster(X_matriz, labels, cluster_id)
+
+        si centroide == nulo entonces
+            retornar 0.0
+        fin_si
+
+        # Calcular distancia promedio al centroide
+        flotante suma_dist = 0.0
+        entero n_puntos = 0
+
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            si lista_obtener(labels, i) == cluster_id entonces
+                lista punto = lista_obtener(X_matriz, i)
+                flotante dist = este.calcular_distancia_euclidiana(punto, centroide)
+                suma_dist = suma_dist + dist
+                n_puntos = n_puntos + 1
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        si n_puntos == 0 entonces
+            retornar 0.0
+        fin_si
+
+        retornar suma_dist / n_puntos
+    fin_funcion
+
+    funcion calcular_centroide_cluster(lista X_matriz, lista labels, entero cluster_id) retorna lista
+        # Asumir que todos los puntos tienen la misma dimensión
+        si lista_tamano(X_matriz) == 0 entonces
+            retornar nulo
+        fin_si
+
+        lista primer_punto = lista_obtener(X_matriz, 0)
+        entero n_dim = lista_tamano(primer_punto)
+
+        # Inicializar sumas
+        lista sumas = crear_lista()
+        entero d = 0
+        mientras d < n_dim hacer
+            lista_agregar(sumas, 0.0)
+            d = d + 1
+        fin_mientras
+
+        entero n_puntos = 0
+
+        # Sumar coordenadas
+        entero i = 0
+        mientras i < lista_tamano(labels) hacer
+            si lista_obtener(labels, i) == cluster_id entonces
+                lista punto = lista_obtener(X_matriz, i)
+
+                d = 0
+                mientras d < n_dim hacer
+                    flotante suma_actual = lista_obtener(sumas, d)
+                    flotante coord = lista_obtener(punto, d)
+                    sumas = este.establecer_en_lista(sumas, d, suma_actual + coord)
+                    d = d + 1
+                fin_mientras
+
+                n_puntos = n_puntos + 1
+            fin_si
+            i = i + 1
+        fin_mientras
+
+        si n_puntos == 0 entonces
+            retornar nulo
+        fin_si
+
+        # Calcular promedios
+        lista centroide = crear_lista()
+        d = 0
+        mientras d < n_dim hacer
+            flotante promedio = lista_obtener(sumas, d) / n_puntos
+            lista_agregar(centroide, promedio)
+            d = d + 1
+        fin_mientras
+
+        retornar centroide
+    fin_funcion
+
+    funcion calcular_distancia_entre_centroides(lista X_matriz, lista labels, entero cluster_i, entero cluster_j) retorna flotante
+        lista centroide_i = este.calcular_centroide_cluster(X_matriz, labels, cluster_i)
+        lista centroide_j = este.calcular_centroide_cluster(X_matriz, labels, cluster_j)
+
+        si centroide_i == nulo o centroide_j == nulo entonces
+            retornar 999999.0
+        fin_si
+
+        retornar este.calcular_distancia_euclidiana(centroide_i, centroide_j)
+    fin_funcion
+
+    # =============================================================================
+    # UTILIDADES GENERALES
+    # =============================================================================
+
+    funcion calcular_distancia_euclidiana(lista punto1, lista punto2) retorna flotante
+        si punto1 == nulo o punto2 == nulo entonces
+            retornar 999999.0
+        fin_si
+
+        entero n1 = lista_tamano(punto1)
+        entero n2 = lista_tamano(punto2)
+
+        si n1 != n2 entonces
+            retornar 999999.0
+        fin_si
+
+        flotante suma_cuadrados = 0.0
+        entero i = 0
+        mientras i < n1 hacer
+            flotante coord1 = lista_obtener(punto1, i)
+            flotante coord2 = lista_obtener(punto2, i)
+            flotante diff = coord1 - coord2
+            suma_cuadrados = suma_cuadrados + (diff * diff)
+            i = i + 1
+        fin_mientras
+
+        retornar raiz_cuadrada(suma_cuadrados)
+    fin_funcion
+
+fin_clase
+
+# =============================================================================
+# EXPORTACIÓN
+# =============================================================================
+enviar { ClusteringAvanzado }

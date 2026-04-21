@@ -1,0 +1,178 @@
+# =============================================================================
+# EJEMPLO DE USO: MÉTRICAS DE CLUSTERING
+# =============================================================================
+# Este ejemplo muestra cómo usar la clase MetricasClustering para evaluar
+# la calidad de un algoritmo de clustering.
+# =============================================================================
+
+usar todas de "metricas_clustering.jasb"
+
+principal
+    imprimir "╔════════════════════════════════════════════╗"
+    imprimir "║  EJEMPLO: Métricas de Clustering          ║"
+    imprimir "╚════════════════════════════════════════════╝"
+    imprimir ""
+
+    # Crear instancia de métricas
+    MetricasClustering metricas = MetricasClustering()
+
+    # =============================================================================
+    # PASO 1: Crear datos de ejemplo
+    # =============================================================================
+    imprimir "📊 Creando dataset de ejemplo..."
+    imprimir "   - 3 clusters bien separados"
+    imprimir "   - 9 puntos en espacio 2D"
+    imprimir ""
+
+    lista X = crear_lista()
+    lista labels = crear_lista()
+
+    # Cluster 0: Puntos cercanos a (0, 0)
+    lista_agregar(X, crear_punto(0.0, 0.0))
+    lista_agregar(X, crear_punto(0.5, 0.5))
+    lista_agregar(X, crear_punto(0.3, 0.2))
+    lista_agregar(labels, 0)
+    lista_agregar(labels, 0)
+    lista_agregar(labels, 0)
+
+    # Cluster 1: Puntos cercanos a (10, 10)
+    lista_agregar(X, crear_punto(10.0, 10.0))
+    lista_agregar(X, crear_punto(10.5, 10.5))
+    lista_agregar(X, crear_punto(10.3, 10.2))
+    lista_agregar(labels, 1)
+    lista_agregar(labels, 1)
+    lista_agregar(labels, 1)
+
+    # Cluster 2: Puntos cercanos a (0, 10)
+    lista_agregar(X, crear_punto(0.0, 10.0))
+    lista_agregar(X, crear_punto(0.5, 10.5))
+    lista_agregar(X, crear_punto(0.3, 10.2))
+    lista_agregar(labels, 2)
+    lista_agregar(labels, 2)
+    lista_agregar(labels, 2)
+
+    # =============================================================================
+    # PASO 2: Calcular métricas individuales
+    # =============================================================================
+    imprimir "🔍 Calculando métricas de calidad..."
+    imprimir ""
+
+    # Silhouette Score (rango: -1 a 1, mayor = mejor)
+    flotante silhouette = metricas.calcular_silhouette_score(X, labels)
+    imprimir "✓ Silhouette Score: " + str_desde_numero(silhouette)
+    imprimir "  → Rango: -1 (malo) a 1 (excelente)"
+    si silhouette > 0.7 entonces
+        imprimir "  → Interpretación: ⭐ Clusters muy bien separados"
+    sino si silhouette > 0.5 entonces
+        imprimir "  → Interpretación: ✓ Buena separación"
+    sino
+        imprimir "  → Interpretación: ⚠ Separación mejorable"
+    fin_si
+    imprimir ""
+
+    # Davies-Bouldin Index (menor = mejor, 0 = ideal)
+    flotante db = metricas.calcular_davies_bouldin_index(X, labels)
+    imprimir "✓ Davies-Bouldin Index: " + str_desde_numero(db)
+    imprimir "  → Rango: 0 (ideal) a ∞ (peor)"
+    si db < 0.5 entonces
+        imprimir "  → Interpretación: ⭐ Excelente compacidad"
+    sino si db < 1.0 entonces
+        imprimir "  → Interpretación: ✓ Buena compacidad"
+    sino
+        imprimir "  → Interpretación: ⚠ Clusters superpuestos"
+    fin_si
+    imprimir ""
+
+    # Calinski-Harabasz Score (mayor = mejor)
+    flotante ch = metricas.calcular_calinski_harabasz_score(X, labels)
+    imprimir "✓ Calinski-Harabasz Score: " + str_desde_numero(ch)
+    imprimir "  → Rango: 0 a ∞ (mayor = mejor)"
+    si ch > 100.0 entonces
+        imprimir "  → Interpretación: ⭐ Clusters muy definidos"
+    sino si ch > 50.0 entonces
+        imprimir "  → Interpretación: ✓ Clusters bien definidos"
+    sino
+        imprimir "  → Interpretación: ⚠ Clusters poco claros"
+    fin_si
+    imprimir ""
+
+    # Inercia (WCSS)
+    flotante inercia = metricas.calcular_inercia(X, labels, nulo)
+    imprimir "✓ Inercia (WCSS): " + str_desde_numero(inercia)
+    imprimir "  → Suma de distancias cuadradas dentro de clusters"
+    imprimir "  → Menor = clusters más compactos"
+    imprimir ""
+
+    # =============================================================================
+    # PASO 3: Informe completo
+    # =============================================================================
+    imprimir "📋 Generando informe completo..."
+    imprimir ""
+
+    mapa informe = metricas.informe_clustering(X, labels)
+    metricas.imprimir_informe(informe)
+    imprimir ""
+
+    # =============================================================================
+    # PASO 4: Análisis por muestra (puntos individuales)
+    # =============================================================================
+    imprimir "🔬 Analizando calidad de asignación por punto..."
+    imprimir ""
+
+    lista silh_samples = metricas.calcular_silhouette_samples(X, labels)
+    entero i = 0
+    mientras i < lista_tamano(silh_samples) hacer
+        flotante s = lista_obtener(silh_samples, i)
+        entero label = lista_obtener(labels, i)
+
+        texto estado = ""
+        si s > 0.7 entonces
+            estado = "✓ Excelente"
+        sino si s > 0.5 entonces
+            estado = "✓ Bueno"
+        sino si s > 0.0 entonces
+            estado = "⚠ Regular"
+        sino
+            estado = "✗ Mal asignado"
+        fin_si
+
+        imprimir "  Punto " + str_desde_numero(i) + " (cluster " + str_desde_numero(label) + "): " + str_desde_numero(s) + " " + estado
+        i = i + 1
+    fin_mientras
+    imprimir ""
+
+    # =============================================================================
+    # PASO 5: Información adicional
+    # =============================================================================
+    imprimir "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    imprimir "💡 CONSEJOS DE USO"
+    imprimir "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    imprimir ""
+    imprimir "1. Silhouette Score:"
+    imprimir "   • Usa para comparar diferentes valores de k"
+    imprimir "   • Puntos con score < 0 están mal asignados"
+    imprimir ""
+    imprimir "2. Davies-Bouldin:"
+    imprimir "   • Útil cuando necesitas clusters compactos"
+    imprimir "   • No requiere conocer la verdad de terreno"
+    imprimir ""
+    imprimir "3. Calinski-Harabasz:"
+    imprimir "   • Rápido de calcular"
+    imprimir "   • Complementa bien a Silhouette"
+    imprimir ""
+    imprimir "4. Inercia:"
+    imprimir "   • Usa el método del codo para elegir k óptimo"
+    imprimir "   • Disminuye siempre con más clusters"
+    imprimir ""
+    imprimir "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    imprimir "✅ Ejemplo completado exitosamente"
+    imprimir "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fin_principal
+
+# Función auxiliar para crear puntos 2D
+funcion crear_punto(flotante x, flotante y) retorna lista
+    lista punto = crear_lista()
+    lista_agregar(punto, x)
+    lista_agregar(punto, y)
+    retornar punto
+fin_funcion

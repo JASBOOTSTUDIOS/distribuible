@@ -1,0 +1,30 @@
+[
+  {
+    "key": "ctrl+shift+j",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+      "text": "node '${workspaceFolder}/.vscode/run-jasb.cjs' '${file}'\u000D"
+    },
+    "when": "editorTextFocus && editorLangId == 'jasboot'"
+  },
+  {
+    "key": "ctrl+shift+b",
+    "command": "workbench.action.tasks.runTask",
+    "args": "jasboot-compile"
+  },
+  {
+    "key": "ctrl+shift+r",
+    "command": "workbench.action.tasks.runTask",
+    "args": "jasboot-run"
+  },
+  {
+    "key": "ctrl+shift+l",
+    "command": "jasboot.toggleLogging",
+    "when": "editorTextFocus && editorLangId == 'jasboot'"
+  },
+  {
+    "key": "ctrl+shift+d",
+    "command": "jasboot.openDocumentation",
+    "when": "editorTextFocus && editorLangId == 'jasboot'"
+  }
+]

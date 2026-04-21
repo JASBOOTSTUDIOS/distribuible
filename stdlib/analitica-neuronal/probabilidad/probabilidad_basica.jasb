@@ -1,0 +1,83 @@
+# =============================================================================
+# MÓDULO DE PROBABILIDAD (VERSIÓN CLASES)
+# =============================================================================
+usar todas de "../base.jasb"
+usar todas de "../math_lib.jasb"
+
+clase Probabilidad extiende AnalizadorBase
+
+    # Constructor
+    funcion inicializar()
+        padre.inicializar("Probabilidad y Distribuciones", "V1.0")
+    fin_funcion
+
+    # =============================================================================
+    # 1. COMBINATORIA
+    # =============================================================================
+
+    funcion factorial(entero n) retorna flotante
+        si n < 0 entonces retornar -1.0 fin_si
+        si n == 0 o n == 1 entonces retornar 1.0 fin_si
+        
+        flotante _v_resultado = 1.0
+        entero i = 2
+        mientras i <= n hacer
+            _v_resultado = _v_resultado * i
+            i = i + 1
+        fin_mientras
+        retornar _v_resultado
+    fin_funcion
+
+    funcion combinaciones(entero n, entero k) retorna flotante
+        si k < 0 o k > n entonces retornar 0.0 fin_si
+        si k == 0 o k == n entonces retornar 1.0 fin_si
+        
+        # C(n,k) = n! / (k!(n-k)!)
+        retornar este.factorial(n) / (este.factorial(k) * este.factorial(n - k))
+    fin_funcion
+
+    # =============================================================================
+    # 2. DISTRIBUCIONES DISCRETAS
+    # =============================================================================
+
+    funcion binomial_pmf(entero k, entero n, flotante p) retorna flotante
+        si k < 0 o k > n entonces retornar 0.0 fin_si
+        flotante comb = este.combinaciones(n, k)
+        retornar comb * potencia(p, k * 1.0) * potencia(1.0 - p, (n - k) * 1.0)
+    fin_funcion
+
+    funcion poisson_pmf(entero k, flotante lambda_val) retorna flotante
+        si k < 0 entonces retornar 0.0 fin_si
+        # P(k) = (lambda^k * e^-lambda) / k!
+        retornar (potencia(lambda_val, k) * exponencial(-lambda_val)) / este.factorial(k)
+    fin_funcion
+
+    # =============================================================================
+    # 3. DISTRIBUCIONES CONTINUAS
+    # =============================================================================
+
+    funcion normal_pdf(flotante x, flotante mu, flotante sigma) retorna flotante
+        si sigma <= 0 entonces retornar 0.0 fin_si
+        flotante exponente = -0.5 * potencia((x - mu) / sigma, 2)
+        flotante prefijo = 1.0 / (sigma * raiz_cuadrada(2.0 * 3.1415926535))
+        retornar prefijo * exponencial(exponente)
+    fin_funcion
+
+    # Aproximación de la función error (erf) para Normal CDF
+    privado funcion _erf(flotante x) retorna flotante
+        # Aproximación de Abramowitz y Stegun
+        flotante t = 1.0 / (1.0 + 0.5 * valor_absoluto(x))
+        flotante ans = 1.0 - t * exponencial(-x*x - 1.26551223 + t*(1.00002368 + t*(0.37409196 + t*(0.09678418 + t*(-0.18628806 + t*(0.27886807 + t*(-1.13520398 + t*(1.48851587 + t*(-0.82215223 + t*(0.17087277))))))))))
+        si x >= 0 entonces retornar ans sino retornar -ans fin_si
+    fin_funcion
+
+    funcion normal_cdf(flotante x, flotante mu, flotante sigma) retorna flotante
+        # F(x) = 0.5 * (1 + erf((x-mu)/(sigma * sqrt(2))))
+        retornar 0.5 * (1.0 + este._erf((x - mu) / (sigma * raiz_cuadrada(2.0))))
+    fin_funcion
+
+fin_clase
+
+enviar {
+    Probabilidad
+}
