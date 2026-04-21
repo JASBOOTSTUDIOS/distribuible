@@ -1,0 +1,6 @@
+// Capa intermedia: import nominal desde m_export_mix y reexporta una funcion compuesta.
+usar { exp_fn } de "m_export_mix.jasb"
+
+enviar funcion wrap_dup(entero x) retorna entero
+    retornar llamar exp_fn(x) + llamar exp_fn(0)
+fin_funcion

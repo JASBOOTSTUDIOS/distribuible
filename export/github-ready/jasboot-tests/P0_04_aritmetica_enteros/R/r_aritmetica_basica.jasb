@@ -1,0 +1,15 @@
+principal
+    entero num_a = 10
+    entero num_b = 3
+    entero suma = num_a + num_b
+    entero resta = num_a - num_b
+    entero mult = num_a * num_b
+    entero division = num_a / num_b
+    entero modulo = num_a % num_b
+    
+    imprimir suma
+    imprimir resta
+    imprimir mult
+    imprimir division
+    imprimir modulo
+fin_principal

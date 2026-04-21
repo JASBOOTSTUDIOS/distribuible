@@ -1,0 +1,6 @@
+# E: str_copiar con dos argumentos — jbc debe fallar (un solo texto).
+
+principal
+    texto t = str_copiar("uno", "dos")
+    imprimir t
+fin_principal

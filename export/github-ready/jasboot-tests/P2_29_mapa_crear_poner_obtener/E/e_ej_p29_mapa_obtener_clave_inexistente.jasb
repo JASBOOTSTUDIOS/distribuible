@@ -1,0 +1,9 @@
+# E (ejecución): clave no definida en el mapa — compila; la VM termina con código != 0 si no hay intentar.
+# stderr debe mencionar "clave de mapa inexistente"; no debe imprimirse no_deberia.
+
+principal
+    mapa m = mapa_crear()
+    mapa_poner(m, 1, 42)
+    imprimir mapa_obtener(m, 99)
+    imprimir "no_deberia"
+fin_principal

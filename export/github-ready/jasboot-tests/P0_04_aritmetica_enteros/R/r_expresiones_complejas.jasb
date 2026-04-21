@@ -1,0 +1,22 @@
+principal
+    entero base = 10
+    entero num_x = 2
+    entero num_y = 3
+    entero num_z = 4
+    
+    # 10 + (2 * 3) - (4 / 2) = 10 + 6 - 2 = 14
+    entero res1 = base + num_x * num_y - num_z / 2
+    imprimir res1
+    
+    # (10 + 2) * (3 - 4) = 12 * -1 = -12
+    entero res2 = (base + num_x) * (num_y - num_z)
+    imprimir res2
+
+    # 10 % 3 * 4 + 2 = 1 * 4 + 2 = 6
+    entero res3 = base % num_y * num_z + num_x
+    imprimir res3
+
+    # (10 + (2 * 3)) / (4 - 2) = (10 + 6) / 2 = 8
+    entero res4 = (base + (num_x * num_y)) / (num_z - num_x)
+    imprimir res4
+fin_principal

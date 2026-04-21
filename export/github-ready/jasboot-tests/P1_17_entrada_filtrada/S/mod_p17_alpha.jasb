@@ -1,0 +1,7 @@
+# Modulo hoja: constante + funcion exportada (cadena alpha <- beta <- main del estres P1_17).
+
+enviar constante entero P17_K = 11
+
+enviar funcion mod_alpha_acum(entero n, entero m) retorna entero
+    retornar n + m + P17_K
+fin_funcion

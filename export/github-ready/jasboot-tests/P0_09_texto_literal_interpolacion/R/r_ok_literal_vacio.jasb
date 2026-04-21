@@ -1,0 +1,6 @@
+principal
+    texto vacio = ""
+    imprimir "["
+    imprimir vacio
+    imprimir "]"
+fin_principal

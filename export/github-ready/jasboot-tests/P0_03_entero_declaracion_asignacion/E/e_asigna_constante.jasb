@@ -1,0 +1,5 @@
+constante entero C = 42
+principal
+imprimir C
+C = 0
+fin_principal

@@ -1,0 +1,22 @@
+# S: estrés — 2_000_000 llamadas a funcion con sin/cos y acumulador flotante.
+# Esperado (jb): -0.0693 y linea vacia (recalibrar si cambia la VM).
+
+funcion muestra_trig(flotante t) retorna flotante
+    retornar sin(t) * 0.00002 + cos(t * 1.0001) * 0.00002
+fin_funcion
+
+principal
+    flotante acc
+    flotante t
+    entero j
+
+    acc = 0.0
+    j = 0
+    mientras j < 2000000 hacer
+        t = j * 0.0001
+        acc = acc + muestra_trig(t)
+        j = j + 1
+    fin_mientras
+    imprimir acc
+    imprimir ""
+fin_principal

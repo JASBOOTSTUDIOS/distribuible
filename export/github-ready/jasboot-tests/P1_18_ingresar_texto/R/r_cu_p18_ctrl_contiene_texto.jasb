@@ -1,0 +1,13 @@
+# R: `contiene_texto` sobre la linea leida.
+# Entrada: abracadabra\n
+# Salida: 7 (contiene "cad") y linea vacia.
+
+principal
+    ingresar_texto s
+    si contiene_texto(s, "cad") == 1 entonces
+        imprimir 7
+    sino
+        imprimir 0
+    fin_si
+    imprimir ""
+fin_principal

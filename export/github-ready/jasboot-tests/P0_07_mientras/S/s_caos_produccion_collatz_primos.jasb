@@ -1,0 +1,76 @@
+principal
+    # ========================================================================
+    # PRUEBA DE ESTRES GLOBAL (P0_01 a P0_07)
+    # Mezcla profunda de aritmética, bucles anidados, variables con shadowing, 
+    # control de flujo compuesto y operaciones lógicas de corto circuito.
+    # Algoritmo: Encuentra números primos, y para cada uno ejecuta la
+    # secuencia de Collatz usando hacer..mientras. Mantiene récords cruzados.
+    # ========================================================================
+
+    entero limite = 3000
+    entero mayor_longitud = 0
+    entero primo_campeon = 0
+    entero maximo_valor_alcanzado = 0
+    
+    entero num = 2
+    mientras num <= limite hacer
+        
+        # 1. Determinar si 'num' es primo (P0_04: *, % / P0_05: <=, == / P0_06: y)
+        entero es_primo = 1
+        entero divisor = 2
+        
+        mientras (divisor * divisor <= num) y (es_primo == 1) hacer
+            si num % divisor == 0 entonces
+                es_primo = 0
+            fin_si
+            divisor = divisor + 1
+        fin_mientras
+        
+        # 2. Si es primo, calculamos su secuencia de Collatz
+        si es_primo == 1 y no (num == 2) entonces
+            entero temp = num
+            entero longitud_actual = 0
+            entero maximo_local = temp
+            
+            # Usando hacer...mientras para estresar P0_07 variante
+            hacer
+                cuando temp % 2 == 0 entonces
+                    temp = temp / 2
+                sino
+                    temp = (temp * 3) + 1
+                fin_cuando
+                
+                si temp >= maximo_local entonces
+                    maximo_local = temp
+                fin_si
+                
+                longitud_actual = longitud_actual + 1
+            mientras temp != 1 fin_hacer
+            
+            # 3. Ramas complejas para actualizar records (P0_06: sino si, o, >, ==)
+            si longitud_actual > mayor_longitud entonces
+                mayor_longitud = longitud_actual
+                primo_campeon = num
+                
+                si maximo_local > maximo_valor_alcanzado entonces
+                    maximo_valor_alcanzado = maximo_local
+                fin_si
+            sino si longitud_actual == mayor_longitud o maximo_local > maximo_valor_alcanzado entonces
+                si maximo_local > maximo_valor_alcanzado entonces
+                    maximo_valor_alcanzado = maximo_local
+                fin_si
+            fin_si
+        fin_si
+        
+        num = num + 1
+    fin_mientras
+    
+    imprimir "=== RESULTADOS DE ESTRES (1) ==="
+    imprimir "Primo evaluado mas largo:"
+    imprimir primo_campeon
+    imprimir "Longitud de Collatz:"
+    imprimir mayor_longitud
+    imprimir "Maximo valor alcanzado globalmente:"
+    imprimir maximo_valor_alcanzado
+
+fin_principal

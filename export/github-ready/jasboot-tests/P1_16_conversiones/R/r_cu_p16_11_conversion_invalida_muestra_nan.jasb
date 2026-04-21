@@ -1,0 +1,9 @@
+# 11 — Cadenas no numericas: convertir_* devuelven NaN (entero imprime "nan", flotante igual).
+# Salida: dos lineas "nan"
+
+principal
+    entero n = convertir_entero("abc")
+    flotante x = convertir_flotante("no_numero")
+    imprimir(n)
+    imprimir_flotante(x)
+fin_principal

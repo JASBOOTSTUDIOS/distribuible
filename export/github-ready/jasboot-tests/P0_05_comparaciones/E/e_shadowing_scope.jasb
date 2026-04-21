@@ -1,0 +1,13 @@
+principal
+    # Prueba de ensombrecimiento de variable (shadowing de scope)
+    entero num_x = 10
+    imprimir num_x
+    
+    si num_x == 10 entonces
+        # Declarar nuevamente num_x en este nuevo alcance (deberia dar error o hacer shadowing)
+        entero num_x = 20
+        imprimir num_x
+    fin_si
+    
+    imprimir num_x
+fin_principal

@@ -1,0 +1,11 @@
+// Caso: si se necesitan varios simbolos del *mismo* archivo, conviene una sola lista `usar { a, b } de`
+//   (un segundo `usar` al mismo .jasb no anade simbolos: el modulo ya estaba cargado).
+// Misma aritmetica que cu_08 pero en un solo modulo: exp_fn(0) + EXP_C = 84
+// Esperado: 84
+
+usar { exp_fn, EXP_C } de "m_export_mix.jasb"
+
+principal
+    entero r = llamar exp_fn(0) + EXP_C
+    imprimir "${r}\n"
+fin_principal

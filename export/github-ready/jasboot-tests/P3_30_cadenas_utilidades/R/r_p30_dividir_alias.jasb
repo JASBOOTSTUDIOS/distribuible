@@ -1,0 +1,8 @@
+# R: alias dividir(...) == dividir_texto(...) para lista de tokens.
+# Salida: 2 (partes "x" y "y" con sep "|")
+
+principal
+    lista L = dividir("x|y", "|")
+    imprimir mem_lista_tamano(L)
+    imprimir ""
+fin_principal

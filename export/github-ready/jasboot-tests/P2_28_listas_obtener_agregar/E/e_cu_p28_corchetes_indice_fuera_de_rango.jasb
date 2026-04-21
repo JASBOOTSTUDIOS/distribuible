@@ -1,0 +1,10 @@
+# E (ejecución): buf[idx] con idx fuera de rango — misma VM que mem_lista_obtener.
+# Esperado: código salida != 0; no imprimir no_deberia.
+
+principal
+    lista buf = crear_lista()
+    mem_lista_agregar(buf, 1)
+    entero idx = 3
+    imprimir buf[idx]
+    imprimir "no_deberia\n"
+fin_principal

@@ -1,0 +1,214 @@
+# Gusanito interactivo con crecimiento y colision de cuerpo.
+# Controles por turno: w(arriba) s(abajo) a(izq) d(der), sin Enter.
+
+principal
+    entero ancho = 22
+    entero alto = 12
+    entero turnos_max = 1200
+    entero largo_max = 12
+
+    # Direccion: 0=arriba, 1=derecha, 2=abajo, 3=izquierda
+    entero direccion = 1
+
+    # Cabeza
+    entero hx = 6
+    entero hf = 6
+
+    # Segmentos del cuerpo (max 12)
+    entero s1x = 5
+    entero s1f = 6
+    entero s2x = 4
+    entero s2f = 6
+    entero s3x = 3
+    entero s3f = 6
+    entero s4x = 2
+    entero s4f = 6
+    entero s5x = 1
+    entero s5f = 6
+    entero s6x = 0
+    entero s6f = 6
+    entero s7x = 0
+    entero s7f = 6
+    entero s8x = 0
+    entero s8f = 6
+    entero s9x = 0
+    entero s9f = 6
+    entero s10x = 0
+    entero s10f = 6
+    entero s11x = 0
+    entero s11f = 6
+    entero s12x = 0
+    entero s12f = 6
+
+    entero largo = 3
+
+    entero comida_x = 15
+    entero comida_f = 6
+
+    entero puntaje = 0
+    entero turno = 0
+    entero vivo = 1
+
+    mientras vivo == 1 y turno < turnos_max hacer
+        limpiar_consola()
+        imprimir ""
+        imprimir "Turno ${turno}  Puntaje ${puntaje}  Largo ${largo}"
+
+        entero fila = 0
+        mientras fila < alto hacer
+            texto linea = ""
+            entero col = 0
+            mientras col < ancho hacer
+                si col == hx y fila == hf entonces
+                    linea = linea + "O"
+                sino si largo >= 1 y col == s1x y fila == s1f entonces
+                    linea = linea + "o"
+                sino si largo >= 2 y col == s2x y fila == s2f entonces
+                    linea = linea + "o"
+                sino si largo >= 3 y col == s3x y fila == s3f entonces
+                    linea = linea + "o"
+                sino si largo >= 4 y col == s4x y fila == s4f entonces
+                    linea = linea + "o"
+                sino si largo >= 5 y col == s5x y fila == s5f entonces
+                    linea = linea + "o"
+                sino si largo >= 6 y col == s6x y fila == s6f entonces
+                    linea = linea + "o"
+                sino si largo >= 7 y col == s7x y fila == s7f entonces
+                    linea = linea + "o"
+                sino si largo >= 8 y col == s8x y fila == s8f entonces
+                    linea = linea + "o"
+                sino si largo >= 9 y col == s9x y fila == s9f entonces
+                    linea = linea + "o"
+                sino si largo >= 10 y col == s10x y fila == s10f entonces
+                    linea = linea + "o"
+                sino si largo >= 11 y col == s11x y fila == s11f entonces
+                    linea = linea + "o"
+                sino si largo >= 12 y col == s12x y fila == s12f entonces
+                    linea = linea + "o"
+                sino si col == comida_x y fila == comida_f entonces
+                    linea = linea + "*"
+                sino
+                    linea = linea + "."
+                fin_si
+                col += 1
+            fin_mientras
+            imprimir linea
+            fila += 1
+        fin_mientras
+
+        imprimir "Mover (w/a/s/d), sin Enter:"
+        texto comando = ""
+        entero t_inicio = obtener_timestamp()
+        mientras comando == "" y diferencia_en_segundos(t_inicio, obtener_timestamp()) < 1 hacer
+            ingreso_inmediato comando
+        fin_mientras
+
+        # No permitir giro 180 directo
+        si (comando == "w" o comando == "W") y direccion != 2 entonces
+            direccion = 0
+        sino si (comando == "d" o comando == "D") y direccion != 3 entonces
+            direccion = 1
+        sino si (comando == "s" o comando == "S") y direccion != 0 entonces
+            direccion = 2
+        sino si (comando == "a" o comando == "A") y direccion != 1 entonces
+            direccion = 3
+        fin_si
+
+        # Guardar posicion previa de cabeza
+        entero prev_hx = hx
+        entero prev_hf = hf
+
+        si direccion == 0 entonces
+            hf -= 1
+        sino si direccion == 1 entonces
+            hx += 1
+        sino si direccion == 2 entonces
+            hf += 1
+        sino
+            hx -= 1
+        fin_si
+
+        # Wrap de bordes
+        si hx < 0 entonces
+            hx = ancho - 1
+        sino si hx >= ancho entonces
+            hx = 0
+        fin_si
+        si hf < 0 entonces
+            hf = alto - 1
+        sino si hf >= alto entonces
+            hf = 0
+        fin_si
+
+        # Colision contra cualquier segmento activo
+        si (largo >= 1 y hx == s1x y hf == s1f) o
+           (largo >= 2 y hx == s2x y hf == s2f) o
+           (largo >= 3 y hx == s3x y hf == s3f) o
+           (largo >= 4 y hx == s4x y hf == s4f) o
+           (largo >= 5 y hx == s5x y hf == s5f) o
+           (largo >= 6 y hx == s6x y hf == s6f) o
+           (largo >= 7 y hx == s7x y hf == s7f) o
+           (largo >= 8 y hx == s8x y hf == s8f) o
+           (largo >= 9 y hx == s9x y hf == s9f) o
+           (largo >= 10 y hx == s10x y hf == s10f) o
+           (largo >= 11 y hx == s11x y hf == s11f) o
+           (largo >= 12 y hx == s12x y hf == s12f) entonces
+            vivo = 0
+        sino
+            # Shift de segmentos desde el final hacia adelante
+            s12x = s11x
+            s12f = s11f
+            s11x = s10x
+            s11f = s10f
+            s10x = s9x
+            s10f = s9f
+            s9x = s8x
+            s9f = s8f
+            s8x = s7x
+            s8f = s7f
+            s7x = s6x
+            s7f = s6f
+            s6x = s5x
+            s6f = s5f
+            s5x = s4x
+            s5f = s4f
+            s4x = s3x
+            s4f = s3f
+            s3x = s2x
+            s3f = s2f
+            s2x = s1x
+            s2f = s1f
+            s1x  = prev_hx
+            s1f  = prev_hf
+
+            # Comer: suma puntos, crece y reubica comida
+            si hx == comida_x y hf == comida_f entonces
+                puntaje += 10
+                si largo < largo_max entonces
+                    largo += 1
+                fin_si
+                comida_x = (comida_x * 7 + 3 + turno + largo) % ancho
+                comida_f = (comida_f * 5 + 1 + turno + largo) % alto
+                si (comida_x == hx y comida_f == hf) o
+                   (largo >= 1 y comida_x == s1x y comida_f == s1f) o
+                   (largo >= 2 y comida_x == s2x y comida_f == s2f) o
+                   (largo >= 3 y comida_x == s3x y comida_f == s3f) o
+                   (largo >= 4 y comida_x == s4x y comida_f == s4f) o
+                   (largo >= 5 y comida_x == s5x y comida_f == s5f) entonces
+                    comida_x = (comida_x + 1) % ancho
+                fin_si
+            fin_si
+        fin_si
+
+        turno += 1
+    fin_mientras
+
+    imprimir ""
+    si vivo == 0 entonces
+        imprimir "GAME OVER: colision con el cuerpo"
+    sino
+        imprimir "FIN: turnos maximos alcanzados"
+    fin_si
+    imprimir "Puntaje final: ${puntaje}"
+    imprimir "Largo final: ${largo}"
+fin_principal

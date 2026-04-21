@@ -1,0 +1,26 @@
+# S (02): muchas creaciones con `mem_lista_liberar` por iteración — el pool JMN (10k slots) debe reciclarse;
+#         sin liberar, acercarse a 10k listas distintas agotaría ranuras (comportamiento documentado).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 500 — tamano(acum) (i % 12 == 0 para i en 0..5999 → 500 inserciones)
+#   2) línea vacía
+#   3) 5988 — obtener(acum, 499): índice 499 es el último elemento (i = 12*499 = 5988)
+#   4) línea vacía
+
+principal
+    lista acum = crear_lista()
+    entero i = 0
+    mientras i < 6000 hacer
+        lista tmp = crear_lista()
+        mem_lista_agregar(tmp, i)
+        mem_lista_liberar(tmp)
+        si i % 12 == 0 entonces
+            mem_lista_agregar(acum, i)
+        fin_si
+        i += 1
+    fin_mientras
+    imprimir mem_lista_tamano(acum)
+    imprimir ""
+    imprimir mem_lista_obtener(acum, 499)
+    imprimir ""
+fin_principal

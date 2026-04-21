@@ -1,0 +1,10 @@
+# Ejemplo basico: Hola Mundo en Jasboot
+# Este es el programa tradicional para probar la instalacion
+
+principal
+    imprimir "¡Hola Mundo desde Jasboot!"
+    imprimir "=== Sistema Verificado ==="
+    imprimir "Compilador: Funcionando"
+    imprimir "Maquina Virtual: Funcionando"
+    imprimir "Memoria Neuronal: Lista"
+fin_principal

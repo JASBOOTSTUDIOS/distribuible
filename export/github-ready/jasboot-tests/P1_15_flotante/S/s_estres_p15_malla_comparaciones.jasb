@@ -1,0 +1,20 @@
+# Estres: 50 x 30 celdas; en cada una fa < fb siempre (flotante), acumula +1.0 por acierto. (evitar nombre `a`: reservado)
+# espera: 1500.0000  (50 * 30)
+
+principal
+    flotante hits = 0.0
+    entero i = 0
+    mientras i < 50 hacer
+        entero j = 0
+        mientras j < 30 hacer
+            flotante fa = i * 0.1 + j * 0.02
+            flotante fb = fa + 1.0
+            si fa < fb entonces
+                hits = hits + 1.0
+            fin_si
+            j++
+        fin_mientras
+        i++
+    fin_mientras
+    imprimir_flotante(hits)
+fin_principal

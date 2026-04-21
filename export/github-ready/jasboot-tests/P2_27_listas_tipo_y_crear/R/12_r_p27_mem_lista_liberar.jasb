@@ -1,0 +1,23 @@
+# R (12): `mem_lista_liberar` / `lista_liberar` libera el slot JMN (Fase D); el handle en variable queda obsoleto.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 0 — tamano(L) tras liberar (id ya no existe en JMN)
+#   2) línea vacía
+#   3) 1 — nueva lista L2
+#   4) línea vacía
+#   5) 42 — elemento en L2
+#   6) línea vacía
+
+principal
+    lista L = crear_lista()
+    mem_lista_agregar(L, 5)
+    mem_lista_liberar(L)
+    imprimir mem_lista_tamano(L)
+    imprimir ""
+    lista L2 = crear_lista()
+    mem_lista_agregar(L2, 42)
+    imprimir mem_lista_tamano(L2)
+    imprimir ""
+    imprimir mem_lista_obtener(L2, 0)
+    imprimir ""
+fin_principal

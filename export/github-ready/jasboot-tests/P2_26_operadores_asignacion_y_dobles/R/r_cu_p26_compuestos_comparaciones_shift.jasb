@@ -1,0 +1,34 @@
+# R: += -= *= /=; == != <= >=; << >> en expresiones.
+# Esperado (jb): 15, 3, eq, ne, le, ge, 16, 16 (linea vacia tras cada imprimir de numero o texto).
+
+principal
+    entero acum = 10
+    acum += 5
+    imprimir acum
+    imprimir ""
+    acum -= 12
+    imprimir acum
+    imprimir ""
+    acum *= 3
+    acum /= 3
+    si acum == 3 entonces
+        imprimir "eq"
+    fin_si
+    imprimir ""
+    si acum != 0 entonces
+        imprimir "ne"
+    fin_si
+    imprimir ""
+    si 2 <= 3 entonces
+        imprimir "le"
+    fin_si
+    imprimir ""
+    si 7 >= 7 entonces
+        imprimir "ge"
+    fin_si
+    imprimir ""
+    imprimir 1 << 4
+    imprimir ""
+    imprimir 128 >> 3
+    imprimir ""
+fin_principal

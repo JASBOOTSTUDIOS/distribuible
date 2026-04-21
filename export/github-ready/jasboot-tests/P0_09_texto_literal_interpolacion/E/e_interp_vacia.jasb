@@ -1,0 +1,3 @@
+principal
+    imprimir "${}"
+fin_principal

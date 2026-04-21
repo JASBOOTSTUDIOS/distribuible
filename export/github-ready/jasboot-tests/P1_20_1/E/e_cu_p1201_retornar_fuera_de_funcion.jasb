@@ -1,0 +1,5 @@
+# E: `retornar` solo tiene sentido dentro del cuerpo de una funcion; no en `principal`.
+
+principal
+    retornar 1
+fin_principal

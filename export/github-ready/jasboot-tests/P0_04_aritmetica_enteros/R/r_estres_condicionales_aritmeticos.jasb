@@ -1,0 +1,30 @@
+principal
+    # Prueba de estres combinando anidacion condicional con expresiones aritmeticas
+    entero num_a = 10
+    entero num_b = 20
+    entero num_c = 30
+    entero num_d = 40
+    entero resultado = 0
+    
+    # 10 + 20*2 = 50
+    si num_a + num_b * 2 == 50 entonces
+        # Evaluar precedencia con parentesis complejos
+        # (10 + 20) * (30 - 10) / 2 = 30 * 20 / 2 = 600 / 2 = 300
+        resultado = (num_a + num_b) * (num_c - num_a) / 2
+    sino si num_c % num_a == 0 entonces
+        resultado = 1
+    sino
+        resultado = 0
+    fin_si
+    
+    # Evaluar palabras compuestas y mas condicionales
+    si resultado es mayor o igual a 300 entonces
+        si num_a es menor o igual a num_b entonces
+            # resultado = 300 + (40 % 3) * 10
+            # 40 % 3 = 1, 1 * 10 = 10 -> resultado = 310
+            resultado = resultado + (num_d % 3) * num_a
+        fin_si
+    fin_si
+    
+    imprimir resultado
+fin_principal

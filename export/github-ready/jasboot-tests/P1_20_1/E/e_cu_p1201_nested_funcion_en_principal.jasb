@@ -1,0 +1,7 @@
+# E: no se puede definir `funcion nombre(` dentro de `principal`; solo a nivel superior.
+
+principal
+    funcion interna(entero k) retorna entero
+        retornar k
+    fin_funcion
+fin_principal

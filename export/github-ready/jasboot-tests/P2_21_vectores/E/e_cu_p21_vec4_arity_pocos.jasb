@@ -1,0 +1,6 @@
+# E: vec4 con 3 argumentos (constructor exige 4).
+
+principal
+    vec4 q
+    q = vec4(1.0, 2.0, 3.0)
+fin_principal

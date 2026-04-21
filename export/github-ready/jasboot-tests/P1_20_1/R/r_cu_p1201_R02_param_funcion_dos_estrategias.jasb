@@ -1,0 +1,19 @@
+# R: misma funcion `ajustar(funcion op, entero n)` con dos funciones globales distintas.
+#     Salida esperada: 11 y 10 (dos lineas)
+
+funcion sumar_uno(entero x) retorna entero
+    retornar x + 1
+fin_funcion
+
+funcion restar_uno(entero x) retorna entero
+    retornar x - 1
+fin_funcion
+
+funcion ajustar(funcion op, entero n) retorna entero
+    retornar op(n)
+fin_funcion
+
+principal
+    imprimir ajustar(sumar_uno, 10)
+    imprimir ajustar(restar_uno, 11)
+fin_principal

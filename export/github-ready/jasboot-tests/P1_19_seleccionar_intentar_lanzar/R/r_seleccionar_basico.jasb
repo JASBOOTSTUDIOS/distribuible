@@ -1,0 +1,12 @@
+principal
+    entero x = 3
+    seleccionar x hacer
+        caso 1
+            imprimir "uno"
+        caso 2, 3
+            imprimir "dos_o_tres"
+        defecto
+            imprimir "otro"
+    fin_seleccionar
+fin_principal
+

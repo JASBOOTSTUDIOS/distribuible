@@ -1,0 +1,7 @@
+// e4 — Parametro con nombre reservado (y = conjuncion)
+// Esperado: error de nombre; "y" no puede ser identificador de parametro en la lista de la flecha.
+// Mide: is_ident_token_for_lambda / validacion de palabras reservadas en parametros de ((...)=>...).
+principal
+    entero tmp = ((y) => y + 1)(1)
+    imprimir tmp
+fin_principal

@@ -1,0 +1,25 @@
+principal
+    entero i = 0
+    entero checksum = 0
+    mientras i < 5000 hacer
+        intentar
+            seleccionar i % 7 hacer
+                caso 0
+                    checksum += 3
+                caso 1, 2
+                    checksum += 5
+                caso 3
+                    lanzar "salto"
+                defecto
+                    checksum += 1
+            fin_seleccionar
+        atrapar err
+            checksum += 11
+        final
+            checksum += 2
+        fin_intentar
+        i += 1
+    fin_mientras
+    imprimir checksum
+fin_principal
+

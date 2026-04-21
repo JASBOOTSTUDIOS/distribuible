@@ -1,0 +1,27 @@
+# S (01): miles de lecturas con buf[i] y buf.tamano alternando (PC + JMN).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 399400 — acumulado acc (por cada j: buf[j] + buf.tamano; tamano fijo 400)
+#   2) línea vacía
+#   3) 1197 — buf[399] (= 399 * 3)
+#   4) línea vacía
+
+principal
+    lista buf = crear_lista()
+    entero i = 0
+    mientras i < 400 hacer
+        mem_lista_agregar(buf, i * 3)
+        i += 1
+    fin_mientras
+    entero acc = 0
+    entero j = 0
+    mientras j < 400 hacer
+        acc = acc + buf[j]
+        acc = acc + buf.tamano
+        j += 1
+    fin_mientras
+    imprimir acc
+    imprimir ""
+    imprimir buf[399]
+    imprimir ""
+fin_principal

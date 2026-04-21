@@ -1,0 +1,13 @@
+# Produccion: reasignacion masiva, += y shadowing local en bucles internos.
+principal
+    entero acc = 0
+    entero capa = 0
+    mientras capa < 400 hacer
+        entero local = capa % 200
+        local += 7
+        local -= 3
+        acc = acc + local
+        capa += 1
+    fin_mientras
+    imprimir acc
+fin_principal

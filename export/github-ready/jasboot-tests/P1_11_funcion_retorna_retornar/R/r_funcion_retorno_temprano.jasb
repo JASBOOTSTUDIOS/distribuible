@@ -1,0 +1,16 @@
+funcion clasificar(entero n) retorna texto
+    si n < 0 entonces
+        retornar "negativo"
+    fin_si
+    si n == 0 entonces
+        retornar "cero"
+    fin_si
+    retornar "positivo"
+fin_funcion
+
+principal
+    imprimir clasificar(-3)
+    imprimir clasificar(0)
+    imprimir clasificar(9)
+fin_principal
+

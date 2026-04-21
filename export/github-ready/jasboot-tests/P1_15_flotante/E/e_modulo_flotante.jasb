@@ -1,0 +1,17 @@
+# Debe FALLAR al compilar: el operador % no esta definido para flotantes.
+# Mensaje esperado (o similar): Error: operador '%' no aplicable a flotante
+#
+# Si en cambio compila y al ejecutar imprime 1.0000, el compilador aplico modulo ENTERO
+# (1 % 2 == 1) y guardo el resultado como flotante: eso NO es el comportamiento deseado.
+# Solucion: usar jas-compiler-c\bin\jbc.exe o desde la raiz del boot: bin\jbc.cmd / bin\jbc.bat
+# (no confiar en bin\jbc.exe si sigue siendo un exe viejo bloqueado al enlazar).
+# Build: sdk-dependiente/jas-compiler-c/build.bat
+# - Compilador actual: sdk-dependiente/jas-compiler-c/bin/jbc.exe
+# - bin/jbc.exe en la raiz es un launcher que reenvia al anterior (tras build).
+# Si bin/jbc.exe no se pudo actualizar (archivo en uso), build.bat genera bin/jbc_next.exe:
+# cerrar procesos que usen jbc.exe, renombrar jbc_next.exe -> jbc.exe, o invocar jbc_next.exe.
+
+principal
+    flotante x = 1.0 % 2.0
+    imprimir_flotante(x)
+fin_principal

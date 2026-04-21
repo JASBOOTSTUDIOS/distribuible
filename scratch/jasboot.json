@@ -1,0 +1,10 @@
+{
+  "nombre": "test-jpm",
+  "version": "0.1.0",
+  "descripcion": "Paquete Jasboot",
+  "autor": "Autor Desconocido",
+  "licencia": "MIT",
+  "principal": "src/main.jasb",
+  "jasboot": "^0.1.0",
+  "tipo": "biblioteca"
+}

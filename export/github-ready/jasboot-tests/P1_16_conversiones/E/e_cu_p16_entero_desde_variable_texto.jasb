@@ -1,0 +1,8 @@
+// E: texto -> entero sin convertir_* (regla P1_16).
+// Esperado: No hay conversion implicita de tipo 'texto' a 'entero'.
+
+principal
+    texto t = "100"
+    entero n = t
+    imprimir(n)
+fin_principal

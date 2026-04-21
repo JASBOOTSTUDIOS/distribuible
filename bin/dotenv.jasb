@@ -1,0 +1,54 @@
+
+clase DotEnv
+    mapa _vars
+    texto _file = ".env"
+
+    funcion load() retorna bool
+        este._vars = mapa_crear()
+        si existe_archivo(este._file) entonces
+            entero fh = abrir_archivo(este._file, "r")
+            mientras fin_archivo(fh) == 0 hacer
+                texto line = leer_linea_archivo(fh)
+                si longitud_texto(line) > 2 entonces
+                    entero idx = -1
+                    entero i = 0
+                    mientras i < longitud_texto(line) hacer
+                        si extraer_subtexto(line, i, 1) == "=" entonces
+                            idx = i
+                            i = longitud_texto(line)
+                        sino
+                            i = i + 1
+                        fin_si
+                    fin_mientras
+                    
+                    si idx > 0 entonces
+                        texto k = extraer_subtexto(line, 0, idx)
+                        texto v = extraer_subtexto(line, idx + 1, longitud_texto(line) - idx - 1)
+                        # Limpiar v
+                        booleano clean = verdadero
+                        mientras longitud_texto(v) > 0 y clean == verdadero hacer
+                            texto c = extraer_subtexto(v, longitud_texto(v)-1, 1)
+                            si c == "\n" o c == "\r" o c == " " o c == "\t" entonces
+                                v = extraer_subtexto(v, 0, longitud_texto(v) - 1)
+                            sino
+                                clean = falso
+                            fin_si
+                        fin_mientras
+                        mapa_poner(este._vars, k, v)
+                    fin_si
+                fin_si
+            fin_mientras
+            cerrar_archivo(fh)
+            retornar verdadero
+        fin_si
+        retornar falso
+    fin_funcion
+
+    funcion get(texto k) retorna texto
+        si este._vars == nulo entonces este.load() fin_si
+        si mapa_contiene(este._vars, k) entonces retornar mapa_obtener(este._vars, k) fin_si
+        retornar ""
+    fin_funcion
+fin_clase
+
+enviar { DotEnv }

@@ -1,0 +1,6 @@
+# E: bit_shl con tres argumentos.
+# Esperado: jbc codigo != 0.
+
+principal
+    imprimir bit_shl(1, 2, 3)
+fin_principal

@@ -1,0 +1,13 @@
+# Estres: muchas sumas en flotante (5000 iteraciones, +1.0 por vuelta).
+# espera: 5000.0000
+# Si el resultado se desvia, revisar redondeo float32 o optimizaciones de la VM.
+
+principal
+    flotante s = 0.0
+    entero i = 0
+    mientras i < 5000 hacer
+        s = s + 1.0
+        i = i + 1
+    fin_mientras
+    imprimir_flotante(s)
+fin_principal

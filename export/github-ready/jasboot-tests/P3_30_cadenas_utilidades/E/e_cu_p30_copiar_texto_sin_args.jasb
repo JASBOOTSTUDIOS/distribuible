@@ -1,0 +1,6 @@
+# E: copiar_texto sin argumentos — jbc debe fallar.
+
+principal
+    texto t = copiar_texto()
+    imprimir t
+fin_principal

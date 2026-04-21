@@ -1,0 +1,7 @@
+﻿usar todas de "nest/01/mod.jasb"
+principal
+    entero cadena = llamar deep_svc_01(5)
+    entero u = DEEP_L01_K
+    entero w = DEEP_L20_K
+    imprimir "  \n"
+fin_principal

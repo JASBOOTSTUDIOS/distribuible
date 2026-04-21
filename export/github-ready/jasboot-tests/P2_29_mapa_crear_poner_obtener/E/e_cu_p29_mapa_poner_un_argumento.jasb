@@ -1,0 +1,6 @@
+# E: mapa_poner solo mapa — jbc debe fallar.
+
+principal
+    mapa m = mapa_crear()
+    mapa_poner(m)
+fin_principal

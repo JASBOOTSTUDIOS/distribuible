@@ -1,0 +1,13 @@
+# R: condiciones compuestas `y` / `o` con texto leido.
+# Entrada: 1x2\n
+# Salida: 5 (longitud 3 y contiene x) y linea vacia.
+
+principal
+    ingresar_texto t
+    si longitud(t) == 3 y contiene_texto(t, "x") == 1 entonces
+        imprimir 5
+    sino
+        imprimir 0
+    fin_si
+    imprimir ""
+fin_principal

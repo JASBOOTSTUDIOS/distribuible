@@ -1,0 +1,10 @@
+# Produccion: nucleo aritmetico con % / * + - en serie larga (enteros).
+principal
+    entero acc = 0
+    entero idx = 0
+    mientras idx < 60000 hacer
+        acc = acc + ((idx * 13 + idx / 17 - (idx % 19)) % 1009)
+        idx += 1
+    fin_mientras
+    imprimir acc
+fin_principal

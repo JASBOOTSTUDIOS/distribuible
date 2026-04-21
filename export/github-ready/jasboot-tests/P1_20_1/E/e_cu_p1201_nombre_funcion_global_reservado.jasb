@@ -1,0 +1,8 @@
+# E: el nombre de una funcion global no puede ser una palabra reservada (`mientras`).
+
+funcion mientras(entero x) retorna entero
+    retornar x
+fin_funcion
+
+principal
+fin_principal

@@ -1,0 +1,5 @@
+principal
+    mientras hacer
+        imprimir "nada"
+    fin_mientras
+fin_principal

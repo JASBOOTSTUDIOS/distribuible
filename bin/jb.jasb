@@ -1,0 +1,73 @@
+
+# =============================================================================
+# JB - HERRAMIENTA UNIFICADA DE JASBOOT (Universal)
+# =============================================================================
+# Propósito: Runner, Gestor de Paquetes y CLI principal.
+# =============================================================================
+
+usar { 
+    ejecutar_iniciar, 
+    ejecutar_instalar, 
+    ejecutar_listar, 
+    instalar_todas_las_dependencias 
+} de "../apps/neurixis_IA/gestor_paquetes.jasb"
+
+principal
+    entero num_args = sys_argc()
+    
+    # El primer argumento real (sys_argv(3)) es ahora el comando/archivo
+    # sys_argv(0) = vm, sys_argv(1) = script, sys_argv(2) = root
+    si num_args < 4 entonces
+        imprimir "Jasboot CLI (Universal)"
+        imprimir "Uso: jb <comando|archivo.jasb> [argumentos]"
+        imprimir "\nGestión de Proyectos:"
+        imprimir "  iniciar          - Inicializa jasboot.config.json"
+        imprimir "  instalar [pkg]   - Instala dependencias"
+        imprimir "  listar           - Lista dependencias"
+        imprimir "\nEjecución:"
+        imprimir "  <archivo.jasb>   - Compila y ejecuta el programa"
+    fin_si
+    
+    texto sdk_root = sys_argv(2)
+    texto arg1 = sys_argv(3)
+    
+    # 1. Comandos de Gestión
+    si arg1 == "iniciar" entonces
+        ejecutar_iniciar()
+    sino si arg1 == "instalar" o arg1 == "i" entonces
+        si num_args < 5 entonces
+            instalar_todas_las_dependencias()
+        sino
+            ejecutar_instalar(sys_argv(4))
+        fin_si
+    sino si arg1 == "listar" entonces
+        ejecutar_listar()
+    sino
+        # 2. Ejecución de archivos .jasb
+        texto jbc_bin = sdk_root + "\\sdk-dependiente\\jas-compiler-c\\bin\\jbc.exe"
+        texto jb_vm = sdk_root + "\\sdk-dependiente\\jasboot-ir\\bin\\jasboot-ir-vm.exe"
+        
+        # Compilar
+        texto source = arg1
+        texto output = "build\\app.jbo"
+        
+        sistema_ejecutar("mkdir build >nul 2>nul")
+        
+        imprimir "\n[JB] Compilando " + source + "..."
+        # Usar comillas para rutas con espacios si fuera necesario
+        texto cmd_comp = "\"" + jbc_bin + "\" " + source + " -o " + output
+        sistema_ejecutar(cmd_comp)
+        
+        # Ejecutar
+        imprimir "[JB] Ejecutando...\n"
+        texto cmd_run = "\"" + jb_vm + "\" " + output
+        # Pasar el resto de argumentos (empezando desde sys_argv(4))
+        entero i = 4
+        mientras i < num_args hacer
+            cmd_run = cmd_run + " " + sys_argv(i)
+            i = i + 1
+        fin_mientras
+        
+        sistema_ejecutar(cmd_run)
+    fin_si
+fin_principal

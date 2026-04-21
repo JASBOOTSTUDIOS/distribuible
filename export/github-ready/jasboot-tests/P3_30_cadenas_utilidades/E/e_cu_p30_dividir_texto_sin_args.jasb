@@ -1,0 +1,6 @@
+# E: dividir_texto sin argumentos — jbc debe fallar.
+
+principal
+    lista L = dividir_texto()
+    imprimir mem_lista_tamano(L)
+fin_principal

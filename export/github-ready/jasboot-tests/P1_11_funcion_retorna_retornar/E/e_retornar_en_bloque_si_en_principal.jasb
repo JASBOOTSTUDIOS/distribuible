@@ -1,0 +1,7 @@
+principal
+    si 1 entonces
+        retornar 9
+    fin_si
+    imprimir 0
+fin_principal
+

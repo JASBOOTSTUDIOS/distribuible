@@ -1,0 +1,6 @@
+# E: dos declaraciones `funcion f` en el mismo bloque de `principal` (variable ya declarada en el alcance).
+
+principal
+    funcion f
+    funcion f
+fin_principal

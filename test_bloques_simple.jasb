@@ -1,0 +1,31 @@
+# Test simplificado para identificar problema de anidación
+
+principal
+    entero n = 5
+
+    # Estructura mínima que replica el problema
+    entero k = 0
+    mientras k < n hacer
+        entero v1 = 1
+        entero v2 = 2
+        si v2 < v1 entonces
+            entero m = 0
+            mientras m < n hacer
+                si m == 0 entonces
+                    imprimir("Caso 0")
+                sino
+                    si m == 1 entonces
+                        imprimir("Caso 1")
+                    sino
+                        imprimir("Caso otro")
+                    fin_si
+                fin_si
+                m = m + 1
+            fin_mientras
+            imprimir("Despues del while")
+        fin_si
+        k = k + 1
+    fin_mientras
+
+    imprimir("Fin")
+fin_principal

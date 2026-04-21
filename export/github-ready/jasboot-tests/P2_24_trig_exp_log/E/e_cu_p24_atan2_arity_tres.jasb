@@ -1,0 +1,6 @@
+# E: atan2 con tres argumentos (aridad incorrecta).
+# Esperado: jbc codigo != 0.
+
+principal
+    imprimir atan2(1.0, 0.0, -1.0)
+fin_principal

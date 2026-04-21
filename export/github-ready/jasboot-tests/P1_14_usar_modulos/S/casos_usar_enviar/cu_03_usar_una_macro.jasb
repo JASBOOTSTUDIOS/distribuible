@@ -1,0 +1,8 @@
+// Caso: `usar { exp_mac } de` — macro exportada (`enviar macro ... = (n) =>`).
+// Esperado: 8  (exp_mac(7))
+
+usar { exp_mac } de "m_export_mix.jasb"
+
+principal
+    imprimir "${exp_mac(7)}\n"
+fin_principal

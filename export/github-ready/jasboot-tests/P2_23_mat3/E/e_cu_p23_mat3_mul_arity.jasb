@@ -1,0 +1,14 @@
+# E: mat3_mul con 2 argumentos (falta derecha).
+# Esperado: jbc termina con codigo != 0 (error de aridad).
+
+principal
+    mat3 num_a
+    mat3 num_b
+    num_a.e0 = 1.0
+    num_a.e4 = 1.0
+    num_a.e8 = 1.0
+    num_b.e0 = 1.0
+    num_b.e4 = 1.0
+    num_b.e8 = 1.0
+    mat3_mul(num_a, num_b)
+fin_principal

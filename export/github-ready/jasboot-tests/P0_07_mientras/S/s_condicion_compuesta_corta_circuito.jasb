@@ -1,0 +1,14 @@
+principal
+    entero num_i = 0
+    entero num_j = 10
+    
+    # Condicion con cortocircuito:
+    # `num_j > 0` solo se evalua si `num_i < 100` es verdadero.
+    # `num_i % 2 == 0` solo se evalua si `num_j > 0` es falso.
+    mientras (num_i < 100) y (num_j > 0 o num_i % 2 == 0) hacer
+        num_i = num_i + 1
+        num_j = num_j - 1
+    fin_mientras
+    
+    imprimir num_i
+fin_principal

@@ -1,0 +1,52 @@
+# R: mat4_identidad, mat4_mul_vec4, mat4_transpuesta, mat4_inversa, mat4_mul.
+#     I*v = v; T(I)*v = v; I*I^-1*v = v.
+# Esperado (jb): tres bloques iguales de cuatro componentes; entre cada numero y el siguiente, linea vacia (imprimir "").
+#   Bloque 1 (o1): 3.0000  4.0000  5.0000  1.0000
+#   Bloque 2 (o2): 3.0000  4.0000  5.0000  1.0000
+#   Bloque 3 (o3): 3.0000  4.0000  5.0000  1.0000
+
+principal
+    mat4 mi
+    mat4 tr
+    mat4 inv
+    mat4 prod
+    vec4 v
+    vec4 o1
+    vec4 o2
+    vec4 o3
+
+    mat4_identidad(mi)
+    v = vec4(3.0, 4.0, 5.0, 1.0)
+    mat4_mul_vec4(o1, mi, v)
+    imprimir o1.x
+    imprimir ""
+    imprimir o1.y
+    imprimir ""
+    imprimir o1.z
+    imprimir ""
+    imprimir o1.w
+    imprimir ""
+
+    mat4_transpuesta(tr, mi)
+    mat4_mul_vec4(o2, tr, v)
+    imprimir o2.x
+    imprimir ""
+    imprimir o2.y
+    imprimir ""
+    imprimir o2.z
+    imprimir ""
+    imprimir o2.w
+    imprimir ""
+
+    mat4_inversa(inv, mi)
+    mat4_mul(prod, mi, inv)
+    mat4_mul_vec4(o3, prod, v)
+    imprimir o3.x
+    imprimir ""
+    imprimir o3.y
+    imprimir ""
+    imprimir o3.z
+    imprimir ""
+    imprimir o3.w
+    imprimir ""
+fin_principal

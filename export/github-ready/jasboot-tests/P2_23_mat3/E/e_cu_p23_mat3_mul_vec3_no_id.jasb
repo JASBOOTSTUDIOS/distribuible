@@ -1,0 +1,11 @@
+# E: mat3_mul_vec3 exige identificador en el vector; no vec3(...).
+# Esperado: jbc termina con codigo != 0 (error semantico: no vec3(...) como 3er argumento).
+
+principal
+    mat3 m
+    vec3 d
+    m.e0 = 1.0
+    m.e4 = 1.0
+    m.e8 = 1.0
+    mat3_mul_vec3(d, m, vec3(1.0, 0.0, 0.0))
+fin_principal

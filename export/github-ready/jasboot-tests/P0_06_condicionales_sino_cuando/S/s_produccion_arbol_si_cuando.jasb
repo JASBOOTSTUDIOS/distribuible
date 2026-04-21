@@ -1,0 +1,25 @@
+# Produccion: si / sino si / cascada + bloque cuando independiente por vuelta (reglas + banderas).
+principal
+    entero acc = 0
+    entero idx = 0
+    mientras idx < 2500 hacer
+        si idx % 11 == 0 entonces
+            acc = acc + 5
+        sino si idx % 13 == 0 entonces
+            acc = acc + 4
+        sino si idx % 17 == 0 entonces
+            acc = acc + 7
+        sino si idx % 19 == 0 entonces
+            acc = acc + 6
+        sino
+            acc = acc + idx % 3 + 1
+        fin_si
+        cuando idx % 23 == 0 entonces
+            acc = acc + 9
+        sino
+            acc = acc + 0
+        fin_cuando
+        idx += 1
+    fin_mientras
+    imprimir acc
+fin_principal

@@ -1,0 +1,8 @@
+# E (01): mem_lista_obtener sin argumentos -> compilacion falla.
+#
+# Resultado esperado: `jbc` codigo distinto de 0.
+#   Mensaje: aridad de mem_lista_obtener (2 argumentos), no "no existe la funcion".
+
+principal
+    imprimir mem_lista_obtener()
+fin_principal

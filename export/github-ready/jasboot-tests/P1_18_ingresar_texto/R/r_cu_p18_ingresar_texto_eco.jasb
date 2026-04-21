@@ -1,0 +1,7 @@
+# R: una linea desde stdin -> variable texto -> imprimir (incluye lineas solo numericas: se guardan como texto).
+# Ver README.md para tuberia con la VM.
+
+principal
+    ingresar_texto linea
+    imprimir linea
+fin_principal

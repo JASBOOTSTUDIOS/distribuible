@@ -1,0 +1,5 @@
+# Solo enlazado con `activar_modulo todas de` (variante activar_modulo vs usar).
+
+enviar funcion mod_eps(entero z) retorna entero
+    retornar z * 3 + 7
+fin_funcion

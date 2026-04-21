@@ -1,0 +1,40 @@
+# R: u32 grande sigue siendo > 0 y > 1 con comparacion unsigned.
+# Esperado (jb): 1, 1, 1 y lineas vacias entre cada imprimir.
+
+principal
+    u32 u32_a
+    u32 u32_b
+    u32 u32_c
+    entero cero
+    entero r1
+    entero r2
+    entero r3
+
+    u32_a = 0x80000000
+    u32_b = 0xFFFFFFFF
+    u32_c = 1
+    cero = 0
+
+    si u32_a > 0 entonces
+        r1 = 1
+    sino
+        r1 = 0
+    fin_si
+    si u32_b > u32_c entonces
+        r2 = 1
+    sino
+        r2 = 0
+    fin_si
+    si u32_a > cero entonces
+        r3 = 1
+    sino
+        r3 = 0
+    fin_si
+
+    imprimir r1
+    imprimir ""
+    imprimir r2
+    imprimir ""
+    imprimir r3
+    imprimir ""
+fin_principal

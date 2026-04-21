@@ -1,0 +1,11 @@
+// r_llamar_explicita — llamar como sentencia y en asignacion
+// Esperado: compila; imprime 16 (primera llamada descarta retorno; v = doble(8)).
+funcion doble(entero k) retorna entero
+    retornar k * 2
+fin_funcion
+
+principal
+    llamar doble(3)
+    entero v = llamar doble(8)
+    imprimir v
+fin_principal

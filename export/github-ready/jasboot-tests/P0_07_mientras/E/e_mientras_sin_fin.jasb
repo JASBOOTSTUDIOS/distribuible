@@ -1,0 +1,6 @@
+principal
+    entero i = 0
+    mientras i < 10 hacer
+        imprimir i
+        i = i + 1
+fin_principal

@@ -1,0 +1,19 @@
+principal
+    # Prueba de condicionales con 'cuando', 'sino' y 'fin_cuando'
+    entero edad = 18
+    
+    cuando edad >= 18 entonces
+        imprimir 100
+    sino
+        imprimir 200
+    fin_cuando
+    
+    # Variante donde 'cuando' es falso
+    cuando edad < 10 entonces
+        imprimir 300
+    sino
+        imprimir 400
+    fin_cuando
+    
+    # Encadenamiento con 'sino si' (solo si es soportado, creo que el parser requiere 'sino' y luego otro 'si' dentro, vamos a probar sintaxis natural primero)
+fin_principal

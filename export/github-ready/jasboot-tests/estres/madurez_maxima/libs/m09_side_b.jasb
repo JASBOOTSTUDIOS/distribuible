@@ -1,0 +1,2 @@
+# Modulo lateral B (para `activar_modulo todas de` en el main).
+enviar constante entero SIDE_B = 97231

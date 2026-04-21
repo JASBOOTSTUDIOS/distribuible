@@ -1,0 +1,14 @@
+# R: `seleccionar` con varios literales en un `caso` (coma).
+# Entrada: q\n
+# Salida: 5 y linea vacia.
+
+principal
+    ingresar_texto tecla
+    seleccionar tecla hacer
+        caso "q", "Q"
+            imprimir 5
+        defecto
+            imprimir 0
+    fin_seleccionar
+    imprimir ""
+fin_principal

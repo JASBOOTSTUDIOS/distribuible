@@ -1,0 +1,14 @@
+// Caso: `usar todas de` — importa todos los simbolos con `enviar` del modulo (no entran PRIV_C ni priv_fn).
+// exp_fn(1) + exp_mac(2) = (1+42) + (2+1) = 46
+// Esperado: 46
+
+usar todas de "m_export_mix.jasb"
+
+principal
+    imprimir_sin_salto "exp_fn(1) = ${exp_fn(1)} "
+    imprimir_sin_salto "exp_mac(2) = ${exp_mac(2)} "
+    imprimir_sin_salto "EXP_C = ${EXP_C} "
+    imprimir_sin_salto "EXP_C - EXP_C = ${EXP_C - EXP_C}  r = "
+    entero r = llamar exp_fn(1) + exp_mac(2) + EXP_C - EXP_C
+    imprimir "${r}\n"
+fin_principal

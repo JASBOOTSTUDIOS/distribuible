@@ -1,0 +1,19 @@
+principal
+    # Prueba de estres combinando bucle mientras, condicionales y aritmetica
+    # Sucesion de Collatz (3n + 1)
+    entero n = 15
+    entero pasos = 0
+    
+    mientras n es diferente de 1
+        entero residuo = n % 2
+        si residuo == 0 entonces
+            n = n / 2
+        sino
+            n = n * 3 + 1
+        fin_si
+        pasos = pasos + 1
+    fin_mientras
+    
+    # Para n=15, los pasos totales hasta llegar a 1 deberian ser 17
+    imprimir pasos
+fin_principal

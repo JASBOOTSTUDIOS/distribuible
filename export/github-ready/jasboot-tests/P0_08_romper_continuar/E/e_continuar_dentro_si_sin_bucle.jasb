@@ -1,0 +1,6 @@
+principal
+    entero num_x = 1
+    si num_x == 1 entonces
+        continuar
+    fin_si
+fin_principal

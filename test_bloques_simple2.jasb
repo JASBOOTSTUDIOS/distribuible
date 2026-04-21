@@ -1,0 +1,25 @@
+# Test sin si-sino anidado - verificar si ese es el problema
+
+principal
+    entero n = 5
+
+    # Estructura: mientras -> si -> mientras -> si (sin sino)
+    entero k = 0
+    mientras k < n hacer
+        entero v1 = 1
+        entero v2 = 2
+        si v2 < v1 entonces
+            entero m = 0
+            mientras m < n hacer
+                si m == 0 entonces
+                    imprimir("Caso 0")
+                fin_si
+                m = m + 1
+            fin_mientras
+            imprimir("Despues del while")
+        fin_si
+        k = k + 1
+    fin_mientras
+
+    imprimir("Fin")
+fin_principal

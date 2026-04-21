@@ -1,0 +1,12 @@
+# Promocion entero -> flotante en expresiones mixtas.
+# espera linea 1: 5.5000  (u = 2 + 3.5)
+# espera linea 2: 6.0000  (v = 10.0 - 4)
+
+principal
+    flotante u = 2 + 3.5
+    flotante v = 10.0 - 4
+    imprimir_flotante(u)
+    imprimir "\n${u}"
+    imprimir_flotante(v)
+    imprimir "\n${v}"
+fin_principal

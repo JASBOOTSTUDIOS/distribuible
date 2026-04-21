@@ -1,0 +1,10 @@
+// E — Dependencia circular entre modulos.
+// Esperado: fallo de compilacion. Este archivo importa m_ciclo_a.jasb, que importa m_ciclo_b.jasb,
+// que a su vez vuelve a importar m_ciclo_a.jasb; jbc debe detectar el ciclo y no compilar.
+// La salida del programa no importa: nunca se llega a ejecutar si el compilador cumple.
+
+usar todas de "m_ciclo_a.jasb"
+
+principal
+    imprimir 0
+fin_principal

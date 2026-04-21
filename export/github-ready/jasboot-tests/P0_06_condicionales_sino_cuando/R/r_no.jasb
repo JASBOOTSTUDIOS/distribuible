@@ -1,0 +1,16 @@
+principal
+    entero num_a = 1
+    entero num_b = 0
+
+    si no num_a entonces
+        imprimir "mal"
+    sino
+        imprimir "bien a"
+    fin_si
+
+    si no num_b entonces
+        imprimir "bien b"
+    sino
+        imprimir "mal"
+    fin_si
+fin_principal

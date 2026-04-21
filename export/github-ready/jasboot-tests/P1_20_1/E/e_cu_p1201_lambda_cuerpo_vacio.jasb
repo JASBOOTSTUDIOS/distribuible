@@ -1,0 +1,5 @@
+# E: despues de `=>` debe haber expresion o bloque `{ ... }` antes del `)` que cierra la lambda.
+
+principal
+    entero r = ((entero k) => )(1)
+fin_principal

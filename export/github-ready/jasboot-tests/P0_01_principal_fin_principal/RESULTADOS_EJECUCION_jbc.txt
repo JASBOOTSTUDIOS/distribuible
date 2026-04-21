@@ -1,0 +1,25 @@
+P0 #1 — ejecución jbc -e (compilador estable CLI jbc + VM)
+Fecha: 2026-03-25
+
+Comando: bin\jbc.exe <archivo.jasb> -e
+
+--- R/r_baseline_minimo.jasb ---
+exit: 0
+salida: (ninguna)
+
+--- E/e_sin_principal_solo_sentencia.jasb ---
+exit: 0
+salida estándar:
+  sin bloque principal
+
+--- E/e_doble_bloque_principal.jasb ---
+exit: 0
+salida estándar:
+  A
+  B
+
+--- R/r_bucle_imprimir.jasb (50_000 iteraciones) ---
+exit: 0
+salida estándar:
+  50000
+Medición local aproximada (PowerShell Measure-Command, una corrida): ~112 ms para todo el pipeline jbc -e.

@@ -1,0 +1,15 @@
+principal
+    entero num_k = 0
+    entero saltos = 0
+    hacer
+        num_k = num_k + 1
+        si num_k % 3 == 0 entonces
+            continuar
+        fin_si
+        saltos = saltos + num_k
+        si num_k >= 7 entonces
+            romper
+        fin_si
+    mientras num_k < 100 fin_hacer
+    imprimir saltos
+fin_principal

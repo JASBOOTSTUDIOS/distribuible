@@ -1,0 +1,45 @@
+principal
+    # ========================================================================
+    # PRUEBA DE ESTRES GLOBAL (2) - PROFUNDIDAD DE AST Y REGISTROS
+    # Esta prueba evalúa el nivel de anidamiento que puede soportar el
+    # compilador, así como el re-uso eficiente de registros virtuales y
+    # variables creadas / destruidas múltiples veces en el mismo scope.
+    # ========================================================================
+
+    entero var_a = 1
+    entero total = 0
+    mientras var_a < 15 hacer
+        entero var_b = 1
+        mientras var_b < 15 hacer
+            entero var_c = 1
+            mientras var_c < 15 hacer
+                entero var_d = 1
+                mientras var_d < 15 hacer
+                    # Condicional múltiple evaluada en caliente
+                    si var_a % 2 == 0 y var_b % 2 != 0 entonces
+                        cuando var_c > 5 entonces
+                            si var_d <= 3 entonces
+                                # Aritmética pesada para estresar evaluación (+ - * /)
+                                total = total + (((var_a * var_b) - (var_c / var_d)) + 1)
+                            fin_si
+                        sino cuando var_c <= 5 entonces
+                            # 'no' anidado y operador 'o'
+                            si var_d >= 8 o no (var_d == 9) entonces
+                                total = total + 1
+                            fin_si
+                        fin_cuando
+                    fin_si
+                    var_d = var_d + 1
+                fin_mientras
+                var_c = var_c + 1
+            fin_mientras
+            var_b = var_b + 1
+        fin_mientras
+        var_a = var_a + 1
+    fin_mientras
+    
+    imprimir "=== RESULTADOS DE ESTRES (2) ==="
+    imprimir "Total acumulado de matriz 4D:"
+    imprimir total
+
+fin_principal

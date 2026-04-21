@@ -1,0 +1,11 @@
+principal
+    entero num_b = 2
+    hacer
+        entero num_a = 2
+        hacer
+            imprimir "inner hacer"
+            num_a = num_a - 1
+        mientras num_a > 0 fin_hacer
+        num_b = num_b - 1
+    mientras num_b es mayor que 0 fin_hacer
+fin_principal

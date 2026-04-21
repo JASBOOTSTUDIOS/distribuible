@@ -1,0 +1,6 @@
+// E: imprimir_id() sin argumento.
+// Esperado: error semantico: 'imprimir_id' requiere un argumento (...). Esta llamada no tiene argumentos.
+
+principal
+    imprimir_id()
+fin_principal

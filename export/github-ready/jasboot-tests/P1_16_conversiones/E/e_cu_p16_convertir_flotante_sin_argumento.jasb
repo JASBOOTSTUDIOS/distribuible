@@ -1,0 +1,7 @@
+// E: convertir_flotante() sin argumento.
+// Esperado: mensaje explicito de falta de argumentos (como convertir_entero).
+
+principal
+    flotante x = convertir_flotante()
+    imprimir_flotante(x)
+fin_principal

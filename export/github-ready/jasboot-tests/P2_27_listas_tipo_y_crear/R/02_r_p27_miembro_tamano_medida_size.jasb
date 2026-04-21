@@ -1,0 +1,21 @@
+# R (02): acceso miembro .tamano / .medida / .size -> OP_MEM_LISTA_TAMANO (mismo valor).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 2 — buf.tamano
+#   2) línea vacía
+#   3) 2 — buf.medida
+#   4) línea vacía
+#   5) 2 — buf.size
+#   6) línea vacía
+
+principal
+    lista buf = mem_lista_crear()
+    mem_lista_agregar(buf, 5)
+    mem_lista_agregar(buf, 6)
+    imprimir buf.tamano
+    imprimir ""
+    imprimir buf.medida
+    imprimir ""
+    imprimir buf.size
+    imprimir ""
+fin_principal

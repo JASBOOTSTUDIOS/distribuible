@@ -1,0 +1,9 @@
+# E: `imprimir` espera una expresion evaluable; el nombre solo de una funcion global no es valor en ese contexto.
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+principal
+    imprimir duplicar
+fin_principal

@@ -1,0 +1,3 @@
+funcion test_unused(entero val1, entero val2)
+    retornar val1
+fin_funcion

@@ -1,0 +1,34 @@
+P0 #2 imprimir (literal y expresión) — compilación con jbc (bin\jbc.exe)
+Fecha: 2026-03-25
+
+--- E/e_literal_sin_cerrar.jasb ---
+exit: 1
+Fase: parser (cadena sin cerrar arrastra tokens; al final se esperaba fin_principal).
+
+--- E/e_expresion_invalida.jasb ---
+exit: 1
+Fase: lexer (carácter @ no reconocido).
+
+--- E/e_imprimir_sin_expresion_lexico_fin.jasb ---
+exit: 1
+Error de parser con ruta :línea:columna: tras `imprimir` se esperaba una expresión; el siguiente token es palabra clave `fin_principal`.
+
+--- R/r_literal_vacio.jasb ---
+exit: 0
+Compila (imprimir cadena vacía).
+
+--- R/r_dos_imprimir_misma_linea.jasb ---
+exit: 0
+Compila (dos sentencias imprimir en una línea; primero la expresión `"a"`, luego la siguiente sentencia).
+
+--- R/r_ok_literal_expresion_interpolacion.jasb ---
+exit: 0
+Compila (literal, aritmética, interpolación `${…}`, variable, alias imprimir_texto, paréntesis).
+
+--- R/r_muchos_imprimir.jasb ---
+exit: 0
+Compila (8000× imprimir «.» en bucle).
+
+--- R/r_concat_texto_mas_entero.jasb ---
+exit: 0
+Compila (`"30" + 10` / `10 + "30"` como concatenación texto + entero).

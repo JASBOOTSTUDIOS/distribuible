@@ -1,0 +1,9 @@
+// r_flecha_asignada — macro con lambda y llamada
+// Esperado: compila y ejecuta; imprime n = 20.
+// Mide: `macro` + cuerpo flecha de expresión; resolución del nombre en llamada.
+
+principal
+    macro doblar = (x) => x * 2
+    entero n = doblar(10)
+    imprimir "n = " + n
+fin_principal

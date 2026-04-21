@@ -1,0 +1,7 @@
+funcion mal_continuar() retorna entero
+    continuar
+fin_funcion
+
+principal
+    imprimir 0
+fin_principal

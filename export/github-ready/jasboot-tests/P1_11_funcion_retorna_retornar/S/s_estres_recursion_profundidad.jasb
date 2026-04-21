@@ -1,0 +1,19 @@
+funcion profundidad(entero n) retorna entero
+    si n == 0 entonces
+        retornar 0
+    fin_si
+    retornar 1 + profundidad(n - 1)
+fin_funcion
+
+principal
+    entero i = 0
+    entero checksum = 0
+    mientras i < 2000 hacer
+        checksum = checksum + profundidad(60)
+        i++
+        // imprimir "Checksum parcial = ${checksum} en iteración ${i}"
+    fin_mientras
+    imprimir "iteraciones = ${i}"
+    imprimir "checksum = ${checksum}"
+fin_principal
+

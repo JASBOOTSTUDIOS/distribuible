@@ -1,0 +1,13 @@
+# E: la firma dice `retorna entero` pero se intenta `retornar` un parametro de tipo `funcion`
+#     (no hay conversion implicita a entero).
+
+funcion id(entero x) retorna entero
+    retornar x
+fin_funcion
+
+funcion mal(funcion h) retorna entero
+    retornar h
+fin_funcion
+
+principal
+fin_principal

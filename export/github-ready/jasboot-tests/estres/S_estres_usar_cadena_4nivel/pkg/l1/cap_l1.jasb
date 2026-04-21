@@ -1,0 +1,6 @@
+# Nivel 1: importa l2.
+usar todas de "../l2/cap_l2.jasb"
+
+enviar funcion svc_cap_uno(entero k) retorna entero
+    retornar svc_cap_dos(k) + 7
+fin_funcion

@@ -1,0 +1,7 @@
+// e11 — IIFE sin parametros (()=>...) con un argumento
+// Esperado: error de arity en parser; dos marcas ^ si aplica; 0 parametros vs 1 argumento.
+// Mide: lambda vacia ()=> y conteo de argumentos en la llamada inmediata.
+principal
+    entero tmp = (() => 1)(1)
+    imprimir tmp
+fin_principal

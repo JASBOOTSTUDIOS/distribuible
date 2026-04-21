@@ -1,0 +1,27 @@
+# R (01): flujo mem_lista_agregar / obtener / tamano / lista_limpiar.
+#
+# Salida esperada (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 3 — tamano tras tres agregar
+#   2) línea vacía
+#   3) 10 — obtener índice 0
+#   4) línea vacía
+#   5) 30 — obtener índice 2
+#   6) línea vacía
+#   7) 0 — tamano tras lista_limpiar
+#   8) línea vacía
+
+principal
+    lista x = crear_lista()
+    mem_lista_agregar(x, 10)
+    mem_lista_agregar(x, 20)
+    mem_lista_agregar(x, 30)
+    imprimir mem_lista_tamano(x)
+    imprimir ""
+    imprimir mem_lista_obtener(x, 0)
+    imprimir ""
+    imprimir mem_lista_obtener(x, 2)
+    imprimir ""
+    lista_limpiar(x)
+    imprimir mem_lista_tamano(x)
+    imprimir ""
+fin_principal

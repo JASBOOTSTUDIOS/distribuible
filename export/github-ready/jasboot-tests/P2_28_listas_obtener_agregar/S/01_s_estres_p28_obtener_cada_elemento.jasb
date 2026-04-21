@@ -1,0 +1,20 @@
+# S (01): muchos agregar y lectura secuencial por índice (sin OOR).
+#
+# Salida esperada (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 2000 — tamano
+#   2) línea vacía
+#   3) 1999 — último elemento (= último índice agregado)
+#   4) línea vacía
+
+principal
+    lista v = crear_lista()
+    entero i = 0
+    mientras i < 2000 hacer
+        mem_lista_agregar(v, i)
+        i += 1
+    fin_mientras
+    imprimir mem_lista_tamano(v)
+    imprimir ""
+    imprimir mem_lista_obtener(v, 1999)
+    imprimir ""
+fin_principal

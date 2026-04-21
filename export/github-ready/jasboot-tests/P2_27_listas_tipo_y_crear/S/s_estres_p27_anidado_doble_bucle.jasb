@@ -1,0 +1,28 @@
+# S: bucles anidados (80 x 50) en la misma lista — 4000 agregar; ultimo elemento = 79*100+49 = 7949.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 4000 — mem_lista_tamano(u)
+#   2) línea vacía
+#   3) 0 — mem_lista_obtener(u, 0)
+#   4) línea vacía
+#   5) 7949 — mem_lista_obtener(u, 3999)
+#   6) línea vacía
+
+principal
+    lista u = crear_lista()
+    entero fila = 0
+    mientras fila < 80 hacer
+        entero col = 0
+        mientras col < 50 hacer
+            mem_lista_agregar(u, fila * 100 + col)
+            col += 1
+        fin_mientras
+        fila += 1
+    fin_mientras
+    imprimir mem_lista_tamano(u)
+    imprimir ""
+    imprimir mem_lista_obtener(u, 0)
+    imprimir ""
+    imprimir mem_lista_obtener(u, 3999)
+    imprimir ""
+fin_principal

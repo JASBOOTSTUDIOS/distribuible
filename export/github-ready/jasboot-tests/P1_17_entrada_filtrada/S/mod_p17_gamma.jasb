@@ -1,0 +1,5 @@
+# Independiente: segundo `usar` en el main con `usar todo de` (sinonimo operativo de todas).
+
+enviar funcion mod_gamma_scale(entero t) retorna entero
+    retornar t * 13 - 2
+fin_funcion

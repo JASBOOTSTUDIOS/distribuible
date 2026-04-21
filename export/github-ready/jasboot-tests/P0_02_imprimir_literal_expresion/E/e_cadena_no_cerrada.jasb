@@ -1,0 +1,4 @@
+principal
+    imprimir "Esta es una cadena que nunca se cierra...
+    imprimir 5
+fin_principal

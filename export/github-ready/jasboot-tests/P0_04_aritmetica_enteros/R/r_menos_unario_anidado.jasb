@@ -1,0 +1,7 @@
+principal
+    # Prueba de menos unario encadenado
+    entero num_a = 10 - -5
+    entero num_b = - - 10
+    imprimir num_a
+    imprimir num_b
+fin_principal

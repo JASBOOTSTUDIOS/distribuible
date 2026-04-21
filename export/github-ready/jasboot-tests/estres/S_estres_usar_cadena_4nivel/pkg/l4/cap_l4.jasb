@@ -1,0 +1,8 @@
+# Hoja (nivel 4): sin `usar`. Exporta primitivas de bits usadas aguas arriba.
+enviar constante entero SEED_L4 = 10007
+
+enviar funcion hoja_mix(entero k) retorna entero
+    entero r
+    r = bit_shl(k % 16, k % 5) + bit_shr(k, 2)
+    retornar r
+fin_funcion

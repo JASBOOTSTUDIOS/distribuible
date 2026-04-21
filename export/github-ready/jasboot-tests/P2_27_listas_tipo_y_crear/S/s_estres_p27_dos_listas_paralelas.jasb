@@ -1,0 +1,30 @@
+# S: dos listas independientes con muchas inserciones (aislamiento de ids).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 3000 — mem_lista_tamano(izq)
+#   2) línea vacía
+#   3) 3000 — mem_lista_tamano(der)
+#   4) línea vacía
+#   5) 2999 — mem_lista_obtener(izq, 2999)
+#   6) línea vacía
+#   7) 10000 — mem_lista_obtener(der, 0)
+#   8) línea vacía
+
+principal
+    lista izq = crear_lista()
+    lista der = mem_lista_crear()
+    entero i = 0
+    mientras i < 3000 hacer
+        mem_lista_agregar(izq, i)
+        mem_lista_agregar(der, i + 10000)
+        i += 1
+    fin_mientras
+    imprimir mem_lista_tamano(izq)
+    imprimir ""
+    imprimir mem_lista_tamano(der)
+    imprimir ""
+    imprimir mem_lista_obtener(izq, 2999)
+    imprimir ""
+    imprimir mem_lista_obtener(der, 0)
+    imprimir ""
+fin_principal

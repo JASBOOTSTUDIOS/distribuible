@@ -1,0 +1,34 @@
+funcion procesar_operacion(entero x) retorna entero
+    entero resultado = 0
+    intentar
+        si x == 5 entonces
+            lanzar "Error critico: valor no puede ser 5"
+        fin_si
+        resultado = x * 10
+    atrapar e
+        imprimir "Atrapado un error: " + e
+        resultado = -1
+    final
+        imprimir "Finalizado para x=" + x
+    fin_intentar
+    retornar resultado
+fin_funcion
+
+principal
+    imprimir "\n--- Iniciando Prueba de Estres 4: Manejo de Errores Locales ---"
+    entero i = 3
+    texto reporte = ""
+    mientras i <= 6 hacer
+        entero val = procesar_operacion(i)
+        si val == -1 entonces
+            reporte = reporte + "Fallo(" + i + ") | "
+        sino
+            reporte = reporte + "Exito(" + i + ")=" + val + " | "
+        fin_si
+        i++
+    fin_mientras
+
+    imprimir "\nReporte final:"
+    imprimir reporte
+    imprimir "--- Fin de la Prueba de Estres 4 ---"
+fin_principal

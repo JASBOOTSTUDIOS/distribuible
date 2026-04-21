@@ -1,0 +1,61 @@
+
+# =============================================================================
+# JBC - COMPILADOR Y GESTOR DE PAQUETES NATIVO
+# =============================================================================
+
+usar { ejecutar_iniciar, ejecutar_instalar, ejecutar_listar } de "../apps/neurixis_IA/gestor_paquetes.jasb"
+usar { Configuracion } de "../apps/neurixis_IA/cerebro/configuracion.jasb"
+
+principal
+    Configuracion config = Configuracion()
+    config.config()
+    
+    entero num_args = sys_argc()
+    
+    si num_args < 2 entonces
+        imprimir "JBC - Jasboot Compiler & Package Manager (Universal)"
+        imprimir "Uso: jbc <comando|archivo> [opciones]"
+        imprimir "\nComandos de Gestión (Estilo NPM):"
+        imprimir "  iniciar          - npm init"
+        imprimir "  instalar <pkg>   - npm install"
+        imprimir "  i <pkg>          - npm i"
+        imprimir "  listar           - npm list"
+        imprimir "  borrar <pkg>     - npm uninstall"
+        imprimir "\nCompilación:"
+        imprimir "  <archivo.jasb>   - Compila el archivo Jasboot"
+    sino
+        texto primer_arg = sys_argv(1)
+        
+        # 1. Verificar si es un comando del gestor
+        si primer_arg == "iniciar" entonces
+            ejecutar_iniciar()
+        sino si primer_arg == "instalar" o primer_arg == "i" entonces
+            si num_args < 3 entonces
+                ejecutar_instalar("") # Llama a instalar todas
+            sino
+                ejecutar_instalar(sys_argv(2))
+            fin_si
+        sino si primer_arg == "listar" entonces
+            ejecutar_listar()
+        sino
+            # 2. Es un comando de compilación - pasar al compilador real
+            # Intentar obtener ruta del SDK de variable de entorno o config
+            texto sdk_path = config.obtener("JASBOOT_SDK_PATH")
+            si sdk_path == "" entonces
+                sdk_path = "c:/src/jasboot/bin/jbc.exe" # Fallback razonable
+            sino
+                sdk_path = sdk_path + "/bin/jbc.exe"
+            fin_si
+            
+            texto comando_real = sdk_path + " "
+            entero i = 1 # Empezar desde el primer argumento del usuario
+            mientras i < num_args hacer
+                comando_real = comando_real + sys_argv(i) + " "
+                i = i + 1
+            fin_mientras
+            
+            imprimir "Ejecutando compilación nativa..."
+            sistema_ejecutar(comando_real)
+        fin_si
+    fin_si
+fin_principal

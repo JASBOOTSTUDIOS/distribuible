@@ -1,0 +1,20 @@
+# R: `mientras` gobernado por linea leida (salida con palabra clave).
+# Entrada: a\nb\nsalir\n
+# Salida: 1, 1, 9, linea vacia (dos lineas utiles antes de salir).
+
+principal
+    texto linea = "go"
+    mientras linea no es igual a "salir" hacer
+    limpiar_consola
+        imprimir "======= Entrando al bucle ======="
+        imprimir "Valor de linea: ${linea}"
+        imprimir_sin_salto "Ingrese un valor:>> "
+        ingresar_texto linea
+        si linea no es igual a "salir" entonces
+            imprimir "======= Saliendo del bucle ======="
+            imprimir 1
+        fin_si
+    fin_mientras
+    imprimir 9
+    imprimir ""
+fin_principal

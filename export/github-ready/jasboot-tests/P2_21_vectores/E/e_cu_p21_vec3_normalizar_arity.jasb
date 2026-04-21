@@ -1,0 +1,8 @@
+# E: vec3_normalizar requiere destino y origen (2 argumentos).
+
+principal
+    vec3 u
+    vec3 v
+    u = vec3(3.0, 4.0, 0.0)
+    vec3_normalizar(v)
+fin_principal

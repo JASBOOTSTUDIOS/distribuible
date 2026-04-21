@@ -1,0 +1,25 @@
+# R (02): errores de ejecucion de lista (indice invalido) entran en atrapar como `lanzar` implicito.
+#
+# Salida esperada (jasboot-ir-vm tras `jbc`), linea a linea:
+#   1) ok — tras capturar
+#   2) linea vacia
+#   3) texto del error (contiene "indice de lista invalido")
+#   4) linea vacia
+#   5) despues — continua el programa
+#   6) linea vacia
+
+principal
+    intentar
+        lista buf = crear_lista()
+        mem_lista_agregar(buf, 1)
+        imprimir mem_lista_obtener(buf, 9)
+        imprimir "no_deberia"
+    atrapar err
+        imprimir "ok"
+        imprimir ""
+        imprimir "\rojo${err} \norm"
+        imprimir ""
+        imprimir "despues"
+        imprimir ""
+    fin_intentar
+fin_principal   

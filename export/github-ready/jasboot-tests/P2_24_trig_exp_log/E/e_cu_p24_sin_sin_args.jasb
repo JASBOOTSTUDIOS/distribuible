@@ -1,0 +1,6 @@
+# E: sin() requiere un argumento.
+# Esperado: jbc codigo != 0.
+
+principal
+    imprimir sin()
+fin_principal

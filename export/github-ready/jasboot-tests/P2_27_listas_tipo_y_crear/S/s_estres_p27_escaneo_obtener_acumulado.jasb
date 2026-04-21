@@ -1,0 +1,27 @@
+# S: lista grande + miles de OP_MEM_LISTA_OBTENER (lectura secuencial) y suma en PC.
+#     Suma 0..2499 = 2499*2500/2 = 3123750.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 3123750 — suma de todos los elementos 0..2499
+#   2) línea vacía
+#   3) 2500 — mem_lista_tamano(buf)
+#   4) línea vacía
+
+principal
+    lista buf = mem_lista_crear()
+    entero k = 0
+    mientras k < 2500 hacer
+        mem_lista_agregar(buf, k)
+        k += 1
+    fin_mientras
+    entero suma = 0
+    entero j = 0
+    mientras j < 2500 hacer
+        suma = suma + mem_lista_obtener(buf, j)
+        j += 1
+    fin_mientras
+    imprimir suma
+    imprimir ""
+    imprimir mem_lista_tamano(buf)
+    imprimir ""
+fin_principal

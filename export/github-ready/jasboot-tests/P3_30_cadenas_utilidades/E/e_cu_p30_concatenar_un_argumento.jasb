@@ -1,0 +1,5 @@
+# E: concatenar con un solo argumento — jbc debe fallar.
+
+principal
+    imprimir concatenar("solo")
+fin_principal

@@ -1,0 +1,35 @@
+# Test de imports con scope - Reproducir bug de variable duplicada
+# Este test importa dos módulos que ambos usan la variable 'c' en diferentes funciones
+
+usar { TestModulo1 } de "./test_mod1.jasb"
+usar { TestModulo2 } de "./test_mod2.jasb"
+
+principal
+    imprimir "=== Test de Scope con Imports ==="
+    imprimir ""
+
+    # Crear instancias
+    TestModulo1 mod1 = TestModulo1()
+    TestModulo2 mod2 = TestModulo2()
+
+    # Llamar funciones que usan 'c' internamente
+    entero r1 = mod1.funcion1()
+    entero r2 = mod1.funcion2()
+    entero r3 = mod2.funcionA()
+    entero r4 = mod2.funcionB()
+    entero r5 = mod2.funcionC()
+
+    imprimir "Resultado mod1.funcion1(): " + str_desde_numero(r1)
+    imprimir "Resultado mod1.funcion2(): " + str_desde_numero(r2)
+    imprimir "Resultado mod2.funcionA(): " + str_desde_numero(r3)
+    imprimir "Resultado mod2.funcionB(): " + str_desde_numero(r4)
+    imprimir "Resultado mod2.funcionC(): " + str_desde_numero(r5)
+    imprimir ""
+
+    # Verificar resultados esperados
+    si r1 == 20 y r2 == 5 y r3 == 25 y r4 == 30 y r5 == 100 entonces
+        imprimir "✅ Test PASADO - Variables en diferentes scopes funcionan"
+    sino
+        imprimir "❌ Test FALLADO - Hay conflicto de scope"
+    fin_si
+fin_principal

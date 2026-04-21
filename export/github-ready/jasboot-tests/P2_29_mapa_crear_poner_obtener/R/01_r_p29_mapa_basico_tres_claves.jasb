@@ -1,0 +1,40 @@
+# R (01): mapa basico; clave inexistente dispara error de VM capturable con intentar/atrapar (como listas).
+#
+# Salida esperada (jasboot-ir-vm tras `jbc`), linea a linea:
+#   1) 10
+#   2) linea vacia
+#   3) 20
+#   4) linea vacia
+#   5) 30
+#   6) linea vacia
+#   7) 200 — misma clave 2, valor actualizado
+#   8) linea vacia
+#   9) ok — entro al atrapar
+#   10) linea vacia
+#   11) texto del error (contiene "clave de mapa inexistente")
+#   12) linea vacia
+
+principal
+    mapa m = mapa_crear()
+    mapa_poner(m, 1, 10)
+    mapa_poner(m, 2, 20)
+    mapa_poner(m, 3, 30)
+    imprimir mapa_obtener(m, 1)
+    imprimir ""
+    imprimir mapa_obtener(m, 2)
+    imprimir ""
+    imprimir mapa_obtener(m, 3)
+    imprimir ""
+    mapa_poner(m, 2, 200)
+    imprimir mapa_obtener(m, 2)
+    imprimir ""
+    intentar
+        imprimir mapa_obtener(m, 99)
+        imprimir "no_deberia"
+    atrapar err
+        imprimir "ok"
+        imprimir ""
+        imprimir err
+        imprimir ""
+    fin_intentar
+fin_principal

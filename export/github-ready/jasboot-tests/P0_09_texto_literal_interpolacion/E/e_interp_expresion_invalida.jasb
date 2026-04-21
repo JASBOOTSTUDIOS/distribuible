@@ -1,0 +1,3 @@
+principal
+    imprimir "x${@}y"
+fin_principal

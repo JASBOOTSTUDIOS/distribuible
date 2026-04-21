@@ -1,0 +1,5 @@
+// Hoja 164 / 200 ; ruta p/d0/d1/d2/ (4 carpetas bajo la raiz del estres).
+enviar constante entero E_164 = 164
+enviar funcion g_164() retorna entero
+    retornar 164
+fin_funcion

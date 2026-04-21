@@ -1,0 +1,6 @@
+Jasboot SDK v1.0.0
+Build: 2026-04-14
+Target: Windows x64
+Compiler: jbc v1.0
+VM: jasboot-ir-vm v1.0
+Runtime: jasboot-jmn-core v1.0

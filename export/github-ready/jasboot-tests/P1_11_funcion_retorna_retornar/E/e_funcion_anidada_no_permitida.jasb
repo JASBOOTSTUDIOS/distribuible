@@ -1,0 +1,7 @@
+principal
+    funcion interna(entero n) retorna entero
+        retornar n + 1
+    fin_funcion
+    imprimir interna(1)
+fin_principal
+

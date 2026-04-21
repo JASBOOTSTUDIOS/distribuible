@@ -1,0 +1,11 @@
+# E: asignacion a miembro que no existe en el registro.
+
+registro Punto
+    entero coord_x
+fin_registro
+
+principal
+    Punto q
+    q.no_existe = 1
+    imprimir q.coord_x
+fin_principal

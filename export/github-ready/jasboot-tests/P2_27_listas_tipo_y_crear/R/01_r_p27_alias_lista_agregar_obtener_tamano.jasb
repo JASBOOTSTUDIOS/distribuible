@@ -1,0 +1,21 @@
+# R (01): APIs en español corto lista_agregar / lista_obtener / lista_tamano (sin prefijo mem_).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 2 — lista_tamano(buf)
+#   2) línea vacía
+#   3) 7 — lista_obtener(buf, 0)
+#   4) línea vacía
+#   5) 8 — lista_obtener(buf, 1)
+#   6) línea vacía
+
+principal
+    lista buf = crear_lista()
+    lista_agregar(buf, 7)
+    lista_agregar(buf, 8)
+    imprimir lista_tamano(buf)
+    imprimir ""
+    imprimir lista_obtener(buf, 0)
+    imprimir ""
+    imprimir lista_obtener(buf, 1)
+    imprimir ""
+fin_principal

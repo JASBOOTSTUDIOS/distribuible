@@ -1,0 +1,18 @@
+# R (10): iteración `para_cada` sobre lista (Fase C).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 9 — suma de 2+3+4
+#   2) línea vacía
+
+principal
+    lista<entero> L = crear_lista()
+    mem_lista_agregar(L, 2)
+    mem_lista_agregar(L, 3)
+    mem_lista_agregar(L, 4)
+    entero s = 0
+    para_cada entero v sobre L hacer
+        s = s + v
+    fin_para_cada
+    imprimir s
+    imprimir ""
+fin_principal

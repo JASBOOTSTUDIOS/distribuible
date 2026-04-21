@@ -1,0 +1,13 @@
+principal
+    entero num_a = 5
+
+    cuando num_a == 1 entonces
+        imprimir "es 1"
+    sino cuando num_a == 2 entonces
+        imprimir "es 2"
+    sino cuando num_a == 5 entonces
+        imprimir "es 5"
+    sino
+        imprimir "es otro"
+    fin_cuando
+fin_principal

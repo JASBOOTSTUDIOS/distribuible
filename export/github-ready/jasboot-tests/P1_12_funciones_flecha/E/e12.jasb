@@ -1,0 +1,7 @@
+// e12 — IIFE sin parametros con dos argumentos
+// Esperado: error de arity en parser; dos marcas ^; 0 parametros vs 2 argumentos.
+// Mide: mismo camino que e11 con lista (1, 2).
+principal
+    entero tmp = (() => 1)(1, 2)
+    imprimir tmp
+fin_principal

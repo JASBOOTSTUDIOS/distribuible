@@ -1,0 +1,9 @@
+principal
+entero x = 0
+entero i = 0
+mientras i < 20000
+    x = x + 7
+    i = i + 1
+fin_mientras
+imprimir x
+fin_principal

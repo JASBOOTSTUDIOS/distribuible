@@ -1,0 +1,16 @@
+# S: concatenar muchos segmentos y dividir_texto — presión sobre heap de cadenas y tokenización.
+# Construye "a,a,a,..." (3001 tokens "a") y verifica tamano de lista == 3001.
+#
+# Salida esperada: 3001 y línea vacía (puede tardar unos segundos).
+
+principal
+    texto s = "a"
+    entero i = 0
+    mientras i < 3000 hacer
+        s = concatenar(s, ",a")
+        i += 1
+    fin_mientras
+    lista L = dividir_texto(s, ",")
+    imprimir mem_lista_tamano(L)
+    imprimir ""
+fin_principal

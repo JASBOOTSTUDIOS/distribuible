@@ -1,0 +1,27 @@
+# R: tipo funcion, parametro funcion, nombre global como argumento, flecha como valor,
+#     llamada indirecta y llamada a variable funcion (sin registro).
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+funcion aplicar_uno(funcion f, entero v) retorna entero
+    retornar f(v)
+fin_funcion
+
+funcion aplicar_fn(funcion g, entero n) retorna entero
+    retornar g(n)
+fin_funcion
+
+principal
+    entero r1
+    entero r2
+    funcion h
+
+    r1 = aplicar_uno(duplicar, 21)
+    imprimir r1
+
+    h = (entero n) => n + 100
+    r2 = aplicar_fn(h, 5)
+    imprimir r2
+fin_principal

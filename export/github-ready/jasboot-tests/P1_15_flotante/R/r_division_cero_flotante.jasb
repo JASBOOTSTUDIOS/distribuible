@@ -1,0 +1,8 @@
+# Contrato VM: division flotante por 0.0 no aborta; el resultado es 0 (no NaN IEEE).
+# espera: 0.0000
+# Ver tambien E/NOTAS_E.md
+
+principal
+    flotante q = 1.0 / 0.0
+    imprimir_flotante(q)
+fin_principal

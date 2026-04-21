@@ -1,0 +1,9 @@
+# 8 — Coexistencia str_a_entero y convertir_flotante (alias documentados).
+# Salida: 7 y 2.2500
+
+principal
+    entero n = str_a_entero("7")
+    flotante x = convertir_flotante("2.25")
+    imprimir(n)
+    imprimir_flotante(x)
+fin_principal

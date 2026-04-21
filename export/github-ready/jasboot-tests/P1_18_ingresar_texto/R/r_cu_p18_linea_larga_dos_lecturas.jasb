@@ -1,0 +1,9 @@
+# R: buffer interno 256 bytes -> primera fgets como mucho 255 caracteres; resto en segunda ingresar_texto.
+# Entrada: 300 veces 'x' y un salto de linea. Esperado: longitud 255 y 45 (ver NOTAS_E / README).
+
+principal
+    ingresar_texto parte1
+    ingresar_texto parte2
+    imprimir longitud(parte1)
+    imprimir longitud(parte2)
+fin_principal

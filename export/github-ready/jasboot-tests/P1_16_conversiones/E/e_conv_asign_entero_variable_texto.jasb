@@ -1,0 +1,8 @@
+// E: asignacion = con tipo destino entero y expresion texto.
+
+principal
+    texto s = "hola"
+    entero n = 0
+    n = s
+    imprimir(n)
+fin_principal

@@ -1,0 +1,17 @@
+principal
+    # Prueba de cortocircuito con 'o' (OR)
+    entero cero = 0
+    
+    # Si la primera parte es verdadera (1), no se evalua la segunda parte,
+    # por lo que no deberia fallar por division por cero.
+    si verdadero o (10 / cero) == 1 entonces
+        imprimir 100
+    fin_si
+    
+    imprimir 1  # Deberia llegar aqui sin crashear
+    
+    # Otro test para asegurar que si es falso, si se evalua el derecho
+    si falso o verdadero entonces
+        imprimir 200
+    fin_si
+fin_principal

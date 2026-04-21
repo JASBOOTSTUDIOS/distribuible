@@ -1,0 +1,9 @@
+# E: asignar a `texto` el nombre de una funcion global; mismo rechazo que con `entero`/`flotante`.
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+principal
+    texto s = duplicar
+fin_principal

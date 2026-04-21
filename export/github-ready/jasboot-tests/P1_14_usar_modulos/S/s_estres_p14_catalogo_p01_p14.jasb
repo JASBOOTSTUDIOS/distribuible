@@ -1,0 +1,137 @@
+// s_estres_p14_catalogo_p01_p14 — estres P1_14 + integracion P0_01..P0_10, P1_11..P1_13.
+// Modulos: cadena alpha<-beta (usar todas), mas gamma independiente; llamadas explicitas con `llamar`.
+// P0: principal, imprimir/imprimir_sin_salto, entero, aritmetica, comparaciones, si/sino/cuando, mientras,
+//     hacer/mientras, romper/continuar, texto, interpolacion, limpiar_consola.
+// P1_11: funcion/retornar/fin_funcion, bool, ternario.
+// P1_12: macro expresion y macro bloque.
+// P1_13: llamar (importadas y locales).
+// P1_14: usar todas de (beta+gamma), simbolos enviar y transitivos desde alpha.
+// Referencia checksum: ejecutar `jbc -e` desde esta carpeta y comparar con NOTAS_S.md.
+
+usar todas de "s_mod_estres_beta.jasb"
+usar todas de "s_mod_estres_gamma.jasb"
+
+constante entero ESTRES_CAP_BUCLE = 120
+
+funcion fib_local(entero n) retorna entero
+    si n <= 1 entonces
+        retornar n
+    fin_si
+    entero f1 = fib_local(n - 1)
+    entero f2 = fib_local(n - 2)
+    retornar f1 + f2
+fin_funcion
+
+funcion es_primo_local(entero num) retorna bool
+    si num <= 1 entonces
+        retornar falso
+    fin_si
+    entero i = 2
+    mientras i * i <= num hacer
+        si num % i == 0 entonces
+            retornar falso
+        fin_si
+        i++
+    fin_mientras
+    retornar verdadero
+fin_funcion
+
+principal
+    // limpiar_consola
+
+    macro cuadrado = (x) => x * x
+    macro mezcla = (u, v) => u > v ? u - v : v - u
+    macro bloque_triple = (k) => {
+        retornar k + k + k
+    }
+
+    entero checksum = 0
+
+    checksum = checksum + llamar mod_chain(5)
+    checksum = checksum + llamar mod_tag(2)
+    checksum = checksum + fib_local(10)
+    checksum = checksum + cuadrado(12)
+    checksum = checksum + mezcla(40, 15)
+    checksum = checksum + bloque_triple(11)
+
+    entero suma_primos = 0
+    entero p = 1
+    mientras p <= 40 hacer
+        si es_primo_local(p) entonces
+            suma_primos = suma_primos + cuadrado(p)
+        fin_si
+        p++
+    fin_mientras
+    checksum = checksum + suma_primos
+
+    entero idx = 0
+    mientras idx < ESTRES_CAP_BUCLE hacer
+        checksum = checksum + llamar mod_sum(idx % 7, llamar mod_sq(idx % 4))
+        entero tmp = ((idx * 11) - (idx / 5) + (idx % 13)) % 100003
+        checksum = checksum + tmp
+
+        si idx == 0 entonces
+            checksum = checksum + 3
+        fin_si
+        si idx != -99 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx < 999 entonces
+            checksum = checksum + 2
+        fin_si
+        si idx > -1 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx <= 119 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx >= 0 entonces
+            checksum = checksum + 1
+        fin_si
+
+        si idx % 2 == 0 entonces
+            si idx % 3 == 0 entonces
+                checksum = checksum + 4
+            sino cuando idx % 7 == 0 entonces
+                checksum = checksum + 3
+            sino
+                checksum = checksum + 2
+            fin_si
+        sino si idx % 5 == 0 entonces
+            checksum = checksum + 5
+        sino
+            checksum = checksum + 1
+        fin_si
+
+        idx += 1
+    fin_mientras
+
+    entero capa = 0
+    mientras capa < 10 hacer
+        entero j = 0
+        hacer
+            checksum = checksum + (capa + j) % 23
+            j += 1
+        mientras j < 6 fin_hacer
+        capa += 1
+    fin_mientras
+
+    entero r = 0
+    mientras r < 50 hacer
+        si r % 6 == 0 entonces
+            r += 1
+            continuar
+        fin_si
+        si r > 38 entonces
+            romper
+        fin_si
+        checksum = checksum + (r % 31)
+        r += 1
+    fin_mientras
+
+    texto estado = "listo"
+    bool ok = checksum > 100000
+    texto bandera = ok ? "ok" : "bajo"
+    imprimir_sin_salto "P14_estres "
+    imprimir "\verd\n\nchecksum = ${checksum} estado = ${estado} bandera = ${bandera} fib10 = ${fib_local(10)}\norm\n\n"
+fin_principal

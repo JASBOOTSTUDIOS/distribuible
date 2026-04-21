@@ -1,0 +1,8 @@
+# E: en la lista de parametros se espera un tipo valido; `fin_funcion` no es tipo de parametro.
+
+funcion g(fin_funcion h, entero v) retorna entero
+    retornar v
+fin_funcion
+
+principal
+fin_principal

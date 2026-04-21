@@ -1,0 +1,11 @@
+# Fusion lista + bits: `usar todas` de dos bibliotecas y una API compuesta.
+usar todas de "m03_lista.jasb"
+usar todas de "m02_bits.jasb"
+
+enviar funcion mega_mix(entero x) retorna entero
+    entero n = x % 250
+    si n < 12 entonces
+        n = 12
+    fin_si
+    retornar lista_checksum(n) + bit_mix(x)
+fin_funcion

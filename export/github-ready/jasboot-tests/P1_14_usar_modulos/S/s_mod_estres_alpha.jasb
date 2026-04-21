@@ -1,0 +1,18 @@
+// Hoja del grafo de estres P1_14: exporta utilidades aritmeticas (cadena alpha <- beta <- main).
+// `mod_hidden` no lleva enviar: no debe importarse con `usar { mod_hidden } de`.
+
+enviar funcion mod_sum(entero u, entero v) retorna entero
+    retornar u + v
+fin_funcion
+
+enviar funcion mod_sq(entero x) retorna entero
+    retornar x * x
+fin_funcion
+
+enviar funcion mod_seed() retorna entero
+    retornar 911
+fin_funcion
+
+funcion mod_hidden(entero x) retorna entero
+    retornar x + 7
+fin_funcion

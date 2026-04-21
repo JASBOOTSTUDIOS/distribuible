@@ -1,0 +1,12 @@
+# E: la condicion de `si ... entonces` no puede ser solo el nombre de una funcion global
+#     (no es llamada ni contexto `funcion`; error semantico al usar el identificador).
+
+funcion cero() retorna entero
+    retornar 0
+fin_funcion
+
+principal
+    si cero entonces
+        imprimir 1
+    fin_si
+fin_principal

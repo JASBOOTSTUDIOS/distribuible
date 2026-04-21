@@ -1,0 +1,12 @@
+principal
+    entero n = 10
+    mientras n > 0 hacer
+        imprimir n
+        n = n - 1
+        
+        si n == 5 entonces
+            imprimir 0
+        fin_si
+        
+    # Falta el fin_mientras aqui
+fin_principal

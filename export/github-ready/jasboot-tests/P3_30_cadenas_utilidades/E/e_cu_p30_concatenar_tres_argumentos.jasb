@@ -1,0 +1,5 @@
+# E: concatenar con tres argumentos — jbc debe fallar (solo admite dos textos).
+
+principal
+    imprimir concatenar("a", "b", "c")
+fin_principal

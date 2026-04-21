@@ -1,0 +1,23 @@
+# Ejemplo: Calculadora simple en Jasboot
+# Demuestra operaciones matematicas basicas
+
+principal
+    entero numero1 = 10
+    entero numero2 = 5
+    
+    imprimir "=== Calculadora Jasboot ==="
+    imprimir "Valor numero1: " + numero1
+    imprimir "Valor numero2: " + numero2
+    
+    imprimir "Suma: " + (numero1 + numero2)
+    imprimir "Resta: " + (numero1 - numero2)
+    imprimir "Multiplicacion: " + (numero1 * numero2)
+    imprimir "Division: " + (numero1 / numero2)
+    
+    # Operaciones con flotantes
+    flotante flotante1 = 3.14
+    flotante flotante2 = 2.71
+    imprimir "Flotante 1: " + flotante1
+    imprimir "Flotante 2: " + flotante2
+    imprimir "Suma flotante: " + (flotante1 + flotante2)
+fin_principal

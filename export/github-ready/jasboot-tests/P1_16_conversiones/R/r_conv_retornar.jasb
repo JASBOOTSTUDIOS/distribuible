@@ -1,0 +1,17 @@
+# retornar con tipo de funcion distinto al de la expresion (F2I e I2F).
+# Salida: 12  y  9.0000
+
+funcion a_entero(flotante v) retorna entero
+    imprimir "a_entero: ${v * 2.0}"
+    retornar v * 2.0
+fin_funcion
+
+funcion a_flotante(entero k) retorna flotante
+    imprimir "a_flotante: ${k + 1}"
+    retornar k + 1
+fin_funcion
+
+principal
+    imprimir(a_entero(6.2))
+    imprimir(decimal(a_flotante(8), 4))
+fin_principal

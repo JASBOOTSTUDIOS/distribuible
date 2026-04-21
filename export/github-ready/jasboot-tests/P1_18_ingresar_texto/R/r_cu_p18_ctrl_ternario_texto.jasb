@@ -1,0 +1,10 @@
+# R: expresion ternaria con comparacion de texto leido.
+# Entrada: go\n
+# Salida: linea "SI" y linea vacia.
+
+principal
+    ingresar_texto r
+    texto out = r == "go" ? "SI" : "NO"
+    imprimir out
+    imprimir ""
+fin_principal

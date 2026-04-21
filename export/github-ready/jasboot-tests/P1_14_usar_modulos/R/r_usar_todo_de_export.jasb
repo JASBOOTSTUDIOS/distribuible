@@ -1,0 +1,9 @@
+// R — `usar todo de` (o `usar todas de`) respeta `enviar`: solo entran simbolos exportados del modulo.
+// Carga r_mod_export.jasb (solo `doble` exportado), llama doble(3) -> 6.
+// Esperado: compila y `jbc -e` imprime 6.
+
+usar todo de "r_mod_export.jasb"
+
+principal
+    imprimir llamar doble(3)
+fin_principal

@@ -1,0 +1,7 @@
+// e5 — Parametro tipado con nombre reservado (si)
+// Esperado: error de nombre en (entero si); "si" es palabra clave estructural.
+// Mide: tipo + identificador en lista de parametros de flecha; rechazo de keyword como nombre de parametro.
+principal
+    entero tmp = ((entero si) => si + 1)(1)
+    imprimir tmp
+fin_principal

@@ -1,0 +1,84 @@
+# Integracion estres P01-P09: un solo binario ejercita todo el catalogo P0 base.
+# Salida final: un checksum entero determinista (detectar regresiones en VM/codegen).
+
+principal
+    entero checksum = 0
+
+    # --- P03 entero / asignacion ---
+    entero semilla = 17
+    entero tmp = semilla
+    checksum = checksum + tmp
+
+    # --- P04 aritmetica + P05 comparaciones + P06 condicionales (bucle caliente) ---
+    entero idx = 0
+    mientras idx < 180 hacer
+        tmp = ((idx * 11) - (idx / 5) + (idx % 13)) % 100003
+        checksum = checksum + tmp
+
+        si idx == 0 entonces
+            checksum = checksum + 3
+        fin_si
+        si idx != -99 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx < 999 entonces
+            checksum = checksum + 2
+        fin_si
+        si idx > -1 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx <= 179 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx >= 0 entonces
+            checksum = checksum + 1
+        fin_si
+
+        si idx % 2 == 0 entonces
+            si idx % 3 == 0 entonces
+                checksum = checksum + 4
+            sino cuando idx % 7 == 0 entonces
+                checksum = checksum + 3
+            sino
+                checksum = checksum + 2
+            fin_si
+        sino si idx % 5 == 0 entonces
+            checksum = checksum + 5
+        sino
+            checksum = checksum + 1
+        fin_si
+
+        idx += 1
+    fin_mientras
+
+    # --- P07 hacer/mientras anidado con shadowing de contador (alcance produccion) ---
+    entero capa = 0
+    mientras capa < 12 hacer
+        entero j = 0
+        hacer
+            checksum = checksum + (capa + j) % 23
+            j += 1
+        mientras j < 8 fin_hacer
+        capa += 1
+    fin_mientras
+
+    # --- P08 romper / continuar (busqueda con exclusion y corte temprano) ---
+    entero r = 0
+    mientras r < 80 hacer
+        si r % 6 == 0 entonces
+            r += 1
+            continuar
+        fin_si
+        si r > 55 entonces
+            romper
+        fin_si
+        checksum = checksum + (r % 31)
+        r += 1
+    fin_mientras
+
+    # --- P02 + P09 imprimir + texto + interpolacion ---
+    texto estado = "listo"
+    imprimir "checksum="
+    imprimir checksum
+    imprimir " estado=${estado} fin=${checksum}"
+fin_principal

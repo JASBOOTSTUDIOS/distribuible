@@ -1,0 +1,7 @@
+principal
+    # Prueba de desbordamiento de enteros (overflow) a 64 bits.
+    # El valor maximo de int64 con signo es 9223372036854775807
+    entero max_val = 9223372036854775807
+    imprimir max_val
+    imprimir max_val + 1
+fin_principal

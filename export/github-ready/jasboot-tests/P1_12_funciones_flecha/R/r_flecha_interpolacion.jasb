@@ -1,0 +1,8 @@
+// r_flecha_interpolacion — IIFE dentro de interpolación
+// Esperado: compila y ejecuta; primera línea 6, segunda res = 21.
+// Mide: parse/codegen de `${...}` con expresión que contiene lambda+IIFE.
+
+principal
+    imprimir ((x) => x + 1)(5)
+    imprimir "res = ${((x) => x * 3)(7)}"
+fin_principal

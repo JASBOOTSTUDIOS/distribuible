@@ -1,0 +1,16 @@
+# R: crear_lista("texto") emite OP_MEM_LISTA_CREAR con offset de datos (nombre opcional VM).
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 1 — mem_lista_tamano(nombrada)
+#   2) línea vacía
+#   3) 100 — mem_lista_obtener(nombrada, 0)
+#   4) línea vacía
+
+principal
+    lista nombrada = crear_lista("p27_etiqueta")
+    mem_lista_agregar(nombrada, 100)
+    imprimir mem_lista_tamano(nombrada)
+    imprimir ""
+    imprimir mem_lista_obtener(nombrada, 0)
+    imprimir ""
+fin_principal

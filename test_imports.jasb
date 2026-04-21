@@ -1,0 +1,9 @@
+usar todas de "stdlib/analitica-neuronal/base.jasb"
+usar { EstadisticaDescriptiva } de "stdlib/analitica-neuronal/estadistica/estadistica_descriptiva.jasb"
+usar { MachineLearning } de "stdlib/analitica-neuronal/machine_learning/algoritmos_ml.jasb"
+usar { ArbolesDecision } de "stdlib/analitica-neuronal/machine_learning/arboles_decision.jasb"
+usar { GradientBoosting } de "stdlib/analitica-neuronal/machine_learning/gradient_boosting.jasb"
+
+principal
+    imprimir "Test de importaciones"
+fin_principal

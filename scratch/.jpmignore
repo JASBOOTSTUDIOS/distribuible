@@ -1,0 +1,9 @@
+# Archivos y directorios a ignorar al empaquetar
+a-modulos/
+.jpm-cache/
+.jpm-temp/
+tests/
+*.jbo
+*.jmn
+.git/
+.gitignore

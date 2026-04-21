@@ -1,0 +1,6 @@
+# E: str_minusculas con dos argumentos — jbc debe fallar (un solo texto).
+
+principal
+    texto t = str_minusculas("X", "Y")
+    imprimir t
+fin_principal

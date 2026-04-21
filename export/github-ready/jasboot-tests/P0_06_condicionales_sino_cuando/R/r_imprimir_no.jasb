@@ -1,0 +1,5 @@
+principal
+    entero num_a = 0
+    imprimir no num_a
+    imprimir no 1
+fin_principal

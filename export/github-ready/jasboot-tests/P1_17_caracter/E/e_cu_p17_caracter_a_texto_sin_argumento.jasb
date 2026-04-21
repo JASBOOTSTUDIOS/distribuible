@@ -1,0 +1,7 @@
+// E: caracter_a_texto() sin argumento.
+// Esperado: error semantico: llamada a funcion no definida 'caracter_a_texto' (u equivalente).
+
+principal
+    texto t = caracter_a_texto()
+    imprimir(t)
+fin_principal

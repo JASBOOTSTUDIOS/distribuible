@@ -1,0 +1,59 @@
+# Integracion P0–P1_15: consumo kWh simulado (flotante), precios EUR/kWh, IVA 21%, comparaciones y picos.
+# Salidas: 3 lineas de detalle (sem2 dia3) + resumen (IVA acumulado con coste*0.21; evitar macro 1-arg en esta VM).
+# Valores de resumen esperados: ver NOTAS_S.md (tabla generada con la misma formula).
+
+funcion etiqueta_zona(entero z) retorna texto
+    si z == 1 entonces
+        retornar "Punta"
+    fin_si
+    si z == 2 entonces
+        retornar "Valle"
+    fin_si
+    retornar "Llano"
+fin_funcion
+
+principal
+    macro kwh_dia = (z, sem, dia) => ((z * 19 + sem * 5 + dia * 7) % 25) * 0.18 + 2.4
+    macro precio_eur_kwh = (z) => z == 1 ? 0.32 : z == 2 ? 0.12 : 0.19
+
+    flotante total_sin_iva = 0.0
+    flotante total_iva = 0.0
+    flotante pico_consumo = 0.0
+    entero cortes = 0
+
+    entero z = 1
+    mientras z <= 3 hacer
+        entero sem = 1
+        mientras sem <= 4 hacer
+            entero dia = 1
+            mientras dia <= 7 hacer
+                flotante kwh = kwh_dia(z, sem, dia)
+                flotante peur = precio_eur_kwh(z)
+                flotante coste = kwh * peur
+                total_sin_iva = total_sin_iva + coste
+                total_iva = total_iva + coste * 0.21
+                si kwh > pico_consumo entonces
+                    pico_consumo = kwh
+                fin_si
+                si coste > 2.5 entonces
+                    cortes++
+                fin_si
+                si sem == 2 y dia == 3 entonces
+                    texto etq = etiqueta_zona(z)
+                    imprimir "\nZona ${etq} sem${sem} dia${dia}: kWh=${kwh} EUR=${coste}"
+                fin_si
+                dia++
+            fin_mientras
+            sem++
+        fin_mientras
+        z++
+    fin_mientras
+
+    flotante factura = total_sin_iva + total_iva
+    imprimir "\n--- Resumen flotante ---"
+    imprimir "\nTotal sin IVA: ${total_sin_iva}"
+    imprimir "\nTotal IVA:      ${total_iva}"
+    imprimir "\nFactura:        ${factura}"
+    imprimir "\nPico kWh:       ${pico_consumo}"
+    imprimir "\nCortes precio>2.5 (entero): ${cortes}"
+fin_principal

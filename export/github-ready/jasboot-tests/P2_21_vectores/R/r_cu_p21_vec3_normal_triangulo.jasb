@@ -1,0 +1,26 @@
+# R: geometria — normal de triangulo en el plano XY: (pb-pa) x (pc-pa), luego normalizar.
+#     Vertices (0,0,0), (1,0,0), (0,1,0) -> normal +Z unitaria.
+#     Salidas: 0; 0; 1 (n.x, n.y, n.z); 1 (longitud tras normalizar).
+
+principal
+    vec3 pa
+    vec3 pb
+    vec3 pc
+    vec3 arista1
+    vec3 arista2
+    vec3 nbruto
+    vec3 n
+
+    pa = vec3(0.0, 0.0, 0.0)
+    pb = vec3(1.0, 0.0, 0.0)
+    pc = vec3(0.0, 1.0, 0.0)
+    arista1 = pb - pa
+    arista2 = pc - pa
+    vec3_cross(nbruto, arista1, arista2)
+    vec3_normalizar(n, nbruto)
+    imprimir n.x
+    imprimir n.y
+    imprimir n.z
+    imprimir vec3_longitud(n)
+    imprimir ""
+fin_principal

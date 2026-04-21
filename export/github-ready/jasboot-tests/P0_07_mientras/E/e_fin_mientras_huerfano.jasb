@@ -1,0 +1,4 @@
+principal
+    entero num_x = 0
+    fin_mientras
+fin_principal

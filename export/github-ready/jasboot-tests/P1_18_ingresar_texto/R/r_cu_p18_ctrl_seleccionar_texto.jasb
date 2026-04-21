@@ -1,0 +1,23 @@
+# R: `seleccionar` sobre variable rellenada con ingresar_texto.
+# Entrada: beta\n
+# Salida: 2 y linea vacia.
+
+principal
+    texto op = ""
+    mientras op no es igual a "FIN" hacer
+        limpiar_consola
+        imprimir "======= Entrando al seleccionar ======="
+        imprimir_sin_salto "Ingrese un valor:>> "
+        ingresar_texto op
+        seleccionar op hacer
+            caso "alfa"
+                imprimir 0
+            caso "beta"
+                imprimir 2
+            defecto
+                imprimir 9
+        fin_seleccionar
+        imprimir "======= Saliendo del seleccionar ======="
+        imprimir ""
+    fin_mientras
+fin_principal

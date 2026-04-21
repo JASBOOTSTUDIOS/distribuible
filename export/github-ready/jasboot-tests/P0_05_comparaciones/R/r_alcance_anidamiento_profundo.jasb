@@ -1,0 +1,22 @@
+principal
+    entero num_a = 10
+    
+    si num_a == 10 entonces
+        entero num_b = 20
+        
+        si num_b == 20 entonces
+            entero num_c = 30
+            
+            si num_c == 30 entonces
+                entero num_d = 40
+                
+                mientras num_a < 11 hacer
+                    entero num_e = 50
+                    # Todos los niveles estan disponibles hacia adentro
+                    imprimir num_a + num_b + num_c + num_d + num_e
+                    num_a = num_a + 1 # Romper el bucle
+                fin_mientras
+            fin_si
+        fin_si
+    fin_si
+fin_principal

@@ -1,0 +1,32 @@
+# Programa simple de prueba para verificar la compilación
+
+principal
+    imprimir "=== PRUEBA SIMPLE DE JASBOOT ==="
+    
+    # Crear una lista de números
+    lista numeros = crear_lista()
+    lista_agregar(numeros, 10.0)
+    lista_agregar(numeros, 20.0)
+    lista_agregar(numeros, 30.0)
+    lista_agregar(numeros, 40.0)
+    lista_agregar(numeros, 50.0)
+    
+    imprimir "Lista creada con " + str_desde_numero(lista_tamano(numeros)) + " elementos"
+    
+    # Calcular suma manualmente
+    flotante suma = 0.0
+    entero i = 0
+    mientras i < lista_tamano(numeros) hacer
+        elemento elemento_valor = lista_obtener(numeros, i)
+        suma = suma + elemento_valor
+        i = i + 1
+    fin_mientras
+    
+    flotante media = suma / lista_tamano(numeros)
+    imprimir "Suma: " + str_desde_numero(suma)
+    imprimir "Media: " + str_desde_numero(media)
+    
+    imprimir ""
+    imprimir "=== PRUEBA COMPLETADA EXITOSAMENTE ==="
+    
+fin_principal

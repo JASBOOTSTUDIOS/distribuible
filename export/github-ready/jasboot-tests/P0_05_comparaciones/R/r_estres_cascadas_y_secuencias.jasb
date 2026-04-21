@@ -1,0 +1,71 @@
+principal
+    # Prueba de estres combinando multiples asignaciones, condicionales consecutivas y uso de operadores
+    entero n = 0
+    entero m = 10
+    
+    # 1. Secuencia rápida de condiciones falsas
+    si n > 0 entonces m = 0 fin_si
+    si n >= 1 entonces m = 0 fin_si
+    si m < 10 entonces m = 0 fin_si
+    si m <= 9 entonces m = 0 fin_si
+    si m == 0 entonces m = 0 fin_si
+    si m != 10 entonces m = 0 fin_si
+    
+    # m deberia seguir siendo 10
+    imprimir m
+    
+    # 2. Secuencia de condiciones verdaderas que modifican m
+    si n == 0 entonces m = m + 1 fin_si # 11
+    si m != 10 entonces m = m + 1 fin_si # 12
+    si m > 10 entonces m = m + 1 fin_si # 13
+    si m >= 13 entonces m = m + 1 fin_si # 14
+    si m < 20 entonces m = m + 1 fin_si # 15
+    si m <= 15 entonces m = m + 1 fin_si # 16
+    
+    # m deberia ser 16
+    imprimir m
+    
+    # 3. Cascadas de sino si
+    si m == 10 entonces
+        n = 100
+    sino si m == 11 entonces
+        n = 200
+    sino si m == 12 entonces
+        n = 300
+    sino si m == 13 entonces
+        n = 400
+    sino si m == 14 entonces
+        n = 500
+    sino si m == 15 entonces
+        n = 600
+    sino si m == 16 entonces
+        n = 700
+    sino
+        n = 800
+    fin_si
+    
+    # n deberia ser 700
+    imprimir n
+
+    # 4. Validar comparaciones inversas con palabras
+    si n no es menor que 699 entonces
+        # n (700) no es menor que 699 -> 700 >= 699 -> Verdadero
+        imprimir 1
+    sino
+        imprimir 0
+    fin_si
+
+    si n no es mayor que 700 entonces
+        # n (700) no es mayor que 700 -> 700 <= 700 -> Verdadero
+        imprimir 1
+    sino
+        imprimir 0
+    fin_si
+
+    si n no es diferente a 700 entonces
+        # n (700) no es diferente a 700 -> 700 == 700 -> Verdadero
+        imprimir 1
+    sino
+        imprimir 0
+    fin_si
+fin_principal

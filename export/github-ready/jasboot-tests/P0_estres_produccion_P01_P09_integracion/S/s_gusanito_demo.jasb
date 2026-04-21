@@ -1,0 +1,82 @@
+# Juego del gusanito (autojugable en consola) para validar P0_01..P0_09.
+# No requiere entrada; cambia direccion periodicamente y suma puntaje al "comer".
+
+principal
+    entero ancho = 16
+    entero alto = 8
+    entero pasos_max = 50
+
+    entero cabeza_x = 2
+    entero cabeza_f = 3
+    entero direccion = 1
+
+    entero comida_x = 10
+    entero comida_f = 5
+
+    entero puntaje = 0
+    entero paso = 0
+
+    mientras paso < pasos_max hacer
+        imprimir ""
+        imprimir "Paso ${paso} | Puntaje ${puntaje}"
+
+        entero fila = 0
+        mientras fila < alto hacer
+            texto linea = ""
+            entero col = 0
+            mientras col < ancho hacer
+                si col == cabeza_x y fila == cabeza_f entonces
+                    linea = linea + "O"
+                sino si col == comida_x y fila == comida_f entonces
+                    linea = linea + "*"
+                sino
+                    linea = linea + "."
+                fin_si
+                col += 1
+            fin_mientras
+            imprimir linea
+            fila += 1
+        fin_mientras
+
+        si direccion == 0 entonces
+            cabeza_f -= 1
+        sino si direccion == 1 entonces
+            cabeza_x += 1
+        sino si direccion == 2 entonces
+            cabeza_f += 1
+        sino
+            cabeza_x -= 1
+        fin_si
+
+        si cabeza_x < 0 entonces
+            cabeza_x = ancho - 1
+        sino si cabeza_x >= ancho entonces
+            cabeza_x = 0
+        fin_si
+
+        si cabeza_f < 0 entonces
+            cabeza_f = alto - 1
+        sino si cabeza_f >= alto entonces
+            cabeza_f = 0
+        fin_si
+
+        si cabeza_x == comida_x y cabeza_f == comida_f entonces
+            puntaje += 10
+            comida_x = (comida_x * 7 + 3 + paso) % ancho
+            comida_f = (comida_f * 5 + 2 + paso) % alto
+            si comida_x == cabeza_x y comida_f == cabeza_f entonces
+                comida_x = (comida_x + 1) % ancho
+            fin_si
+        fin_si
+
+        si paso % 9 == 0 entonces
+            direccion = (direccion + 1) % 4
+        fin_si
+
+        paso += 1
+    fin_mientras
+
+    imprimir ""
+    imprimir "Fin del juego"
+    imprimir "Puntaje final: ${puntaje}"
+fin_principal

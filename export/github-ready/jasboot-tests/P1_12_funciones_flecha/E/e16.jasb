@@ -1,0 +1,7 @@
+// e16 — Cuerpo de flecha vacio entre => y )
+// Esperado: mensaje explicito: cuerpo vacio tras `=>` (valido ((x)=>x)(1), invalido ((x)=>)(1)).
+// Mide: cuerpo de expresion obligatorio en ((x)=> ... ) antes del ) que cierra la lambda.
+principal
+    entero tmp = ((x) => )(1)
+    imprimir tmp
+fin_principal

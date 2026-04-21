@@ -1,0 +1,5 @@
+# E: tras la palabra `llamar` debe seguir una llamada `nombre( ... )`, no una expresion arbitraria.
+
+principal
+    llamar 42
+fin_principal

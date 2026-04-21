@@ -1,0 +1,12 @@
+principal
+    intentar
+        imprimir "inicio"
+        lanzar "boom"
+        imprimir "no_deberia"
+    atrapar err
+        imprimir "capturado= ${err}"
+    final
+        imprimir "siempre"
+    fin_intentar
+fin_principal
+

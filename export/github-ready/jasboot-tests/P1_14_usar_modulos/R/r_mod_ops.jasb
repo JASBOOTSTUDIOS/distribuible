@@ -1,0 +1,5 @@
+// Modulo minimo para r_usar_un_modulo.jasb: una funcion doble(n) = n + n, exportada con `enviar`.
+
+enviar funcion doble(entero n) retorna entero
+retornar n + n
+fin_funcion

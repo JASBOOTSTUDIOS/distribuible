@@ -1,0 +1,49 @@
+# R (04): mapa cuyos valores son funciones (direcciones de codigo en runtime, guardadas como enteros en JMN).
+#   Se almacenan con mapa_poner, se recuperan con mapa_obtener a variables `funcion` y se invocan (orden superior).
+#
+# Requiere: tercer argumento de mapa_poner admite nombre de funcion global (codegen: expr_allow_func_literal).
+#
+# Salida esperada (jasboot-ir-vm tras `jbc`), linea a linea:
+#   1) 14 — aplicar(doble, 7)
+#   2) linea vacia
+#   3) 21 — aplicar(triple, 7)
+#   4) linea vacia
+#   5) 0 — aplicar(cero_const, 99)
+#   6) linea vacia
+
+funcion p29_doble(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+funcion p29_triple(entero x) retorna entero
+    retornar x * 3
+fin_funcion
+
+funcion p29_cero_const(entero x) retorna entero
+    retornar 0 * x
+fin_funcion
+
+funcion p29_aplicar(funcion f, entero v) retorna entero
+    retornar f(v)
+fin_funcion
+
+principal
+    mapa ops = mapa_crear()
+    mapa_poner(ops, 1, p29_doble)
+    mapa_poner(ops, 2, p29_triple)
+    mapa_poner(ops, 3, p29_cero_const)
+
+    funcion f_doble
+    funcion f_triple
+    funcion f_cero
+    f_doble = mapa_obtener(ops, 1)
+    f_triple = mapa_obtener(ops, 2)
+    f_cero = mapa_obtener(ops, 3)
+
+    imprimir p29_aplicar(f_doble, 7)
+    imprimir ""
+    imprimir p29_aplicar(f_triple, 7)
+    imprimir ""
+    imprimir p29_aplicar(f_cero, 99)
+    imprimir ""
+fin_principal

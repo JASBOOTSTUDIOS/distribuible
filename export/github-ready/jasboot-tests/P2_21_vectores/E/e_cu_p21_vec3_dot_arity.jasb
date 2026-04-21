@@ -1,0 +1,10 @@
+# E: vec3_dot requiere exactamente 2 argumentos.
+
+principal
+    vec3 u
+    vec3 v
+    flotante x
+    u = vec3(1.0, 0.0, 0.0)
+    v = vec3(0.0, 1.0, 0.0)
+    x = vec3_dot(u)
+fin_principal

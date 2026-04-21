@@ -1,0 +1,16 @@
+principal
+    entero externo = 0
+    entero num_i = 0
+    mientras num_i < 5 hacer
+        entero num_j = 0
+        mientras num_j < 10 hacer
+            si num_j == 3 entonces
+                romper
+            fin_si
+            externo = externo + 1
+            num_j = num_j + 1
+        fin_mientras
+        num_i = num_i + 1
+    fin_mientras
+    imprimir externo
+fin_principal

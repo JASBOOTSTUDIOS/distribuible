@@ -1,0 +1,8 @@
+# E: mem_lista_agregar con un solo argumento -> aridad insuficiente.
+#
+# Resultado esperado: `jbc` codigo distinto de 0 (falta segundo argumento).
+
+principal
+    lista x = crear_lista()
+    mem_lista_agregar(x)
+fin_principal

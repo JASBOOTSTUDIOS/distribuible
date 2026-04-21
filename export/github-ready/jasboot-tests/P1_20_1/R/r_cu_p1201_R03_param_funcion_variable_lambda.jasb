@@ -1,0 +1,14 @@
+# R: variable `funcion h` con lambda; se pasa a `ejecutar(funcion g, entero n)`.
+#     Salida esperada: 49 (7 * 7)
+
+funcion ejecutar(funcion g, entero n) retorna entero
+    retornar g(n)
+fin_funcion
+
+principal
+    entero r
+    funcion h
+    h = (entero t) => t * t
+    r = ejecutar(h, 7)
+    imprimir r
+fin_principal

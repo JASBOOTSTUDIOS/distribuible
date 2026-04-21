@@ -1,0 +1,11 @@
+# entrada_flotante(): teclado filtrado (digitos, un punto, - inicial, Retroceso; Enter termina).
+# Maximo 17 cifras; tras el aviso la edicion continua en la linea "> ..." (Retroceso redibuja bien).
+
+principal
+    imprimir "Numero (Enter termina): "
+    flotante x = entrada_flotante()
+    imprimir "\nLeido: "
+    imprimir_flotante(x)
+    imprimir "\n"
+fin_principal
+

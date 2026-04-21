@@ -1,0 +1,20 @@
+# S: muchas mat4_mul(I,I) en acumulador (sigue siendo identidad).
+# Esperado (jb): 1.0000 y linea vacia (ac.e0 de la identidad). Ver S/NOTAS_S.md.
+
+principal
+    mat4 mi
+    mat4 ac
+    mat4 tmp
+    entero k
+
+    mat4_identidad(mi)
+    mat4_identidad(ac)
+    k = 0
+    mientras k < 50000 hacer
+        mat4_mul(tmp, ac, mi)
+        mat4_mul(ac, tmp, mi)
+        k = k + 1
+    fin_mientras
+    imprimir ac.e0
+    imprimir ""
+fin_principal

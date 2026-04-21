@@ -1,0 +1,38 @@
+P0 #1 principal/fin_principal — compilación con jbc (bin\jbc.exe)
+Fecha: 2026-03-25
+
+Nota: stderr de PowerShell puede anteponer líneas "jbc.exe :" al mensaje del parser; el texto útil es "Parser error: …".
+
+--- e_sin_fin_principal.jasb ---
+exit code: 1
+jbo generado: no
+Parser error: Se esperaba fin_principal (EOF / token no esperado al final del archivo)
+
+--- e_solo_fin_principal.jasb ---
+exit code: 1
+jbo generado: no
+Error: `fin_principal` sin bloque `principal` que lo abra.
+
+--- e_cierre_incorrecto.jasb ---
+exit code: 1
+Parser error: Se esperaba fin_principal (Token: 'fin_funcion')
+
+--- e_doble_fin_principal.jasb ---
+exit code: 1
+Mismo diagnostico que solo `fin_principal` (primer token invalido).
+
+--- e_sin_principal_solo_sentencia.jasb ---
+exit code: 0
+Compila: sentencia de nivel superior aceptada.
+
+--- e_doble_bloque_principal.jasb ---
+exit code: 0
+Compila: dos bloques principal concatenan sentencias.
+
+--- R/r_baseline_minimo.jasb ---
+exit code: 0
+Compila.
+
+--- R/r_bucle_imprimir.jasb ---
+exit code: 0
+Compila (bucle 50_000 iteraciones en la versión documentada).

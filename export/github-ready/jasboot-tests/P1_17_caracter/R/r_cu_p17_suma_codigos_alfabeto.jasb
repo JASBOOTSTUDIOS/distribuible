@@ -1,0 +1,13 @@
+# R: bucle; str_extraer_caracter + codigo_caracter sobre cadena fija.
+# Suma de codigos ASCII de a..z = 2847
+
+principal
+    texto s = "abcdefghijklmnopqrstuvwxyz"
+    entero suma = 0
+    entero i = 0
+    mientras i < 26 hacer
+        suma = suma + codigo_caracter(str_extraer_caracter(s, i))
+        i = i + 1
+    fin_mientras
+    imprimir(suma)
+fin_principal

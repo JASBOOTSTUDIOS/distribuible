@@ -1,0 +1,18 @@
+# R: acumular texto con `+` en `mientras` hasta longitud minima.
+# Entrada: a\nb\ncd\n
+# Salida: 4 (longitud final "abcd") y linea vacia.
+
+principal
+    texto acc = "texto inicial"
+    mientras longitud(acc) < 100 hacer
+        limpiar_consola
+        imprimir "======= Entrando al bucle ======="
+        imprimir "Valor de acc: ${acc}"
+        imprimir_sin_salto "Ingrese un valor:>> "
+        ingresar_texto parte
+        acc = acc + parte
+        imprimir "======= Saliendo del bucle ======="
+    fin_mientras
+    imprimir longitud(acc)
+    imprimir ""
+fin_principal

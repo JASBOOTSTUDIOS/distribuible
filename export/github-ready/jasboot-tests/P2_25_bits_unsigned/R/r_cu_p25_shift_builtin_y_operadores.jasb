@@ -1,0 +1,13 @@
+# R: bit_shl/bit_shr y operadores << >> (operandos no negativos).
+# Esperado (jb): 28, 12, 40, 15 con linea vacia tras cada uno.
+
+principal
+    imprimir 7 << 2
+    imprimir ""
+    imprimir 100 >> 3
+    imprimir ""
+    imprimir bit_shl(5, 3)
+    imprimir ""
+    imprimir bit_shr(255, 4)
+    imprimir ""
+fin_principal

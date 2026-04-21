@@ -1,0 +1,7 @@
+# E: llamada a macro flecha con menos argumentos que parametros declarados entre parentesis.
+
+macro idmacro = (entero k) => k
+
+principal
+    entero r = idmacro()
+fin_principal

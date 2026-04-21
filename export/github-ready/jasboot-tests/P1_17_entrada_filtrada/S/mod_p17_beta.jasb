@@ -1,0 +1,7 @@
+# Intermedio: `usar todas de` alpha y reexporta cascada que llama simbolos importados.
+
+usar todas de "mod_p17_alpha.jasb"
+
+enviar funcion mod_beta_cascade(entero x) retorna entero
+    retornar llamar mod_alpha_acum(llamar mod_alpha_acum(0, x), 1)
+fin_funcion

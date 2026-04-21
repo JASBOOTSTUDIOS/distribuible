@@ -1,0 +1,6 @@
+# E: exp() requiere un argumento.
+# Esperado: jbc codigo != 0.
+
+principal
+    imprimir exp()
+fin_principal

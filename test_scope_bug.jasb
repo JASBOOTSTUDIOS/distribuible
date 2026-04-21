@@ -1,0 +1,37 @@
+# Test para reproducir bug de scope en imports
+# El compilador reporta error de variable duplicada 'c'
+# cuando múltiples módulos importados usan 'c' en funciones diferentes
+
+# Módulo 1 inline
+clase Modulo1
+    funcion test1() retorna entero
+        entero c = 1
+        retornar c
+    fin_funcion
+fin_clase
+
+# Módulo 2 inline
+clase Modulo2
+    funcion test2() retorna entero
+        entero c = 2
+        retornar c
+    fin_funcion
+fin_clase
+
+# Test principal
+principal
+    Modulo1 m1 = Modulo1()
+    Modulo2 m2 = Modulo2()
+
+    entero r1 = m1.test1()
+    entero r2 = m2.test2()
+
+    imprimir "Resultado 1: " + str_desde_numero(r1)
+    imprimir "Resultado 2: " + str_desde_numero(r2)
+
+    si r1 == 1 y r2 == 2 entonces
+        imprimir "✅ Test pasado - Variables en diferentes scopes funcionan correctamente"
+    sino
+        imprimir "❌ Test fallado"
+    fin_si
+fin_principal

@@ -1,0 +1,19 @@
+principal
+    entero frame = 0
+    entero eventos = 0
+    mientras frame < 40 hacer
+        limpiar_consola()
+        imprimir "frame=${frame} eventos=${eventos}"
+        texto tecla = ""
+        entero t0 = obtener_timestamp()
+        mientras tecla == "" y diferencia_en_segundos(t0, obtener_timestamp()) < 1 hacer
+            ingreso_inmediato tecla
+        fin_mientras
+        si tecla != "" entonces
+            eventos += 1
+        fin_si
+        frame += 1
+    fin_mientras
+    imprimir "mixto terminado eventos=${eventos}"
+fin_principal
+

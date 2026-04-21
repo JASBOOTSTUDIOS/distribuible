@@ -1,0 +1,9 @@
+principal
+    entero x = 10
+    x -= 3
+    entero n = 4
+    n *= 3
+    imprimir x
+    imprimir " "
+    imprimir n
+fin_principal

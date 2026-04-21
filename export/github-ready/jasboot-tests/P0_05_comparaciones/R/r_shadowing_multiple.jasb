@@ -1,0 +1,20 @@
+principal
+    entero nivel = 1
+    imprimir nivel
+    
+    si nivel == 1 entonces
+        entero nivel = 2
+        imprimir nivel
+        
+        entero contador = 0
+        mientras contador < 1 hacer
+            entero nivel = 3
+            imprimir nivel
+            contador = contador + 1
+        fin_mientras
+        
+        imprimir nivel
+    fin_si
+    
+    imprimir nivel
+fin_principal

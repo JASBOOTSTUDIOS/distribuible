@@ -1,0 +1,9 @@
+// Pieza del grafo ciclico para e_usar_ciclo_main.jasb (carpeta E/).
+// Este modulo importa m_ciclo_b.jasb; m_ciclo_b importa de vuelta este archivo.
+// No es un test autocontenido: solo sirve junto con m_ciclo_b y e_usar_ciclo_main.
+
+usar todas de "m_ciclo_b.jasb"
+
+funcion fa() retorna entero
+retornar 1
+fin_funcion

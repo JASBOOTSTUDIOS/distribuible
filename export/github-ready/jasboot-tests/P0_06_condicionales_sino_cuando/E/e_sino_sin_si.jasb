@@ -1,0 +1,7 @@
+principal
+    entero num_a = 1
+
+    sino
+        imprimir "error"
+    fin_si
+fin_principal

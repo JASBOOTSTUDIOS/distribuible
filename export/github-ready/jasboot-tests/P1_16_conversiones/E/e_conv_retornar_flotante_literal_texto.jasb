@@ -1,0 +1,9 @@
+// E: retornar texto donde la funcion declara retorna flotante.
+
+funcion lee_tasa() retorna flotante
+    retornar "0.21"
+fin_funcion
+
+principal
+    imprimir_flotante(lee_tasa())
+fin_principal

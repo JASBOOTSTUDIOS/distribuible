@@ -1,0 +1,6 @@
+// E: no hay conversion implicita mapa -> flotante.
+
+principal
+    flotante x = {"k": 1, "v": 2}
+    imprimir_flotante(x)
+fin_principal

@@ -1,0 +1,5 @@
+principal
+    entero num_a = 10
+    entero num_b = num_a % 0
+    imprimir num_b
+fin_principal

@@ -1,0 +1,6 @@
+# Wrapper nominal sobre LCG (`usar { mad_lcg } de`).
+usar { mad_lcg } de "m01_lcg.jasb"
+
+enviar funcion wrap_lcg(entero p, entero q) retorna entero
+    retornar mad_lcg(p, q) + mad_lcg(q, p)
+fin_funcion

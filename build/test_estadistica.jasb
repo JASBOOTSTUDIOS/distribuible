@@ -1,0 +1,51 @@
+# Programa de prueba para el módulo de estadística descriptiva
+
+usar { EstadisticaDescriptiva } de "../stdlib/analitica-neuronal/estadistica/estadistica_descriptiva.jasb"
+
+principal
+    imprimir "=== INICIANDO PRUEBAS DE ESTADÍSTICA DESCRIPTIVA ==="
+    
+    # Crear instancia de la clase
+    EstadisticaDescriptiva estadistica
+    
+    # Datos de prueba
+    lista datos_prueba = crear_lista()
+    lista_agregar(datos_prueba, 10.0)
+    lista_agregar(datos_prueba, 20.0)
+    lista_agregar(datos_prueba, 30.0)
+    lista_agregar(datos_prueba, 40.0)
+    lista_agregar(datos_prueba, 50.0)
+    
+    imprimir "Datos de prueba: [10.0, 20.0, 30.0, 40.0, 50.0]"
+    imprimir ""
+    
+    # Pruebas de tendencia central
+    flotante media = estadistica.calcular_media_aritmetica(datos_prueba)
+    imprimir "Media aritmética: " + str_desde_numero(media)
+    
+    flotante mediana = estadistica.calcular_mediana(datos_prueba)
+    imprimir "Mediana: " + str_desde_numero(mediana)
+    
+    flotante rango = estadistica.calcular_rango(datos_prueba)
+    imprimir "Rango: " + str_desde_numero(rango)
+    
+    flotante desv_std = estadistica.calcular_desviacion_estandar(datos_prueba, falso)
+    imprimir "Desviación estándar: " + str_desde_numero(desv_std)
+    
+    # Prueba con datos que tienen moda
+    lista datos_moda = crear_lista()
+    lista_agregar(datos_moda, 10.0)
+    lista_agregar(datos_moda, 20.0)
+    lista_agregar(datos_moda, 20.0)
+    lista_agregar(datos_moda, 30.0)
+    lista_agregar(datos_moda, 40.0)
+    
+    lista modas = estadistica.calcular_moda(datos_moda)
+    imprimir ""
+    imprimir "Datos con moda: [10.0, 20.0, 20.0, 30.0, 40.0]"
+    imprimir "Moda encontrada: " + str_desde_numero(lista_tamano(modas)) + " valores"
+    
+    imprimir ""
+    imprimir "=== PRUEBAS COMPLETADAS ==="
+    
+fin_principal

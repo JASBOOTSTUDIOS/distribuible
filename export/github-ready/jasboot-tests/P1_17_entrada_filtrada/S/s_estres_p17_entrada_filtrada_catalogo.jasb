@@ -1,0 +1,199 @@
+# s_estres_p17_entrada_filtrada_catalogo — estres integrado P0..P1_17 (entrada filtrada / IO inmediato).
+# Modulos: usar todas de (beta+alpha transitivo), usar todo de gamma, usar { } de delta, activar_modulo epsilon.
+# P0: principal, imprimir/imprimir_sin_salto, limpiar_consola, entero/flotante, aritmetica, comparaciones,
+#     si/sino/cuando, mientras, hacer/mientras, romper/continuar, texto, interpolacion, ingreso_inmediato, percibir_teclado.
+# P1_11: funcion/retornar, bool, ternario, seleccionar/caso/defecto.
+# P1_12: macro expresion y macro bloque.
+# P1_13: llamar (importadas y locales).
+# P1_14: variantes usar + enviar + activar_modulo.
+# P1_15–P1_16: flotante, convertir_flotante / convertir_entero, str_desde_numero, imprimir_flotante.
+# P1_17: percibir_teclado (bucle acotado), logica tipo filtrado (contiene_texto + codigo_caracter sobre cadena sintetica).
+# Salida: "P17_FPU" + imprimir_flotante; linea final "P17_CHECKSUM = N" (ver NOTAS_S.md).
+
+usar todas de "mod_p17_beta.jasb"
+usar todo de "mod_p17_gamma.jasb"
+usar { mod_delta_fn, DELTA_BIAS } de "mod_p17_delta.jasb"
+activar_modulo todas de "mod_p17_epsilon.jasb"
+
+constante entero ESTRES_CAP = 96
+
+funcion fib_loc(entero n) retorna entero
+    si n <= 1 entonces
+        retornar n
+    fin_si
+    entero f1 = fib_loc(n - 1)
+    entero f2 = fib_loc(n - 2)
+    retornar f1 + f2
+fin_funcion
+
+funcion es_primo_loc(entero num) retorna bool
+    si num <= 1 entonces
+        retornar falso
+    fin_si
+    entero i = 2
+    mientras i * i <= num hacer
+        si num % i == 0 entonces
+            retornar falso
+        fin_si
+        i++
+    fin_mientras
+    retornar verdadero
+fin_funcion
+
+principal
+    limpiar_consola()
+
+    macro dup = (x) => x + x
+    macro mezcla = (u, v) => u > v ? u - v : v - u
+    macro bloque_triple = (k) => {
+        retornar k + k + k
+    }
+
+    entero checksum = 0
+
+    checksum = checksum + llamar mod_beta_cascade(3)
+    checksum = checksum + llamar mod_gamma_scale(4)
+    checksum = checksum + llamar mod_delta_fn(2)
+    checksum = checksum + DELTA_BIAS
+    checksum = checksum + llamar mod_eps(5)
+    checksum = checksum + llamar mod_gamma_scale(llamar mod_delta_fn(llamar mod_eps(1)))
+    checksum = checksum + llamar mod_alpha_acum(2, 3)
+    checksum = checksum + fib_loc(10)
+    checksum = checksum + dup(9)
+    checksum = checksum + mezcla(30, 12)
+    checksum = checksum + bloque_triple(8)
+
+    texto digitos = "0123456789"
+    texto sim_tecla = "5"
+    si contiene_texto(digitos, sim_tecla) entonces
+        checksum = checksum + codigo_caracter(sim_tecla)
+    fin_si
+
+    flotante acc_f = 0.0
+    entero kf = 0
+    mientras kf < 24 hacer
+        acc_f = acc_f + convertir_flotante("0.125")
+        kf++
+    fin_mientras
+    si acc_f < convertir_flotante("10.0") entonces
+        checksum = checksum + convertir_entero("3")
+    fin_si
+
+    entero suma_primos = 0
+    entero p = 1
+    mientras p <= 36 hacer
+        si es_primo_loc(p) entonces
+            suma_primos = suma_primos + p * p
+        fin_si
+        p++
+    fin_mientras
+    checksum = checksum + suma_primos
+
+    entero idx = 0
+    mientras idx < ESTRES_CAP hacer
+        checksum = checksum + llamar mod_gamma_scale(idx % 11)
+        checksum = checksum + llamar mod_delta_fn(idx % 5)
+        texto tidx = str_desde_numero(idx % 10)
+        checksum = checksum + convertir_entero(tidx)
+
+        si idx == 0 entonces
+            checksum = checksum + 2
+        fin_si
+        si idx != 999 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx < 200 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx > -1 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx <= 95 entonces
+            checksum = checksum + 1
+        fin_si
+        si idx >= 0 entonces
+            checksum = checksum + 1
+        fin_si
+
+        si idx % 2 == 0 entonces
+            si idx % 3 == 0 entonces
+                checksum = checksum + 4
+            sino cuando idx % 7 == 0 entonces
+                checksum = checksum + 3
+            sino
+                checksum = checksum + 2
+            fin_si
+        sino si idx % 5 == 0 entonces
+            checksum = checksum + 5
+        sino
+            checksum = checksum + 1
+        fin_si
+
+        idx += 1
+    fin_mientras
+
+    entero capa = 0
+    mientras capa < 8 hacer
+        entero j = 0
+        hacer
+            checksum = checksum + (capa + j) % 19
+            j += 1
+        mientras j < 5 fin_hacer
+        capa += 1
+    fin_mientras
+
+    entero r = 0
+    mientras r < 44 hacer
+        si r % 6 == 0 entonces
+            r += 1
+            continuar
+        fin_si
+        si r > 36 entonces
+            romper
+        fin_si
+        checksum = checksum + (r % 29)
+        r += 1
+    fin_mientras
+
+    entero poll = 0
+    entero suma_len_pc = 0
+    mientras poll < 8 hacer
+        texto tpc = percibir_teclado()
+        suma_len_pc = suma_len_pc + longitud(tpc)
+        poll += 1
+    fin_mientras
+    checksum = checksum + suma_len_pc
+
+    entero ii = 0
+    texto buf_io = ""
+    entero suma_len_im = 0
+    mientras ii < 6 hacer
+        ingreso_inmediato buf_io
+        suma_len_im = suma_len_im + longitud(buf_io)
+        ii += 1
+    fin_mientras
+    checksum = checksum + suma_len_im
+    si longitud(buf_io) >= 0 entonces
+        checksum = checksum + 0
+    fin_si
+
+    entero sel_tag = 2
+    seleccionar sel_tag hacer
+        caso 2
+            checksum = checksum + 1
+        defecto
+            checksum = checksum + 0
+    fin_seleccionar
+
+    bool ok = checksum > 12000
+    texto bandera = ok ? "ok" : "bajo"
+    texto estado = "listo"
+
+    imprimir "\nP17_FPU "
+    imprimir_flotante(acc_f)
+    imprimir "\n"
+
+    imprimir_sin_salto "P17_estres "
+    imprimir "\verd\nfib10=${fib_loc(10)} bandera=${bandera} estado=${estado}\norm\n"
+    imprimir "P17_CHECKSUM = ${checksum}"
+fin_principal

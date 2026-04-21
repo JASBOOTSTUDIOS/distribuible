@@ -1,0 +1,14 @@
+principal
+    entero num_n = 0
+    mientras num_n < 20 hacer
+        cuando num_n entonces
+            si num_n > 8 entonces
+                romper
+            fin_si
+        sino
+            imprimir 0
+        fin_cuando
+        num_n = num_n + 1
+    fin_mientras
+    imprimir num_n
+fin_principal

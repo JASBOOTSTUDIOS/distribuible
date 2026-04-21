@@ -1,0 +1,9 @@
+# E: funcion que declara `retorna entero` pero no contiene ninguna sentencia `retornar` (analisis semantico).
+
+funcion aplicar(funcion f, entero v) retorna entero
+    entero x
+    x = v
+fin_funcion
+
+principal
+fin_principal

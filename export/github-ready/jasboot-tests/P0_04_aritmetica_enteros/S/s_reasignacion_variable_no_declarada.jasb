@@ -1,0 +1,4 @@
+principal
+    # variable_no_declarada no ha sido creada
+    variable_no_declarada = variable_no_declarada + 1
+fin_principal

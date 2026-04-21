@@ -1,0 +1,52 @@
+funcion calcular_collatz_complejo(entero n) retorna entero
+    entero pasos = 0
+    mientras n != 1 hacer
+        si n % 2 == 0 entonces
+            n /= 2
+        sino
+            n = (n * 3) + 1
+        fin_si
+        pasos++
+        si pasos > 1000 entonces
+            romper
+        fin_si
+    fin_mientras
+    retornar pasos
+fin_funcion
+
+principal
+    imprimir "Iniciando estres 3: Macros multilinea, Collatz y flujos complejos"
+    
+    macro clasificar_collatz = (entero num) => {
+        entero p = calcular_collatz_complejo(num)
+        texto categoria = ""
+        si p < 10 entonces
+            categoria = "Rapido"
+        sino si p < 50 entonces
+            categoria = "Medio"
+        sino
+            categoria = "Lento"
+        fin_si
+        retornar "Numero ${num} tomo ${p} pasos. Categoria: ${categoria}"
+    }
+    
+    entero k = 5
+    mientras k <= 15 hacer
+        imprimir clasificar_collatz(k)
+        k += 2
+    fin_mientras
+    
+    entero acumulador = 0
+    entero idx = 0
+    hacer
+        idx++
+        si idx % 3 == 0 entonces
+            continuar
+        fin_si
+        acumulador += idx
+    mientras idx < 20 fin_hacer
+    
+    imprimir "Acumulador despues de continuars: " + acumulador
+    
+    imprimir "Fin de la prueba 3"
+fin_principal

@@ -1,0 +1,37 @@
+# R: constructores vec2/vec3/vec4, acceso .x .y .z .w, longitud, normalizar, dot, vec3_cross.
+#     Salidas (jb): 5; 32; 1 (vc.z); 1 (len4 de qn). Lineas en blanco entre imprimir.
+
+principal
+    vec2 u
+    vec3 va
+    vec3 vb
+    vec3 vc
+    vec4 q
+    vec4 qn
+    flotante len2
+    flotante d
+    flotante len4
+
+    u = vec2(3.0, 4.0)
+    len2 = vec2_longitud(u)
+    imprimir len2
+    imprimir ""
+
+    va = vec3(1.0, 2.0, 3.0)
+    vb = vec3(4.0, 5.0, 6.0)
+    d = vec3_dot(va, vb)
+    imprimir d
+    imprimir ""
+
+    va = vec3(1.0, 0.0, 0.0)
+    vb = vec3(0.0, 1.0, 0.0)
+    vec3_cross(vc, va, vb)
+    imprimir vc.z
+    imprimir ""
+
+    q = vec4(2.0, 0.0, 0.0, 0.0)
+    vec4_normalizar(qn, q)
+    len4 = vec4_longitud(qn)
+    imprimir len4
+    imprimir ""
+fin_principal

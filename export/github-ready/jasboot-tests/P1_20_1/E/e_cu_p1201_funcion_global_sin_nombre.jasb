@@ -1,0 +1,8 @@
+# E: definicion de funcion global requiere identificador de nombre despues de `funcion`; no puede ir `(` directo.
+
+funcion (entero k) retorna entero
+    retornar k
+fin_funcion
+
+principal
+fin_principal

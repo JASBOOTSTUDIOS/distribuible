@@ -1,0 +1,6 @@
+# Nivel 2: importa l3.
+usar todas de "../l3/cap_l3.jasb"
+
+enviar funcion svc_cap_dos(entero k) retorna entero
+    retornar svc_cap_tres(k) + bit_shr(k, 1)
+fin_funcion

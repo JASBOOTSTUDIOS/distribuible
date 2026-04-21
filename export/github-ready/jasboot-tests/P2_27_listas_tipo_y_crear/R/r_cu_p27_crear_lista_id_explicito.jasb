@@ -1,0 +1,16 @@
+# R: crear_lista(entero) con id != 0 (JMN); un solo argumento.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 1 — mem_lista_tamano(x)
+#   2) línea vacía
+#   3) 42 — mem_lista_obtener(x, 0)
+#   4) línea vacía
+
+principal
+    lista x = crear_lista(99)
+    mem_lista_agregar(x, 42)
+    imprimir mem_lista_tamano(x)
+    imprimir ""
+    imprimir mem_lista_obtener(x, 0)
+    imprimir ""
+fin_principal

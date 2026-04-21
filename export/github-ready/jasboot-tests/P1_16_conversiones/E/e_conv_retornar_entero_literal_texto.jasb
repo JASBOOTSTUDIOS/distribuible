@@ -1,0 +1,9 @@
+// E: retornar texto donde la funcion declara retorna entero.
+
+funcion lee_id() retorna entero
+    retornar "no_es_numero"
+fin_funcion
+
+principal
+    imprimir(lee_id())
+fin_principal

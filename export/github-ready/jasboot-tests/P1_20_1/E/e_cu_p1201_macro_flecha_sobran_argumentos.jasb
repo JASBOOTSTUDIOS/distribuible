@@ -1,0 +1,7 @@
+# E: llamada a macro flecha con mas argumentos que parametros en su definicion.
+
+macro dupmacro = (entero k) => k * 2
+
+principal
+    entero r = dupmacro(10, 20)
+fin_principal

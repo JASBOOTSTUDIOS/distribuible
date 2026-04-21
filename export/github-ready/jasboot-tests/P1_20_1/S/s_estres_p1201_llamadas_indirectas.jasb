@@ -1,0 +1,42 @@
+# S: muchas llamadas indirectas via parametro `funcion` y variable `funcion` = global.
+#     (Las lambdas en bucle largo agotan la pila de la VM; una sola llamada lambda al final.)
+
+funcion inc(entero x) retorna entero
+    retornar x + 1
+fin_funcion
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+funcion aplicar(funcion f, entero v) retorna entero
+    retornar f(v)
+fin_funcion
+
+principal
+    entero acc
+    entero i
+    funcion h
+    funcion g
+
+    acc = 0
+    i = 0
+    mientras i < 3000 hacer
+        acc = aplicar(inc, acc)
+        i = i + 1
+    fin_mientras
+    imprimir acc
+
+    h = duplicar
+    acc = 1
+    i = 0
+    mientras i < 16 hacer
+        acc = aplicar(h, acc)
+        i = i + 1
+    fin_mientras
+    imprimir acc
+
+    g = (entero t) => t + 7
+    acc = aplicar(g, 100)
+    imprimir acc
+fin_principal

@@ -1,0 +1,7 @@
+# E: funcion de lista inexistente -> compilacion falla (llamada no resuelta).
+#
+# Resultado esperado: `jbc` codigo distinto de 0 (llamada no resuelta / sin lowering).
+
+principal
+    lista x = lista_que_no_existe_en_sistema()
+fin_principal

@@ -1,0 +1,99 @@
+# S (vida real): rejilla de vertices 4D transformada por cadena MVP (modelo * vista * proyeccion).
+#     Profundidad: mat4 por componentes (e0..e15), mat4_mul encadenado, mat4_transpuesta,
+#     mat4_inversa (rotacion ortogonal) + comprobacion R*R^-1 ~ I, mat4_mul_vec4 en bucles
+#     anidados (mientras + flotante), vec4, ramas si/sino, acumulador flotante.
+# Esperado (jb): primera linea numerica ~ 46.6915 (checksum suma; float32), luego linea vacia. Ver S/NOTAS_S.md.
+
+principal
+    mat4 rot
+    mat4 trasl
+    mat4 modelo
+    mat4 vista
+    mat4 proj
+    mat4 vm_tmp
+    mat4 mvp
+    mat4 rot_t
+    mat4 rot_inv
+    mat4 id_chk
+    mat4 tmp_mul
+
+    vec4 clip
+    vec4 vin
+    flotante co
+    flotante sn
+    flotante suma
+    flotante pos_x
+    flotante pos_y
+    flotante paso_x
+    flotante paso_y
+    flotante x0
+    flotante y0
+    flotante x1
+    flotante y1
+    flotante ang
+
+    ang = 0.65
+    co = cos(ang)
+    sn = sin(ang)
+
+    mat4_identidad(rot)
+    rot.e0 = co
+    rot.e2 = sn
+    rot.e8 = 0.0 - sn
+    rot.e10 = co
+    rot.e5 = 1.0
+
+    mat4_identidad(trasl)
+    trasl.e12 = 0.45
+    trasl.e13 = -0.22
+    trasl.e14 = 0.08
+
+    mat4_mul(modelo, trasl, rot)
+
+    mat4_identidad(vista)
+    vista.e12 = -0.35
+    vista.e13 = 0.06
+    vista.e14 = -1.2
+
+    mat4_identidad(proj)
+    proj.e0 = 0.85
+    proj.e5 = 0.85
+    proj.e10 = 0.75
+
+    mat4_mul(vm_tmp, vista, modelo)
+    mat4_mul(mvp, proj, vm_tmp)
+
+    mat4_transpuesta(rot_t, rot)
+    mat4_inversa(rot_inv, rot)
+    mat4_mul(id_chk, rot, rot_inv)
+    suma = id_chk.e0 + id_chk.e5 + id_chk.e10 + id_chk.e15
+
+    paso_x = 0.085
+    paso_y = 0.11
+    x0 = -1.55
+    y0 = -1.15
+    x1 = 1.55
+    y1 = 1.15
+
+    pos_y = y0
+    mientras pos_y <= y1 hacer
+        pos_x = x0
+        mientras pos_x <= x1 hacer
+            vin = vec4(pos_x, pos_y, 0.08, 1.0)
+            mat4_mul_vec4(clip, mvp, vin)
+            si clip.x > clip.y entonces
+                suma = suma + clip.x + clip.y + clip.z * 0.25
+            sino
+                suma = suma + clip.x * 0.5 + clip.y + clip.w * 0.03
+            fin_si
+            pos_x = pos_x + paso_x
+        fin_mientras
+        pos_y = pos_y + paso_y
+    fin_mientras
+
+    mat4_mul(tmp_mul, mvp, rot_t)
+    suma = suma + tmp_mul.e0 * 0.001 + tmp_mul.e15 * 0.001
+
+    imprimir suma
+    imprimir ""
+fin_principal

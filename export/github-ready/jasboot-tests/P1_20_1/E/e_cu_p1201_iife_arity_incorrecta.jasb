@@ -1,0 +1,5 @@
+# E: invocacion inmediata de lambda: cantidad de argumentos distinta a la de parametros (parser / semantica flecha).
+
+principal
+    entero r = ((entero k) => k)(1, 2)
+fin_principal

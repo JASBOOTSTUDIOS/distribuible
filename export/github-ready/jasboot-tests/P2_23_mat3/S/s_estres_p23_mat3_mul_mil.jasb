@@ -1,0 +1,37 @@
+# S: presion mat3_mul con identidad (50k x2 productos).
+# Esperado (jb): 1.0000 y una linea vacia (ac.e0 sigue siendo 1).
+
+principal
+    mat3 mi
+    mat3 ac
+    mat3 tmp
+    entero k
+
+    mi.e0 = 1.0
+    mi.e1 = 0.0
+    mi.e2 = 0.0
+    mi.e3 = 0.0
+    mi.e4 = 1.0
+    mi.e5 = 0.0
+    mi.e6 = 0.0
+    mi.e7 = 0.0
+    mi.e8 = 1.0
+    ac.e0 = 1.0
+    ac.e1 = 0.0
+    ac.e2 = 0.0
+    ac.e3 = 0.0
+    ac.e4 = 1.0
+    ac.e5 = 0.0
+    ac.e6 = 0.0
+    ac.e7 = 0.0
+    ac.e8 = 1.0
+
+    k = 0
+    mientras k < 50000 hacer
+        mat3_mul(tmp, ac, mi)
+        mat3_mul(ac, tmp, mi)
+        k = k + 1
+    fin_mientras
+    imprimir ac.e0
+    imprimir ""
+fin_principal

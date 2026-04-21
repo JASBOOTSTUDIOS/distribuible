@@ -1,0 +1,47 @@
+principal
+    entero num_a = 10
+    entero num_b = 20
+    entero num_c = 10
+    
+    # Igualdad
+    si num_a == num_c entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    
+    # Desigualdad
+    si num_a != num_b entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    
+    # Menor que
+    si num_a < num_b entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    
+    # Mayor que
+    si num_b > num_a entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    
+    # Menor o igual
+    si num_a <= num_c entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    
+    # Mayor o igual
+    si num_b >= num_a entonces
+        imprimir 1 # Debe imprimir 1
+    sino
+        imprimir 0
+    fin_si
+fin_principal

@@ -1,0 +1,24 @@
+// Modulo para r_usar_flotante_*.jasb: funciones exportadas con `enviar` (P1_14) y cuerpo P1_15 + condicionales.
+// No es entrypoint: solo biblioteca.
+
+enviar funcion clamp_pos(flotante x) retorna flotante
+    si x < 0.0 entonces
+        retornar 0.0
+    fin_si
+    retornar x
+fin_funcion
+
+enviar funcion iva_de(flotante base) retorna flotante
+    si base < 0.0 entonces
+        retornar 0.0
+    fin_si
+    retornar base * 0.21
+fin_funcion
+
+enviar funcion max_fl(flotante u, flotante v) retorna flotante
+    si u >= v entonces
+        retornar u
+    sino
+        retornar v
+    fin_si
+fin_funcion

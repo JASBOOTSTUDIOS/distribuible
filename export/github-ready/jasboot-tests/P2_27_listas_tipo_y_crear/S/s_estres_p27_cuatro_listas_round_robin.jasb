@@ -1,0 +1,42 @@
+# S: cuatro listas, agregar entrelazado (4800 llamadas) — aislamiento y PC estable.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 1200 — mem_lista_tamano(lista_w)
+#   2) línea vacía
+#   3) 1200 — mem_lista_tamano(lista_x)
+#   4) línea vacía
+#   5) 1200 — mem_lista_tamano(lista_y)
+#   6) línea vacía
+#   7) 1200 — mem_lista_tamano(lista_z)
+#   8) línea vacía
+#   9) 1199 — mem_lista_obtener(lista_w, 1199)
+#  10) línea vacía
+#  11) 9000 — mem_lista_obtener(lista_z, 0)
+#  12) línea vacía
+
+principal
+    lista lista_w = crear_lista()
+    lista lista_x = lista_crear()
+    lista lista_y = mem_lista_crear()
+    lista lista_z = crear_lista()
+    entero n = 0
+    mientras n < 1200 hacer
+        mem_lista_agregar(lista_w, n)
+        mem_lista_agregar(lista_x, n + 3000)
+        mem_lista_agregar(lista_y, n + 6000)
+        mem_lista_agregar(lista_z, n + 9000)
+        n += 1
+    fin_mientras
+    imprimir mem_lista_tamano(lista_w)
+    imprimir ""
+    imprimir mem_lista_tamano(lista_x)
+    imprimir ""
+    imprimir mem_lista_tamano(lista_y)
+    imprimir ""
+    imprimir mem_lista_tamano(lista_z)
+    imprimir ""
+    imprimir mem_lista_obtener(lista_w, 1199)
+    imprimir ""
+    imprimir mem_lista_obtener(lista_z, 0)
+    imprimir ""
+fin_principal

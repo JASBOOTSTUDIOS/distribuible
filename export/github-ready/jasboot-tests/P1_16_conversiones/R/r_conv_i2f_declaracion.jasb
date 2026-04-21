@@ -1,0 +1,10 @@
+# I2F implicito: flotante desde entero (literal y suma entera).
+# OP_CONV_I2F al guardar en variable flotante.
+# Salida: dos lineas 3.0000 y 7.0000
+
+principal
+    flotante fa = 3
+    flotante fb = 4 + 3
+    imprimir(decimal(fa + 0.78, 4))
+    imprimir(decimal(fb, 4))
+fin_principal

@@ -1,0 +1,7 @@
+principal
+    entero i = 0
+    hacer 
+        imprimir "Hola, mundo!"
+        i = i + 1
+    mientras i < 10
+fin_principal

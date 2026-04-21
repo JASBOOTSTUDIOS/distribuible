@@ -1,0 +1,8 @@
+# E (05): `lista<entero>` + `mem_lista_agregar` con valor inferido flotante → error de compilación (Fase C).
+#
+# Se espera que `jbc` falle (exit distinto de 0): mensaje que cite lista<entero> vs tipo inferido flotante.
+
+principal
+    lista<entero> L = crear_lista()
+    mem_lista_agregar(L, 1.0)
+fin_principal

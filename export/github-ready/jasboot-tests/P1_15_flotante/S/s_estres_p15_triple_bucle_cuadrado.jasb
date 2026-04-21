@@ -1,0 +1,24 @@
+# Estres P1_15: triple bucle (3x5x7) acumulando t^2 con t = c + 0.1*s + 0.01*d (flotante).
+# Referencia double Python: 647.08; salida VM (float32): 646.3868 — actualizar si cambia la VM.
+# Ver NOTAS_S.md.
+
+principal
+    flotante acc = 0.0
+    entero c = 1
+    mientras c <= 3 hacer
+        entero s = 1
+        mientras s <= 5 hacer
+            entero d = 1
+            mientras d <= 7 hacer
+                flotante t = c * 1.0 + s * 0.1 + d * 0.01
+                acc = acc + t * t
+                d++
+            fin_mientras
+            s++
+        fin_mientras
+        c++
+    fin_mientras
+    imprimir ""
+    imprimir_flotante(acc)
+    imprimir ""
+fin_principal

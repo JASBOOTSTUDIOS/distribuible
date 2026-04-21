@@ -1,0 +1,19 @@
+# Bucle + `si`/`sino` en el principal llamando `max_fl` importado (carga ligera, regresion P14+P15).
+# acc = suma por ramas (ver NOTAS_R.md): aritmetica exacta 24.5; VM float32 suele mostrar 24.5000.
+
+usar { max_fl } de "m_flotante_usar.jasb"
+
+principal
+    flotante acc = 0.0
+    entero i = 0
+    mientras i < 10 hacer
+        flotante t = i * 0.5
+        si t < 1.0 entonces
+            acc = acc + max_fl(t, 0.5)
+        sino
+            acc = acc + max_fl(t, 2.0)
+        fin_si
+        i++
+    fin_mientras
+    imprimir "${decimal(acc)}"
+fin_principal

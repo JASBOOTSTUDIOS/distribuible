@@ -1,0 +1,10 @@
+// E — Ruta de modulo inexistente (`usar todas de` con cadena que no apunta a ningun archivo).
+// Esperado: fallo de compilacion con mensaje claro (modulo no encontrado, ruta mostrada).
+// No debe ignorarse en silencio: el `usar` debe ser error.
+
+entero x = 1
+usar todas de "este_archivo_no_existe_93421.jasb"
+
+principal
+imprimir x
+fin_principal

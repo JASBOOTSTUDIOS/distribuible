@@ -1,0 +1,17 @@
+# R: crear_lista(expr) con registro (no literal texto): id anonimo desde expresion.
+#
+# Salida esperada en consola (jasboot-ir-vm tras `jbc`), línea a línea:
+#   1) 1 — mem_lista_tamano(dinamica)
+#   2) línea vacía
+#   3) 9 — mem_lista_obtener(dinamica, 0)
+#   4) línea vacía
+
+principal
+    entero semilla = 3
+    lista dinamica = crear_lista(semilla + 2)
+    mem_lista_agregar(dinamica, 9)
+    imprimir mem_lista_tamano(dinamica)
+    imprimir ""
+    imprimir mem_lista_obtener(dinamica, 0)
+    imprimir ""
+fin_principal

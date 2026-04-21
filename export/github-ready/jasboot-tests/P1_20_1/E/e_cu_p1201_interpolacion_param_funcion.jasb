@@ -1,0 +1,15 @@
+# E: en "${...}" no puede ir un parametro/variable tipo `funcion` (no es imprimible; antes se mostraba un entero falso).
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+funcion aplicar_uno(funcion f, entero v) retorna entero
+    imprimir "f: ${f}"
+    retornar f(v)
+fin_funcion
+
+principal
+    entero r
+    r = aplicar_uno(duplicar, 1)
+fin_principal

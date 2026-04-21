@@ -1,0 +1,9 @@
+// E — Import nominal pide un simbolo que existe en el modulo pero no lleva `enviar`.
+// El modulo ../R/r_mod_export.jasb exporta `doble` con enviar y define `triple` sin enviar.
+// Esperado: fallo de compilacion: `triple` no esta marcado con `enviar`.
+
+usar {triple} de "../R/r_mod_export.jasb"
+
+principal
+    imprimir 0
+fin_principal

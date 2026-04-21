@@ -1,0 +1,28 @@
+# R: iluminacion simplificada — factor N·L con normales y direcciones de luz normalizadas.
+#     Normal +Z; luz frontal +Z -> dot 1; luz lateral +X -> dot 0.
+
+principal
+    vec3 normal
+    vec3 nu
+    vec3 luz_frontal
+    vec3 luf
+    vec3 luz_lateral
+    vec3 lul
+    flotante ndotl_frente
+    flotante ndotl_lado
+
+    normal = vec3(0.0, 0.0, 1.0)
+    vec3_normalizar(nu, normal)
+
+    luz_frontal = vec3(0.0, 0.0, 1.0)
+    vec3_normalizar(luf, luz_frontal)
+    ndotl_frente = vec3_dot(nu, luf)
+    imprimir ndotl_frente
+    imprimir ""
+
+    luz_lateral = vec3(1.0, 0.0, 0.0)
+    vec3_normalizar(lul, luz_lateral)
+    ndotl_lado = vec3_dot(nu, lul)
+    imprimir ndotl_lado
+    imprimir ""
+fin_principal

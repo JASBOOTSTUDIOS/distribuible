@@ -1,0 +1,18 @@
+# Produccion: triple bucle anidado (motores batch, agregacion por cubo).
+principal
+    entero acc = 0
+    entero fila = 0
+    mientras fila < 28 hacer
+        entero col = 0
+        mientras col < 28 hacer
+            entero prof = 0
+            mientras prof < 28 hacer
+                acc = acc + (fila + col * 2 + prof * 3) % 17
+                prof += 1
+            fin_mientras
+            col += 1
+        fin_mientras
+        fila += 1
+    fin_mientras
+    imprimir acc
+fin_principal

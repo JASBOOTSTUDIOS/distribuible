@@ -1,0 +1,5 @@
+principal
+    entero z = 0
+    entero x = 1 / z
+    imprimir x
+fin_principal

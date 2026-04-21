@@ -1,0 +1,5 @@
+# E: mapa_obtener() — jbc debe fallar.
+
+principal
+    mapa_obtener()
+fin_principal

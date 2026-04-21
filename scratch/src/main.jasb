@@ -1,0 +1,7 @@
+# test-jpm
+# Punto de entrada principal
+
+funcion principal() retorna entero {
+    imprimir("Hola desde test-jpm")
+    retornar 0
+}

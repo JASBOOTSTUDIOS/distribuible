@@ -1,0 +1,10 @@
+# E: mat4_mul con 2 argumentos (falta matR).
+# Esperado: jbc codigo != 0 (aridad incorrecta).
+
+principal
+    mat4 num_a
+    mat4 num_b
+    mat4_identidad(num_a)
+    mat4_identidad(num_b)
+    mat4_mul(num_a, num_b)
+fin_principal

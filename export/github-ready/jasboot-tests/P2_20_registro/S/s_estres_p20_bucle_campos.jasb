@@ -1,0 +1,21 @@
+registro Acum
+    entero parte_uno
+    entero parte_dos
+fin_registro
+
+principal
+    Acum buf
+    entero iter
+    entero suma
+    buf.parte_uno = 0
+    buf.parte_dos = 0
+    suma = 0
+    iter = 0
+    mientras iter < 800 hacer
+        buf.parte_uno = iter
+        buf.parte_dos = iter + 1
+        suma = suma + buf.parte_uno + buf.parte_dos
+        iter = iter + 1
+    fin_mientras
+    imprimir suma
+fin_principal

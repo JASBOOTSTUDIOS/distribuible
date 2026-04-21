@@ -1,0 +1,18 @@
+# Tres “estrategias” de contribución al acumulador (tabla de funciones en el main).
+# Cubre orden superior: se guardan en un mapa y se invocan vía variable `funcion`.
+
+enviar funcion vital_aplicar_contrib(funcion f, entero e) retorna entero
+    retornar f(e)
+fin_funcion
+
+enviar funcion vital_cont_a(entero e) retorna entero
+    retornar e % 1009
+fin_funcion
+
+enviar funcion vital_cont_b(entero e) retorna entero
+    retornar (e % 65536) >> 3
+fin_funcion
+
+enviar funcion vital_cont_c(entero e) retorna entero
+    retornar (e / 17) % 6000
+fin_funcion

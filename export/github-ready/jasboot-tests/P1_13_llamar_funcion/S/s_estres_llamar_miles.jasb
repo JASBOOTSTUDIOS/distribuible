@@ -1,0 +1,13 @@
+// s_estres_llamar_miles — muchas invocaciones explicitas OP_LLAMAR
+// Esperado: compila; imprime 5000.
+funcion inc(entero u) retorna entero
+    retornar u + 1
+fin_funcion
+
+principal
+    entero i = 0
+    mientras i < 5000 hacer
+        i = llamar inc(i)
+    fin_mientras
+    imprimir i
+fin_principal

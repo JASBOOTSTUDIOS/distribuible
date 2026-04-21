@@ -1,0 +1,22 @@
+# S (06): 1 000 000 de ciclos lista_limpiar + mem_lista_agregar (una sola lista, tamano siempre 0 o 1).
+#   Estresa OP_MEM_LISTA_LIMPIAR y agregar sin crecer la lista mas alla de un elemento.
+#
+# Salida esperada, linea a linea:
+#   1) 1 — tamano final
+#   2) linea vacia
+#   3) 999999 — ultimo valor agregado
+#   4) linea vacia
+
+principal
+    lista w = crear_lista()
+    entero r = 0
+    mientras r < 1000000 hacer
+        lista_limpiar(w)
+        mem_lista_agregar(w, r)
+        r += 1
+    fin_mientras
+    imprimir mem_lista_tamano(w)
+    imprimir ""
+    imprimir mem_lista_obtener(w, 0)
+    imprimir ""
+fin_principal

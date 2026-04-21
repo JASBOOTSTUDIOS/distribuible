@@ -1,0 +1,9 @@
+# E: en una suma, el operando no puede ser el nombre de una funcion global (no es llamada ni valor `funcion`).
+
+funcion duplicar(entero x) retorna entero
+    retornar x * 2
+fin_funcion
+
+principal
+    entero r = 1 + duplicar
+fin_principal

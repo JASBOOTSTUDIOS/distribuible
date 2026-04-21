@@ -1,0 +1,10 @@
+usar {p1_1, p1_2, p1_3, Principal} de "p1/p1.jasb"
+usar {edadMichelle} de "p1/p1_2.jasb"
+
+principal 
+    imprimir "Resultado de la macro: ${p1_1(12)}" 
+    imprimir "Resultado de la constante: ${p1_2}"
+    imprimir "Resultado de la funcion: ${p1_3(12)}"
+    imprimir "Resultado de la funcion Principal: ${Principal(12)}"
+    imprimir "Resultado de la constante edadMichelle: ${edadMichelle}"
+fin_principal

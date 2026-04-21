@@ -1,0 +1,5 @@
+principal
+    flotante val = 10.75
+    entero res = val
+    imprimir res
+fin_principal

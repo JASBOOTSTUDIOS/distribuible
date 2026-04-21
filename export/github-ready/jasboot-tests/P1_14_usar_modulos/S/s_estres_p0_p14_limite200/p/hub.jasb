@@ -1,0 +1,406 @@
+// Hub: 200 directivas usar { g_XXX } de (cada hoja sigue exportando E_XXX + g_XXX = 200*2 enviar en disco).
+usar { g_000 } de "d0/d1/d2/m_000.jasb"
+usar { g_001 } de "d0/d1/d2/m_001.jasb"
+usar { g_002 } de "d0/d1/d2/m_002.jasb"
+usar { g_003 } de "d0/d1/d2/m_003.jasb"
+usar { g_004 } de "d0/d1/d2/m_004.jasb"
+usar { g_005 } de "d0/d1/d2/m_005.jasb"
+usar { g_006 } de "d0/d1/d2/m_006.jasb"
+usar { g_007 } de "d0/d1/d2/m_007.jasb"
+usar { g_008 } de "d0/d1/d2/m_008.jasb"
+usar { g_009 } de "d0/d1/d2/m_009.jasb"
+usar { g_010 } de "d0/d1/d2/m_010.jasb"
+usar { g_011 } de "d0/d1/d2/m_011.jasb"
+usar { g_012 } de "d0/d1/d2/m_012.jasb"
+usar { g_013 } de "d0/d1/d2/m_013.jasb"
+usar { g_014 } de "d0/d1/d2/m_014.jasb"
+usar { g_015 } de "d0/d1/d2/m_015.jasb"
+usar { g_016 } de "d0/d1/d2/m_016.jasb"
+usar { g_017 } de "d0/d1/d2/m_017.jasb"
+usar { g_018 } de "d0/d1/d2/m_018.jasb"
+usar { g_019 } de "d0/d1/d2/m_019.jasb"
+usar { g_020 } de "d0/d1/d2/m_020.jasb"
+usar { g_021 } de "d0/d1/d2/m_021.jasb"
+usar { g_022 } de "d0/d1/d2/m_022.jasb"
+usar { g_023 } de "d0/d1/d2/m_023.jasb"
+usar { g_024 } de "d0/d1/d2/m_024.jasb"
+usar { g_025 } de "d0/d1/d2/m_025.jasb"
+usar { g_026 } de "d0/d1/d2/m_026.jasb"
+usar { g_027 } de "d0/d1/d2/m_027.jasb"
+usar { g_028 } de "d0/d1/d2/m_028.jasb"
+usar { g_029 } de "d0/d1/d2/m_029.jasb"
+usar { g_030 } de "d0/d1/d2/m_030.jasb"
+usar { g_031 } de "d0/d1/d2/m_031.jasb"
+usar { g_032 } de "d0/d1/d2/m_032.jasb"
+usar { g_033 } de "d0/d1/d2/m_033.jasb"
+usar { g_034 } de "d0/d1/d2/m_034.jasb"
+usar { g_035 } de "d0/d1/d2/m_035.jasb"
+usar { g_036 } de "d0/d1/d2/m_036.jasb"
+usar { g_037 } de "d0/d1/d2/m_037.jasb"
+usar { g_038 } de "d0/d1/d2/m_038.jasb"
+usar { g_039 } de "d0/d1/d2/m_039.jasb"
+usar { g_040 } de "d0/d1/d2/m_040.jasb"
+usar { g_041 } de "d0/d1/d2/m_041.jasb"
+usar { g_042 } de "d0/d1/d2/m_042.jasb"
+usar { g_043 } de "d0/d1/d2/m_043.jasb"
+usar { g_044 } de "d0/d1/d2/m_044.jasb"
+usar { g_045 } de "d0/d1/d2/m_045.jasb"
+usar { g_046 } de "d0/d1/d2/m_046.jasb"
+usar { g_047 } de "d0/d1/d2/m_047.jasb"
+usar { g_048 } de "d0/d1/d2/m_048.jasb"
+usar { g_049 } de "d0/d1/d2/m_049.jasb"
+usar { g_050 } de "d0/d1/d2/m_050.jasb"
+usar { g_051 } de "d0/d1/d2/m_051.jasb"
+usar { g_052 } de "d0/d1/d2/m_052.jasb"
+usar { g_053 } de "d0/d1/d2/m_053.jasb"
+usar { g_054 } de "d0/d1/d2/m_054.jasb"
+usar { g_055 } de "d0/d1/d2/m_055.jasb"
+usar { g_056 } de "d0/d1/d2/m_056.jasb"
+usar { g_057 } de "d0/d1/d2/m_057.jasb"
+usar { g_058 } de "d0/d1/d2/m_058.jasb"
+usar { g_059 } de "d0/d1/d2/m_059.jasb"
+usar { g_060 } de "d0/d1/d2/m_060.jasb"
+usar { g_061 } de "d0/d1/d2/m_061.jasb"
+usar { g_062 } de "d0/d1/d2/m_062.jasb"
+usar { g_063 } de "d0/d1/d2/m_063.jasb"
+usar { g_064 } de "d0/d1/d2/m_064.jasb"
+usar { g_065 } de "d0/d1/d2/m_065.jasb"
+usar { g_066 } de "d0/d1/d2/m_066.jasb"
+usar { g_067 } de "d0/d1/d2/m_067.jasb"
+usar { g_068 } de "d0/d1/d2/m_068.jasb"
+usar { g_069 } de "d0/d1/d2/m_069.jasb"
+usar { g_070 } de "d0/d1/d2/m_070.jasb"
+usar { g_071 } de "d0/d1/d2/m_071.jasb"
+usar { g_072 } de "d0/d1/d2/m_072.jasb"
+usar { g_073 } de "d0/d1/d2/m_073.jasb"
+usar { g_074 } de "d0/d1/d2/m_074.jasb"
+usar { g_075 } de "d0/d1/d2/m_075.jasb"
+usar { g_076 } de "d0/d1/d2/m_076.jasb"
+usar { g_077 } de "d0/d1/d2/m_077.jasb"
+usar { g_078 } de "d0/d1/d2/m_078.jasb"
+usar { g_079 } de "d0/d1/d2/m_079.jasb"
+usar { g_080 } de "d0/d1/d2/m_080.jasb"
+usar { g_081 } de "d0/d1/d2/m_081.jasb"
+usar { g_082 } de "d0/d1/d2/m_082.jasb"
+usar { g_083 } de "d0/d1/d2/m_083.jasb"
+usar { g_084 } de "d0/d1/d2/m_084.jasb"
+usar { g_085 } de "d0/d1/d2/m_085.jasb"
+usar { g_086 } de "d0/d1/d2/m_086.jasb"
+usar { g_087 } de "d0/d1/d2/m_087.jasb"
+usar { g_088 } de "d0/d1/d2/m_088.jasb"
+usar { g_089 } de "d0/d1/d2/m_089.jasb"
+usar { g_090 } de "d0/d1/d2/m_090.jasb"
+usar { g_091 } de "d0/d1/d2/m_091.jasb"
+usar { g_092 } de "d0/d1/d2/m_092.jasb"
+usar { g_093 } de "d0/d1/d2/m_093.jasb"
+usar { g_094 } de "d0/d1/d2/m_094.jasb"
+usar { g_095 } de "d0/d1/d2/m_095.jasb"
+usar { g_096 } de "d0/d1/d2/m_096.jasb"
+usar { g_097 } de "d0/d1/d2/m_097.jasb"
+usar { g_098 } de "d0/d1/d2/m_098.jasb"
+usar { g_099 } de "d0/d1/d2/m_099.jasb"
+usar { g_100 } de "d0/d1/d2/m_100.jasb"
+usar { g_101 } de "d0/d1/d2/m_101.jasb"
+usar { g_102 } de "d0/d1/d2/m_102.jasb"
+usar { g_103 } de "d0/d1/d2/m_103.jasb"
+usar { g_104 } de "d0/d1/d2/m_104.jasb"
+usar { g_105 } de "d0/d1/d2/m_105.jasb"
+usar { g_106 } de "d0/d1/d2/m_106.jasb"
+usar { g_107 } de "d0/d1/d2/m_107.jasb"
+usar { g_108 } de "d0/d1/d2/m_108.jasb"
+usar { g_109 } de "d0/d1/d2/m_109.jasb"
+usar { g_110 } de "d0/d1/d2/m_110.jasb"
+usar { g_111 } de "d0/d1/d2/m_111.jasb"
+usar { g_112 } de "d0/d1/d2/m_112.jasb"
+usar { g_113 } de "d0/d1/d2/m_113.jasb"
+usar { g_114 } de "d0/d1/d2/m_114.jasb"
+usar { g_115 } de "d0/d1/d2/m_115.jasb"
+usar { g_116 } de "d0/d1/d2/m_116.jasb"
+usar { g_117 } de "d0/d1/d2/m_117.jasb"
+usar { g_118 } de "d0/d1/d2/m_118.jasb"
+usar { g_119 } de "d0/d1/d2/m_119.jasb"
+usar { g_120 } de "d0/d1/d2/m_120.jasb"
+usar { g_121 } de "d0/d1/d2/m_121.jasb"
+usar { g_122 } de "d0/d1/d2/m_122.jasb"
+usar { g_123 } de "d0/d1/d2/m_123.jasb"
+usar { g_124 } de "d0/d1/d2/m_124.jasb"
+usar { g_125 } de "d0/d1/d2/m_125.jasb"
+usar { g_126 } de "d0/d1/d2/m_126.jasb"
+usar { g_127 } de "d0/d1/d2/m_127.jasb"
+usar { g_128 } de "d0/d1/d2/m_128.jasb"
+usar { g_129 } de "d0/d1/d2/m_129.jasb"
+usar { g_130 } de "d0/d1/d2/m_130.jasb"
+usar { g_131 } de "d0/d1/d2/m_131.jasb"
+usar { g_132 } de "d0/d1/d2/m_132.jasb"
+usar { g_133 } de "d0/d1/d2/m_133.jasb"
+usar { g_134 } de "d0/d1/d2/m_134.jasb"
+usar { g_135 } de "d0/d1/d2/m_135.jasb"
+usar { g_136 } de "d0/d1/d2/m_136.jasb"
+usar { g_137 } de "d0/d1/d2/m_137.jasb"
+usar { g_138 } de "d0/d1/d2/m_138.jasb"
+usar { g_139 } de "d0/d1/d2/m_139.jasb"
+usar { g_140 } de "d0/d1/d2/m_140.jasb"
+usar { g_141 } de "d0/d1/d2/m_141.jasb"
+usar { g_142 } de "d0/d1/d2/m_142.jasb"
+usar { g_143 } de "d0/d1/d2/m_143.jasb"
+usar { g_144 } de "d0/d1/d2/m_144.jasb"
+usar { g_145 } de "d0/d1/d2/m_145.jasb"
+usar { g_146 } de "d0/d1/d2/m_146.jasb"
+usar { g_147 } de "d0/d1/d2/m_147.jasb"
+usar { g_148 } de "d0/d1/d2/m_148.jasb"
+usar { g_149 } de "d0/d1/d2/m_149.jasb"
+usar { g_150 } de "d0/d1/d2/m_150.jasb"
+usar { g_151 } de "d0/d1/d2/m_151.jasb"
+usar { g_152 } de "d0/d1/d2/m_152.jasb"
+usar { g_153 } de "d0/d1/d2/m_153.jasb"
+usar { g_154 } de "d0/d1/d2/m_154.jasb"
+usar { g_155 } de "d0/d1/d2/m_155.jasb"
+usar { g_156 } de "d0/d1/d2/m_156.jasb"
+usar { g_157 } de "d0/d1/d2/m_157.jasb"
+usar { g_158 } de "d0/d1/d2/m_158.jasb"
+usar { g_159 } de "d0/d1/d2/m_159.jasb"
+usar { g_160 } de "d0/d1/d2/m_160.jasb"
+usar { g_161 } de "d0/d1/d2/m_161.jasb"
+usar { g_162 } de "d0/d1/d2/m_162.jasb"
+usar { g_163 } de "d0/d1/d2/m_163.jasb"
+usar { g_164 } de "d0/d1/d2/m_164.jasb"
+usar { g_165 } de "d0/d1/d2/m_165.jasb"
+usar { g_166 } de "d0/d1/d2/m_166.jasb"
+usar { g_167 } de "d0/d1/d2/m_167.jasb"
+usar { g_168 } de "d0/d1/d2/m_168.jasb"
+usar { g_169 } de "d0/d1/d2/m_169.jasb"
+usar { g_170 } de "d0/d1/d2/m_170.jasb"
+usar { g_171 } de "d0/d1/d2/m_171.jasb"
+usar { g_172 } de "d0/d1/d2/m_172.jasb"
+usar { g_173 } de "d0/d1/d2/m_173.jasb"
+usar { g_174 } de "d0/d1/d2/m_174.jasb"
+usar { g_175 } de "d0/d1/d2/m_175.jasb"
+usar { g_176 } de "d0/d1/d2/m_176.jasb"
+usar { g_177 } de "d0/d1/d2/m_177.jasb"
+usar { g_178 } de "d0/d1/d2/m_178.jasb"
+usar { g_179 } de "d0/d1/d2/m_179.jasb"
+usar { g_180 } de "d0/d1/d2/m_180.jasb"
+usar { g_181 } de "d0/d1/d2/m_181.jasb"
+usar { g_182 } de "d0/d1/d2/m_182.jasb"
+usar { g_183 } de "d0/d1/d2/m_183.jasb"
+usar { g_184 } de "d0/d1/d2/m_184.jasb"
+usar { g_185 } de "d0/d1/d2/m_185.jasb"
+usar { g_186 } de "d0/d1/d2/m_186.jasb"
+usar { g_187 } de "d0/d1/d2/m_187.jasb"
+usar { g_188 } de "d0/d1/d2/m_188.jasb"
+usar { g_189 } de "d0/d1/d2/m_189.jasb"
+usar { g_190 } de "d0/d1/d2/m_190.jasb"
+usar { g_191 } de "d0/d1/d2/m_191.jasb"
+usar { g_192 } de "d0/d1/d2/m_192.jasb"
+usar { g_193 } de "d0/d1/d2/m_193.jasb"
+usar { g_194 } de "d0/d1/d2/m_194.jasb"
+usar { g_195 } de "d0/d1/d2/m_195.jasb"
+usar { g_196 } de "d0/d1/d2/m_196.jasb"
+usar { g_197 } de "d0/d1/d2/m_197.jasb"
+usar { g_198 } de "d0/d1/d2/m_198.jasb"
+usar { g_199 } de "d0/d1/d2/m_199.jasb"
+
+enviar funcion run_all() retorna entero
+    entero s = 0
+    s = s + llamar g_000()
+    s = s + llamar g_001()
+    s = s + llamar g_002()
+    s = s + llamar g_003()
+    s = s + llamar g_004()
+    s = s + llamar g_005()
+    s = s + llamar g_006()
+    s = s + llamar g_007()
+    s = s + llamar g_008()
+    s = s + llamar g_009()
+    s = s + llamar g_010()
+    s = s + llamar g_011()
+    s = s + llamar g_012()
+    s = s + llamar g_013()
+    s = s + llamar g_014()
+    s = s + llamar g_015()
+    s = s + llamar g_016()
+    s = s + llamar g_017()
+    s = s + llamar g_018()
+    s = s + llamar g_019()
+    s = s + llamar g_020()
+    s = s + llamar g_021()
+    s = s + llamar g_022()
+    s = s + llamar g_023()
+    s = s + llamar g_024()
+    s = s + llamar g_025()
+    s = s + llamar g_026()
+    s = s + llamar g_027()
+    s = s + llamar g_028()
+    s = s + llamar g_029()
+    s = s + llamar g_030()
+    s = s + llamar g_031()
+    s = s + llamar g_032()
+    s = s + llamar g_033()
+    s = s + llamar g_034()
+    s = s + llamar g_035()
+    s = s + llamar g_036()
+    s = s + llamar g_037()
+    s = s + llamar g_038()
+    s = s + llamar g_039()
+    s = s + llamar g_040()
+    s = s + llamar g_041()
+    s = s + llamar g_042()
+    s = s + llamar g_043()
+    s = s + llamar g_044()
+    s = s + llamar g_045()
+    s = s + llamar g_046()
+    s = s + llamar g_047()
+    s = s + llamar g_048()
+    s = s + llamar g_049()
+    s = s + llamar g_050()
+    s = s + llamar g_051()
+    s = s + llamar g_052()
+    s = s + llamar g_053()
+    s = s + llamar g_054()
+    s = s + llamar g_055()
+    s = s + llamar g_056()
+    s = s + llamar g_057()
+    s = s + llamar g_058()
+    s = s + llamar g_059()
+    s = s + llamar g_060()
+    s = s + llamar g_061()
+    s = s + llamar g_062()
+    s = s + llamar g_063()
+    s = s + llamar g_064()
+    s = s + llamar g_065()
+    s = s + llamar g_066()
+    s = s + llamar g_067()
+    s = s + llamar g_068()
+    s = s + llamar g_069()
+    s = s + llamar g_070()
+    s = s + llamar g_071()
+    s = s + llamar g_072()
+    s = s + llamar g_073()
+    s = s + llamar g_074()
+    s = s + llamar g_075()
+    s = s + llamar g_076()
+    s = s + llamar g_077()
+    s = s + llamar g_078()
+    s = s + llamar g_079()
+    s = s + llamar g_080()
+    s = s + llamar g_081()
+    s = s + llamar g_082()
+    s = s + llamar g_083()
+    s = s + llamar g_084()
+    s = s + llamar g_085()
+    s = s + llamar g_086()
+    s = s + llamar g_087()
+    s = s + llamar g_088()
+    s = s + llamar g_089()
+    s = s + llamar g_090()
+    s = s + llamar g_091()
+    s = s + llamar g_092()
+    s = s + llamar g_093()
+    s = s + llamar g_094()
+    s = s + llamar g_095()
+    s = s + llamar g_096()
+    s = s + llamar g_097()
+    s = s + llamar g_098()
+    s = s + llamar g_099()
+    s = s + llamar g_100()
+    s = s + llamar g_101()
+    s = s + llamar g_102()
+    s = s + llamar g_103()
+    s = s + llamar g_104()
+    s = s + llamar g_105()
+    s = s + llamar g_106()
+    s = s + llamar g_107()
+    s = s + llamar g_108()
+    s = s + llamar g_109()
+    s = s + llamar g_110()
+    s = s + llamar g_111()
+    s = s + llamar g_112()
+    s = s + llamar g_113()
+    s = s + llamar g_114()
+    s = s + llamar g_115()
+    s = s + llamar g_116()
+    s = s + llamar g_117()
+    s = s + llamar g_118()
+    s = s + llamar g_119()
+    s = s + llamar g_120()
+    s = s + llamar g_121()
+    s = s + llamar g_122()
+    s = s + llamar g_123()
+    s = s + llamar g_124()
+    s = s + llamar g_125()
+    s = s + llamar g_126()
+    s = s + llamar g_127()
+    s = s + llamar g_128()
+    s = s + llamar g_129()
+    s = s + llamar g_130()
+    s = s + llamar g_131()
+    s = s + llamar g_132()
+    s = s + llamar g_133()
+    s = s + llamar g_134()
+    s = s + llamar g_135()
+    s = s + llamar g_136()
+    s = s + llamar g_137()
+    s = s + llamar g_138()
+    s = s + llamar g_139()
+    s = s + llamar g_140()
+    s = s + llamar g_141()
+    s = s + llamar g_142()
+    s = s + llamar g_143()
+    s = s + llamar g_144()
+    s = s + llamar g_145()
+    s = s + llamar g_146()
+    s = s + llamar g_147()
+    s = s + llamar g_148()
+    s = s + llamar g_149()
+    s = s + llamar g_150()
+    s = s + llamar g_151()
+    s = s + llamar g_152()
+    s = s + llamar g_153()
+    s = s + llamar g_154()
+    s = s + llamar g_155()
+    s = s + llamar g_156()
+    s = s + llamar g_157()
+    s = s + llamar g_158()
+    s = s + llamar g_159()
+    s = s + llamar g_160()
+    s = s + llamar g_161()
+    s = s + llamar g_162()
+    s = s + llamar g_163()
+    s = s + llamar g_164()
+    s = s + llamar g_165()
+    s = s + llamar g_166()
+    s = s + llamar g_167()
+    s = s + llamar g_168()
+    s = s + llamar g_169()
+    s = s + llamar g_170()
+    s = s + llamar g_171()
+    s = s + llamar g_172()
+    s = s + llamar g_173()
+    s = s + llamar g_174()
+    s = s + llamar g_175()
+    s = s + llamar g_176()
+    s = s + llamar g_177()
+    s = s + llamar g_178()
+    s = s + llamar g_179()
+    s = s + llamar g_180()
+    s = s + llamar g_181()
+    s = s + llamar g_182()
+    s = s + llamar g_183()
+    s = s + llamar g_184()
+    s = s + llamar g_185()
+    s = s + llamar g_186()
+    s = s + llamar g_187()
+    s = s + llamar g_188()
+    s = s + llamar g_189()
+    s = s + llamar g_190()
+    s = s + llamar g_191()
+    s = s + llamar g_192()
+    s = s + llamar g_193()
+    s = s + llamar g_194()
+    s = s + llamar g_195()
+    s = s + llamar g_196()
+    s = s + llamar g_197()
+    s = s + llamar g_198()
+    s = s + llamar g_199()
+    retornar s
+fin_funcion

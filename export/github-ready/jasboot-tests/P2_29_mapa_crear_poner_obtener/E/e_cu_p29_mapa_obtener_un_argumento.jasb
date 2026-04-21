@@ -1,0 +1,6 @@
+# E: mapa_obtener(m) sin clave — jbc debe fallar.
+
+principal
+    mapa m = mapa_crear()
+    mapa_obtener(m)
+fin_principal

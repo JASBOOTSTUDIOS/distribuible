@@ -1,0 +1,20 @@
+# R: proyeccion de u sobre un eje unitario — t = vec3_dot(u, eje_u); proy = eje_u * t.
+#     u = (5,3,2), eje +Y unitario -> proyeccion (0,3,0).
+
+principal
+    vec3 u
+    vec3 eje
+    vec3 eje_u
+    flotante t
+    vec3 proy
+
+    u = vec3(5.0, 3.0, 2.0)
+    eje = vec3(0.0, 1.0, 0.0)
+    vec3_normalizar(eje_u, eje)
+    t = vec3_dot(u, eje_u)
+    proy = eje_u * t
+    imprimir proy.x
+    imprimir proy.y
+    imprimir proy.z
+    imprimir ""
+fin_principal

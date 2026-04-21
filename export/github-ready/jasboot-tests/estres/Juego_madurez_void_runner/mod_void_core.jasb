@@ -1,0 +1,36 @@
+# Nucleo numerico y constantes del VOID RUNNER (importado con `usar todas de`).
+
+enviar constante entero VOID_ANCHO = 11
+enviar constante entero VOID_ALTO = 15
+# Iteraciones de mezcla LCG por fotograma (subir a 3000–8000+ para benchmark de CPU en VM).
+enviar constante entero VOID_PERF_ITER = 720
+
+enviar funcion mod_void_mix(entero acum, entero sal) retorna entero
+    entero t = acum + sal
+    retornar (t * 1103515245 + 12345) % 2147483647
+fin_funcion
+
+enviar funcion mod_void_mod(entero x, entero m) retorna entero
+    entero r = x % m
+    si r < 0 entonces
+        retornar r + m
+    fin_si
+    retornar r
+fin_funcion
+
+enviar funcion mod_void_clamp(entero v, entero lo, entero hi) retorna entero
+    si v < lo entonces
+        retornar lo
+    fin_si
+    si v > hi entonces
+        retornar hi
+    fin_si
+    retornar v
+fin_funcion
+
+enviar funcion mod_void_dificultad(entero ticks) retorna entero
+    entero base = 11
+    entero q = ticks / 180
+    entero d = base - q
+    retornar mod_void_clamp(d, 5, 11)
+fin_funcion

@@ -1,0 +1,7 @@
+// e1 — IIFE: demasiados argumentos
+// Esperado: error del parser; mensaje de arity en funcion flecha; dos marcas ^ (lista de parametros y lista de argumentos).
+// Mide: que la invocacion inmediata ((...)=>...)(...) rechace n_args > n_params y el diagnostico sea claro.
+principal
+    entero tmp = ((x) => x + 1)(1, 2)
+    imprimir tmp
+fin_principal

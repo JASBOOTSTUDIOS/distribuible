@@ -1,0 +1,20 @@
+principal
+    entero num_a = 5
+    entero num_b = 10
+    
+    # Restando un número mayor
+    entero res1 = num_a - num_b
+    imprimir res1
+    
+    # Multiplicando por un negativo
+    entero res2 = res1 * 2
+    imprimir res2
+    
+    # Sumando a un negativo para pasar por cero
+    entero res3 = res2 + 15
+    imprimir res3
+    
+    # Operación con cero que resulta en negativo
+    entero res4 = 0 - res3
+    imprimir res4
+fin_principal

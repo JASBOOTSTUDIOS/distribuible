@@ -1,0 +1,8 @@
+# E: mat4_inversa con un solo argumento.
+# Esperado: jbc codigo != 0 (aridad incorrecta).
+
+principal
+    mat4 m
+    mat4_identidad(m)
+    mat4_inversa(m)
+fin_principal

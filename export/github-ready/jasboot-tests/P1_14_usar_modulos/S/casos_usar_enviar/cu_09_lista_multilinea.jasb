@@ -1,0 +1,13 @@
+// Caso: lista nominal en varias lineas (misma semantica que una sola linea).
+// exp_mac(exp_fn(-1)) = exp_mac(41) = 42  (porque -1+42=41, 41+1=42)
+// Esperado: 42
+
+usar {
+    exp_fn,
+    exp_mac
+} de "m_export_mix.jasb"
+
+principal
+    entero r = exp_mac(llamar exp_fn(-1))
+    imprimir "${r}\n"
+fin_principal

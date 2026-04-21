@@ -1,0 +1,8 @@
+// Caso: `usar { exp_fn } de` — solo una funcion exportada.
+// Esperado `jbc -e` desde esta carpeta: 42
+
+usar { exp_fn } de "m_export_mix.jasb"
+
+principal
+    imprimir llamar exp_fn(0)
+fin_principal

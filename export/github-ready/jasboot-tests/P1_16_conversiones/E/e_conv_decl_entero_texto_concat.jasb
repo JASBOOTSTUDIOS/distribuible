@@ -1,0 +1,8 @@
+// E: entero desde concatenacion texto + texto.
+
+principal
+    texto text_a = "1"
+    texto text_b = "2"
+    entero n = text_a + text_b
+    imprimir n
+fin_principal

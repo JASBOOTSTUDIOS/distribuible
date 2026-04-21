@@ -1,0 +1,13 @@
+# E: mat3_mul_vec3 con solo 2 argumentos.
+# Esperado: jbc termina con codigo != 0 (error de aridad); no debe generarse .jbo valido.
+
+principal
+    mat3 m
+    vec3 d
+    vec3 vin
+    m.e0 = 1.0
+    m.e4 = 1.0
+    m.e8 = 1.0
+    vin = vec3(0.0, 0.0, 0.0)
+    mat3_mul_vec3(d, m)
+fin_principal

@@ -1,0 +1,31 @@
+# R: tabla de referencia trig / exp / log (radianes).
+# Esperado (jb; cada valor y luego linea vacia):
+#   0 1 0 | sin(0) cos(0) tan(0)
+#   1 -0.0000 | sin(pi/2) cos(pi/2) (float32; el coseno puede verse como -0)
+#   1 0 2 | exp(0) log(1) log10(100)
+#   0 1.5708 | atan2(0,1) atan2(1,0)
+
+principal
+    flotante pih
+    pih = 1.5707963267948966
+    imprimir sin(0.0)
+    imprimir ""
+    imprimir cos(0.0)
+    imprimir ""
+    imprimir tan(0.0)
+    imprimir ""
+    imprimir sin(pih)
+    imprimir ""
+    imprimir cos(pih)
+    imprimir ""
+    imprimir exp(0.0)
+    imprimir ""
+    imprimir log(1.0)
+    imprimir ""
+    imprimir log10(100.0)
+    imprimir ""
+    imprimir atan2(0.0, 1.0)
+    imprimir ""
+    imprimir atan2(1.0, 0.0)
+    imprimir ""
+fin_principal

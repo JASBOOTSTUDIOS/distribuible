@@ -1,0 +1,6 @@
+# E: vec2 requiere 2 argumentos; con 1 debe fallar con mensaje de constructor.
+
+principal
+    vec2 u
+    u = vec2(1.0)
+fin_principal

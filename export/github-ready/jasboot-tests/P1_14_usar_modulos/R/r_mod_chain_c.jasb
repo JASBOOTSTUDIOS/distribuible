@@ -1,0 +1,6 @@
+// Hoja de la cadena: define paso_c(n) = n * 3. Cargado por r_mod_chain_b.jasb.
+// Sin principal; sirve como biblioteca para r_usar_cadena_imports.jasb.
+
+enviar funcion paso_c(entero n) retorna entero
+    retornar n * 3
+fin_funcion

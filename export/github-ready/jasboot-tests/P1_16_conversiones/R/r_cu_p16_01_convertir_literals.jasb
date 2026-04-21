@@ -1,0 +1,9 @@
+# 1 — Literales: convertir_entero / convertir_flotante en declaracion.
+# Salida: 42 y 3.5000
+
+principal
+    entero n = convertir_entero("42")
+    flotante x = convertir_flotante("3.5")
+    imprimir(n)
+    imprimir x
+fin_principal

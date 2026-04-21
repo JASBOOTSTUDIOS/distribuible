@@ -1,0 +1,13 @@
+# R: `longitud` del texto leido como guarda en `si`.
+# Entrada: abc\n
+# Salida: 1 (longitud >= 3) y linea vacia.
+
+principal
+    ingresar_texto s
+    si longitud(s) >= 3 entonces
+        imprimir 1
+    sino
+        imprimir 0
+    fin_si
+    imprimir ""
+fin_principal

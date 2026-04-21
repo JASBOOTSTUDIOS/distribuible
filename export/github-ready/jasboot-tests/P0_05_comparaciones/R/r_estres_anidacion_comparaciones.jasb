@@ -1,0 +1,43 @@
+principal
+    entero nivel = 0
+    entero num_a = 1
+    entero num_b = 2
+    entero num_c = 3
+    entero num_d = 4
+    entero num_e = 5
+
+    # Anidación extrema para verificar el manejo de etiquetas de saltos en el compilador
+    si num_a < num_b entonces
+        nivel = nivel + 1
+        si num_b <= num_c entonces
+            nivel = nivel + 1
+            si num_c != num_d entonces
+                nivel = nivel + 1
+                si num_d > num_c entonces
+                    nivel = nivel + 1
+                    si num_e >= num_d entonces
+                        nivel = nivel + 1
+                        si num_a == 1 entonces
+                            nivel = nivel + 1
+                            si num_a es menor que num_b entonces
+                                nivel = nivel + 1
+                                si num_e no es igual a num_a entonces
+                                    nivel = nivel + 1
+                                    si num_b es distinto a num_e entonces
+                                        nivel = nivel + 1
+                                        si num_d es mayor o igual a num_a entonces
+                                            nivel = nivel + 1
+                                        fin_si
+                                    fin_si
+                                fin_si
+                            fin_si
+                        fin_si
+                    fin_si
+               fin_si
+            fin_si
+        fin_si
+    fin_si
+
+    # Debería haber pasado todas las condiciones y nivel ser 10
+    imprimir nivel
+fin_principal

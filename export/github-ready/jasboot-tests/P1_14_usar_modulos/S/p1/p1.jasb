@@ -1,0 +1,11 @@
+
+
+enviar macro p1_1 = (x) => x + 1
+enviar constante entero p1_2 = 12
+enviar funcion Principal(entero x) retorna entero
+    retornar x + p1_2
+fin_funcion
+
+enviar funcion p1_3(entero x) retorna entero
+    retornar x + p1_2
+fin_funcion

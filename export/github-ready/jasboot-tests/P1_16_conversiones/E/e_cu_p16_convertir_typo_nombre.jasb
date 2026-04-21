@@ -1,0 +1,7 @@
+// E: nombre mal escrito convertitr_flotante (no existe).
+// Esperado: funcion no definida.
+
+principal
+    flotante x = convertitr_flotante("1")
+    imprimir_flotante(x)
+fin_principal

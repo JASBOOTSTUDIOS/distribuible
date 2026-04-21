@@ -1,0 +1,10 @@
+principal
+    entero num_a = 101
+    entero num_b = 5
+    entero num_c = 2
+    entero resultado1 = num_a + num_b * num_c
+    entero resultado2 = (num_a + num_b) * num_c
+    
+    imprimir resultado1
+    imprimir resultado2
+fin_principal

@@ -1,0 +1,17 @@
+# Dependencias
+a-modulos/
+
+# Cache de JPM
+.jpm-cache/
+.jpm-temp/
+
+# Archivos compilados
+*.jbo
+*.jpkg
+
+# Archivos de memoria neuronal
+*.jmn
+
+# Sistema
+.DS_Store
+Thumbs.db

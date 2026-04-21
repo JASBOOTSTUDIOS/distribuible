@@ -1,0 +1,23 @@
+principal
+    # Prueba de estres para los limites de asignacion de registros en una sola expresion gigante
+    entero v1 = 1
+    entero v2 = 2
+    entero v3 = 3
+    entero v4 = 4
+    entero v5 = 5
+    
+    # Expresión muy larga para evaluar si el compilador puede asignar
+    # y liberar registros intermedios (rL, rR_reg) sin pisar memoria
+    # Evaluacion paso a paso:
+    # = 1 + (2 * 3) - (4 / 2) + (5 % 3) * 4 - 1 + (2 + 3) * 5
+    # = 1 + 6 - 2 + (2 * 4) - 1 + (5 * 5)
+    # = 1 + 6 - 2 + 8 - 1 + 25
+    # = 7 - 2 + 8 - 1 + 25
+    # = 5 + 8 - 1 + 25
+    # = 13 - 1 + 25
+    # = 12 + 25
+    # = 37
+    entero super_calculo = v1 + v2 * v3 - v4 / v2 + v5 % v3 * v4 - v1 + (v2 + v3) * v5
+    
+    imprimir super_calculo
+fin_principal

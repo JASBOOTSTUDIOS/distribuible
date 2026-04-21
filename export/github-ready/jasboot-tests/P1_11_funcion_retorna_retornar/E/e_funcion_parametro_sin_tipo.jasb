@@ -1,0 +1,8 @@
+funcion suma(n) retorna entero
+    retornar n + 1
+fin_funcion
+
+principal
+    imprimir suma(2)
+fin_principal
+

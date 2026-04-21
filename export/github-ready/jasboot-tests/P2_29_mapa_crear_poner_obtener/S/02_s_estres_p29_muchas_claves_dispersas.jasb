@@ -1,0 +1,34 @@
+# S (02): 50 000 inserciones con claves 1000*k y valor k; suma k = 1249975000 (evita imprimirla entera: la VM formatea como fecha si parece timestamp Unix).
+#   Se imprime s/10000000 y s%10000000 (124 y 9975000) y una lectura puntual.
+#
+# Salida esperada, linea a linea:
+#   1) 124
+#   2) linea vacia
+#   3) 9975000
+#   4) linea vacia
+#   5) 25000
+#   6) linea vacia
+
+principal
+    mapa m = mapa_crear()
+    entero k = 0
+    entero clave = 0
+    mientras k < 50000 hacer
+        clave = 1000 * k
+        mapa_poner(m, clave, k)
+        k += 1
+    fin_mientras
+    entero s = 0
+    k = 0
+    mientras k < 50000 hacer
+        clave = 1000 * k
+        s += mapa_obtener(m, clave)
+        k += 1
+    fin_mientras
+    imprimir s / 10000000
+    imprimir ""
+    imprimir s % 10000000
+    imprimir ""
+    imprimir mapa_obtener(m, 25000000)
+    imprimir ""
+fin_principal

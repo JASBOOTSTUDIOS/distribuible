@@ -1,0 +1,21 @@
+# Import nominal `usar { clamp_pos, iva_de } de` (sin max_fl). Condicional en main sobre entero; modulo sigue usando `si` en flotante.
+# Salida esperada:
+#   0.0000   iva_de(-5.0)
+#   4.2000   iva_de(20.0)
+#   0.0000   clamp_pos(-0.25)
+#   7.0000   rama si (entero k > 2) elige suma de literales
+
+usar { clamp_pos, iva_de } de "m_flotante_usar.jasb"
+
+principal
+    flotante z = -5.0
+    imprimir_flotante(iva_de(z))
+    imprimir_flotante(iva_de(20.0))
+    imprimir_flotante(clamp_pos(-0.25))
+    entero k = 3
+    si k > 2 entonces
+        imprimir_flotante(2.0 + 5.0)
+    sino
+        imprimir_flotante(0.0)
+    fin_si
+fin_principal

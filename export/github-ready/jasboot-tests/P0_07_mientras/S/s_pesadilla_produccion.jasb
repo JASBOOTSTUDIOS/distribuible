@@ -1,0 +1,75 @@
+principal
+    # ========================================================================
+    # PRUEBA DE ESTRES EXTREMO - "PESADILLA DE PRODUCCION"
+    # Características evaluadas en simultáneo:
+    # 1. Shadowing multinivel (variable declarada 4 veces en scopes anidados).
+    # 2. Cortocircuitos lógicos masivos anidados con precedencia explícita.
+    # 3. PRNG (Generador de números pseudoaleatorios) forzando operaciones de 64 bits.
+    # 4. Alternancia entre hacer..mientras y mientras clásico.
+    # 5. Múltiples cascadas de 'sino cuando' combinadas con 'sino si'.
+    # 6. Presión extrema al AST con expresiones matemáticas de +15 nodos.
+    # ========================================================================
+
+    entero checksum_global = 0
+    entero i = 0
+    entero estado = 123456789
+    
+    mientras i < 15 hacer
+        # Shadowing nivel 1
+        entero var_mutante = i * 2
+        
+        # Cortocircuito mixto complejo
+        si no (var_mutante == 0) y (estado % 2 == 0 o var_mutante > 10) entonces
+            entero j = 0
+            
+            hacer
+                # Shadowing nivel 2
+                entero var_mutante = j + 100
+                
+                # Expresión aritmética super densa (pone a prueba la asignación de registros temporales)
+                entero calculo_pesado = (((var_mutante * 3) - (estado % 50)) * 2) / (j + 1) + (var_mutante % 7)
+                
+                cuando calculo_pesado > 200 entonces
+                    entero k = 0
+                    mientras k < 5 hacer
+                        # Shadowing nivel 3
+                        entero var_mutante = k + 1000
+                        
+                        si var_mutante % 2 == 0 entonces
+                            checksum_global = checksum_global + var_mutante
+                        sino si var_mutante % 3 == 0 entonces
+                            checksum_global = checksum_global + (var_mutante * 2)
+                        sino cuando var_mutante % 5 == 0 entonces
+                            # Shadowing nivel 4 (Dolor de cabeza absoluto)
+                            entero var_mutante = 5555
+                            checksum_global = checksum_global + var_mutante
+                        sino
+                            checksum_global = checksum_global - 1
+                        fin_si
+                        
+                        k = k + 1
+                    fin_mientras
+                sino cuando calculo_pesado < 0 y no (calculo_pesado == -100) entonces
+                    checksum_global = checksum_global - calculo_pesado
+                sino
+                    checksum_global = checksum_global + 1
+                fin_cuando
+                
+                j = j + 1
+                
+                # Actualizar LCG PRNG (números inmensos de 64 bits para desbordar 32 bits de forma segura)
+                estado = (estado * 1103515245 + 12345) % 2147483648
+                
+            mientras j < 10 y (estado != 0 o no (checksum_global == 0)) fin_hacer
+        sino
+            # Usa el var_mutante del nivel 1
+            checksum_global = checksum_global + var_mutante
+        fin_si
+        
+        i = i + 1
+    fin_mientras
+    
+    imprimir "=== DIAGNOSTICO PESADILLA ==="
+    imprimir "Checksum resultante absoluto:"
+    imprimir checksum_global
+fin_principal

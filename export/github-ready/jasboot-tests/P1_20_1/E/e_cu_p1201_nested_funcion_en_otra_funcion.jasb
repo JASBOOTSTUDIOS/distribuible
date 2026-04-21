@@ -1,0 +1,11 @@
+# E: no se puede anidar `funcion nombre(` dentro del cuerpo de otra funcion.
+
+funcion externa(entero x) retorna entero
+    funcion interna(entero k) retorna entero
+        retornar k
+    fin_funcion
+    retornar x
+fin_funcion
+
+principal
+fin_principal

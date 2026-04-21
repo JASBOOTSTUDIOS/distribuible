@@ -1,0 +1,8 @@
+# Generador sintético de “eventos” (entero) a partir del índice de iteración (LCG ligero).
+enviar funcion vital_tick_evento(entero t) retorna entero
+    entero x = t * 1664525 + 1013904223
+    si x < 0 entonces
+        x = 0 - x
+    fin_si
+    retornar x
+fin_funcion

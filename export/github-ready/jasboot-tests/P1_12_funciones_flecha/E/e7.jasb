@@ -1,0 +1,6 @@
+// e7 — macro sin parentesis en la lista de parametros
+// Esperado: mensaje explícito: hace falta `( parametros )` antes de `=>` y ejemplo macro f = (x) => ...
+// Mide: ligadura macro = parse_lambda y rechazo de flecha sin ( param ) inicial.
+principal
+    macro f = x => x + 1
+fin_principal

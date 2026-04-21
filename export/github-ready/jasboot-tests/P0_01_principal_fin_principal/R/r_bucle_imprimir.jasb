@@ -1,0 +1,7 @@
+principal
+    entero i = 0
+    mientras i < 50000
+        i = i + 1
+    fin_mientras
+    imprimir i
+fin_principal

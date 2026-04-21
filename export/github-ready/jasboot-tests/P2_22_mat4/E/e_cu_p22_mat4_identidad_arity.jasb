@@ -1,0 +1,9 @@
+# E: mat4_identidad sin argumentos.
+# Esperado: jbc codigo != 0 (aridad incorrecta).
+
+principal
+    mat4_identidad()
+fin_principal
+
+
+

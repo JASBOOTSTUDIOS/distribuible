@@ -1,0 +1,5 @@
+# E: concatenar sin argumentos — jbc debe fallar (aridad).
+
+principal
+    imprimir concatenar()
+fin_principal

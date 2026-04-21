@@ -1,0 +1,9 @@
+# E: 'y' es palabra reservada; no valida como nombre de campo.
+
+registro Mal
+    entero y
+fin_registro
+
+principal
+    imprimir 0
+fin_principal

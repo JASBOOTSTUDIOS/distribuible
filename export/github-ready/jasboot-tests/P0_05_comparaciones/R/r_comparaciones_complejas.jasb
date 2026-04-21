@@ -1,0 +1,26 @@
+principal
+    entero num1 = 5
+    entero num2 = 10
+    
+    # (5 + 10) > (10 - 5)  => 15 > 5 => verdadero
+    si (num1 + num2) > (num2 - num1) entonces
+        imprimir 1
+    fin_si
+    
+    # Evaluacion con asignacion y logica
+    entero res1 = (num1 * 2) == num2
+    si res1 == 1 entonces
+        imprimir 1
+    fin_si
+    
+    entero res2 = num1 != num2
+    si res2 == 1 entonces
+        imprimir 1
+    fin_si
+    
+    # Precedencia
+    # 5 + 10 > 10 * 1 => 15 > 10 => 1
+    si num1 + num2 > num2 * 1 entonces
+        imprimir 1
+    fin_si
+fin_principal

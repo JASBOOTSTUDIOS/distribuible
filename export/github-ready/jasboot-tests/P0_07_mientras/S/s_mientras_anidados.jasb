@@ -1,0 +1,13 @@
+principal
+    entero i = 0
+    entero total = 0
+    mientras i < 1000 hacer
+        entero j = 0
+        mientras j < 1000 hacer
+            total = total + 1
+            j = j + 1
+        fin_mientras
+        i = i + 1
+    fin_mientras
+    imprimir total
+fin_principal

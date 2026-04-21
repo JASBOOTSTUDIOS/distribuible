@@ -1,0 +1,6 @@
+# E: vec3 con 4 argumentos (constructor exige 3).
+
+principal
+    vec3 v
+    v = vec3(1.0, 2.0, 3.0, 4.0)
+fin_principal

@@ -1,0 +1,5 @@
+principal
+    # Prueba de profundidad del arbol AST con anidamiento exagerado de parentesis
+    entero resultado = ((((((((((((((((((((((((((((((((((((((((((((((((((10))))))))))))))))))))))))))))))))))))))))))))))))))
+    imprimir resultado
+fin_principal

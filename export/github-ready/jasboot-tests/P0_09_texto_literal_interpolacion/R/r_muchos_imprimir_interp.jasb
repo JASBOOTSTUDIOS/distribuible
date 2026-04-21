@@ -1,0 +1,7 @@
+principal
+    entero k = 0
+    mientras k < 500 hacer
+        imprimir "i=${k}"
+        k += 1
+    fin_mientras
+fin_principal

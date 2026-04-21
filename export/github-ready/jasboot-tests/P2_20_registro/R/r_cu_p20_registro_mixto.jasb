@@ -1,0 +1,17 @@
+registro Muestra
+    entero contador
+    flotante altura
+    texto etiqueta
+fin_registro
+
+principal
+    Muestra item
+    item.contador = 10
+    item.altura = 2.5
+    item.etiqueta = "ok"
+    item.contador = item.contador + 5
+    imprimir item.contador
+    imprimir item.altura
+    imprimir item.etiqueta
+    imprimir "\n${item}\n"
+fin_principal

@@ -1,0 +1,6 @@
+# E: atan2 requiere exactamente dos argumentos (y, x).
+# Esperado: jbc codigo != 0.
+
+principal
+    imprimir atan2(1.0)
+fin_principal
