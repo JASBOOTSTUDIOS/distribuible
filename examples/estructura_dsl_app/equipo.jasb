@@ -1,0 +1,13 @@
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+
+enviar funcion pagina_equipo() retorna texto
+    texto historia = estructura_titulo("Equipo")
+    historia = concatenar(historia, estructura_texto("Jasboot y Estructa avanzan hacia una experiencia declarativa en espanol."))
+    historia = concatenar(historia, estructura_texto("Este ejemplo ahora reutiliza componentes de la libreria en vez de HTML crudo."))
+    historia = estructura_tarjeta("Direccion", historia)
+
+    texto ruta = estructura_boton_secundario("/contacto", "Hablar con contacto")
+    ruta = estructura_tarjeta_visual("Siguiente paso", "primaria", ruta)
+
+    retornar estructura_columna(concatenar(historia, ruta))
+fin_funcion

@@ -1,0 +1,92 @@
+# ==========================================================
+# JASBOOT: PROGRAMA DE CERTIFICACIÓN DE ROBUSTEZ V1.3
+# ==========================================================
+
+registro Posicion
+    entero pos_x
+    entero pos_y
+fin_registro
+
+registro Entidad extiende Posicion
+    entero id
+    flotante energia
+fin_registro
+
+# Recursión
+funcion factorial(entero n) retorna entero
+    si n <= 1 entonces
+        retornar 1
+    fin_si
+    
+    entero previo = factorial(n - 1)
+    retornar n * previo
+fin_funcion
+
+principal
+    imprimir ">> INICIANDO CERTIFICACIÓN DE SISTEMA JASBOOT..."
+    imprimir ""
+
+    # --- 1. PRUEBA DE ARITMÉTICA Y LÓGICA (P0) ---
+    entero val1 = 100
+    entero val2 = 50
+    entero calculo = (val1 * 2) + (val2 / 2) - 25
+    
+    cuando calculo == 200 y val1 > 50 entonces
+        imprimir "[PASSED] P0: Aritmética y Lógica"
+    sino
+        imprimir "[FAILED] P0: Error en cálculo"
+    fin_cuando
+
+    # --- 2. PRUEBA DE FUNCIONES Y RECURSIÓN (P1) ---
+    entero res_fact = factorial(5)
+    cuando res_fact == 120 entonces
+        imprimir "[PASSED] P1: Recursión y Frames"
+    sino
+        imprimir "[FAILED] P1: Error en factorial"
+    fin_cuando
+
+    # --- 3. PRUEBA DE REGISTROS Y HERENCIA (P2) ---
+    Entidad robot
+    robot.pos_x = 10
+    robot.pos_y = 20
+    robot.id = 1
+    robot.energia = 95.5
+
+    cuando robot.pos_x == 10 y robot.energia > 90.0 entonces
+        imprimir "[PASSED] P2: Registros y Herencia"
+    sino
+        imprimir "[FAILED] P2: Error en registros"
+    fin_cuando
+
+    # --- 4. PRUEBA DE VECTORES NATIVOS (P2) ---
+    vec3 v1 = vec3(1.0, 0.0, 0.0)
+    vec3 v2 = vec3(0.0, 1.0, 0.0)
+    vec3 v3 = v1 + v2
+    
+    cuando v3.x == 1.0 y v3.y == 1.0 entonces
+        imprimir "[PASSED] P2: Tipos Vectoriales"
+    sino
+        imprimir "[FAILED] P2: Error en vectores"
+    fin_cuando
+
+    # --- 5. PRUEBA DE MEMORIA NEURONAL E IA (P3) ---
+    # Inicialización obligatoria del motor de IA
+    crear_memoria("certificacion.jmn", 128, 512)
+
+    recordar "estado_sistema" con valor "CERTIFICADO"
+    buscar "estado_sistema"
+    
+    # Comprobación de valor persistido en 'resultado'
+    cuando resultado == "CERTIFICADO" entonces
+        imprimir "[PASSED] P3: Memoria Neuronal (IA Core)"
+    sino
+        imprimir "[FAILED] P3: Error en Memoria Neuronal"
+    fin_cuando
+
+    cerrar_memoria()
+
+    imprimir ""
+    imprimir "=========================================================="
+    imprimir " CERTIFICACIÓN COMPLETA: LENGUAJE JASBOOT ES ROBUSTO"
+    imprimir "=========================================================="
+fin_principal

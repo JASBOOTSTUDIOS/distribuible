@@ -1,0 +1,21 @@
+principal
+    lista valores = crear_lista()
+    mapa indices = mapa_crear()
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 20000 hacer
+        mem_lista_agregar(valores, i % 1000)
+        mapa_poner(indices, i, i * 3)
+        i = i + 1
+    fin_mientras
+
+    i = 0
+    mientras i < 20000 hacer
+        acc = acc + mem_lista_obtener(valores, i % 1000)
+        acc = acc + mapa_obtener(indices, i)
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

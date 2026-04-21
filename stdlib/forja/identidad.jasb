@@ -1,0 +1,15 @@
+// Identidad oficial de Forja.
+
+enviar constante texto forja_logo_ruta = "file:///C:/src/jasboot/stdlib/forja/forja-logo.png"
+
+enviar funcion forja_logo() retorna texto
+    retornar forja_logo_ruta
+fin_funcion
+
+enviar funcion forja_nombre_oficial() retorna texto
+    retornar "Forja"
+fin_funcion
+
+enviar funcion forja_lema() retorna texto
+    retornar "Forja: donde se construyen sistemas reales"
+fin_funcion

@@ -1,0 +1,219 @@
+// Componentes de diseno de alto nivel (stdlib/windows/windows_disenio.jasb).
+// Requiere antes en el programa: usar todas de "stdlib/windows/ui.jasb".
+
+// Boton principal: azul, texto blanco, sombra suave.
+enviar funcion windows_boton_primario_crear(entero app, texto leyenda) retorna entero
+    entero ctrl = windows_boton(app, leyenda)
+    windows_color_fondo(ctrl, windows_rgb(37, 99, 235))
+    windows_color_borde(ctrl, windows_rgb(29, 78, 216))
+    windows_color_texto(ctrl, windows_rgb(255, 255, 255))
+    windows_borde(ctrl, 1, 20)
+    windows_sombra(ctrl, 8, windows_rgb(147, 197, 253))
+    windows_fuente(ctrl, 14, 700)
+    windows_padding(ctrl, 18, 10)
+    retornar ctrl
+fin_funcion
+
+// Boton secundario: fondo claro, borde visible, texto oscuro.
+enviar funcion windows_boton_secundario_crear(entero app, texto leyenda) retorna entero
+    entero ctrl = windows_boton(app, leyenda)
+    windows_color_fondo(ctrl, windows_rgb(248, 250, 252))
+    windows_color_borde(ctrl, windows_rgb(203, 213, 225))
+    windows_color_texto(ctrl, windows_rgb(30, 41, 59))
+    windows_borde(ctrl, 1, 18)
+    windows_sombra(ctrl, 4, windows_rgb(226, 232, 240))
+    windows_fuente(ctrl, 14, 600)
+    windows_padding(ctrl, 16, 10)
+    retornar ctrl
+fin_funcion
+
+// Tarjeta: panel con titulo y cuerpo. Retorna el handle del panel.
+enviar funcion windows_tarjeta_crear(entero app, entero pos_x, entero pos_y, entero ancho, entero alto, texto titulo_card, texto cuerpo_card) retorna entero
+    entero tarj = windows_panel(app)
+    entero etiqueta_titulo = 0
+    entero etiqueta_cuerpo = 0
+    entero tx = pos_x + 20
+    entero ty = pos_y + 18
+    entero tw = ancho - 40
+    windows_marco(tarj, pos_x, pos_y, ancho, alto)
+    windows_responsivo(tarj, 40, 40, 890, 830)
+    windows_limites(tarj, 280, 200, 920, 640)
+    windows_color_fondo(tarj, windows_rgb(255, 255, 255))
+    windows_color_borde(tarj, windows_rgb(226, 232, 240))
+    windows_borde(tarj, 1, 22)
+    windows_sombra(tarj, 10, windows_rgb(191, 219, 254))
+    etiqueta_titulo = windows_texto(app, titulo_card)
+    windows_marco(etiqueta_titulo, tx, ty, tw, 30)
+    windows_color_texto(etiqueta_titulo, windows_rgb(15, 23, 42))
+    windows_fuente(etiqueta_titulo, 18, 700)
+    ty = ty + 38
+    etiqueta_cuerpo = windows_texto(app, cuerpo_card)
+    windows_marco(etiqueta_cuerpo, tx, ty, tw, 72)
+    windows_color_texto(etiqueta_cuerpo, windows_rgb(71, 85, 105))
+    windows_fuente(etiqueta_cuerpo, 13, 400)
+    retornar tarj
+fin_funcion
+
+// Hero: titulo grande + subtitulo. Retorna handle del titulo (control principal).
+enviar funcion windows_hero_crear(entero app, entero pos_x, entero pos_y, entero ancho, texto titulo_hero, texto subtitulo_hero) retorna entero
+    entero h_titulo = 0
+    entero h_sub = 0
+    entero ty = pos_y
+    h_titulo = windows_texto(app, titulo_hero)
+    windows_marco(h_titulo, pos_x, ty, ancho, 40)
+    windows_responsivo(h_titulo, 82, 60, 820, 62)
+    windows_color_texto(h_titulo, windows_rgb(15, 23, 42))
+    windows_fuente(h_titulo, 26, 700)
+    ty = ty + 48
+    h_sub = windows_texto(app, subtitulo_hero)
+    windows_marco(h_sub, pos_x, ty, ancho, 52)
+    windows_responsivo(h_sub, 82, 125, 820, 80)
+    windows_color_texto(h_sub, windows_rgb(100, 116, 139))
+    windows_fuente(h_sub, 14, 400)
+    retornar h_titulo
+fin_funcion
+
+// Campo de formulario: etiqueta + caja de texto. Retorna handle del campo de texto.
+enviar funcion windows_campo_formulario_crear(entero app, texto etiqueta, texto placeholder_ini, entero pos_x, entero pos_y, entero ancho) retorna entero
+    entero h_etiq = 0
+    entero h_campo = 0
+    entero ty = pos_y
+    h_etiq = windows_texto(app, etiqueta)
+    windows_marco(h_etiq, pos_x, ty, ancho, 22)
+    windows_color_texto(h_etiq, windows_rgb(51, 65, 85))
+    windows_fuente(h_etiq, 12, 600)
+    ty = ty + 26
+    h_campo = windows_entrada(app, placeholder_ini)
+    windows_marco(h_campo, pos_x, ty, ancho, 36)
+    windows_limites(h_campo, 200, 32, ancho + 40, 44)
+    windows_color_fondo(h_campo, windows_rgb(255, 255, 255))
+    windows_color_texto(h_campo, windows_rgb(30, 41, 59))
+    windows_fuente(h_campo, 13, 400)
+    retornar h_campo
+fin_funcion
+
+// Panel lateral estrecho a la izquierda (navegacion / marca).
+enviar funcion windows_panel_lateral_crear(entero app, entero ancho_px) retorna entero
+    entero lat = windows_panel(app)
+    windows_marco(lat, 0, 0, ancho_px, 620)
+    windows_responsivo(lat, 0, 0, 180, 1000)
+    windows_limites(lat, 160, 400, 280, 900)
+    windows_color_fondo(lat, windows_rgb(15, 23, 42))
+    windows_color_borde(lat, windows_rgb(30, 41, 59))
+    windows_borde(lat, 0, 0)
+    windows_sombra(lat, 6, windows_rgb(2, 6, 23))
+    retornar lat
+fin_funcion
+
+// Marca o titulo dentro del panel lateral.
+enviar funcion windows_panel_lateral_marca(entero app, texto nombre_marca) retorna entero
+    entero h = windows_texto(app, nombre_marca)
+    windows_marco(h, 20, 24, 200, 28)
+    windows_color_texto(h, windows_rgb(248, 250, 252))
+    windows_fuente(h, 16, 700)
+    retornar h
+fin_funcion
+
+// Barra superior: marca a la izquierda del rectangulo (coords absolutas a la ventana, p.ej. junto a un lateral).
+enviar funcion windows_navbar_crear(entero app, texto titulo_barra, entero pos_x, entero pos_y, entero ancho_barra, entero alto_barra) retorna entero
+    entero barra = windows_panel(app)
+    entero etiqueta = 0
+    entero mx = pos_x + 16
+    entero my = pos_y + 14
+    windows_marco(barra, pos_x, pos_y, ancho_barra, alto_barra)
+    windows_limites(barra, 360, 40, 1400, 96)
+    windows_color_fondo(barra, windows_rgb(255, 255, 255))
+    windows_color_borde(barra, windows_rgb(226, 232, 240))
+    windows_borde(barra, 0, 0)
+    windows_sombra(barra, 4, windows_rgb(241, 245, 249))
+    etiqueta = windows_texto(app, titulo_barra)
+    windows_marco(etiqueta, mx, my, 200, 28)
+    windows_color_texto(etiqueta, windows_rgb(15, 23, 42))
+    windows_fuente(etiqueta, 15, 700)
+    retornar barra
+fin_funcion
+
+// Boton compacto de navegacion (estilo secundario).
+enviar funcion windows_nav_item_crear(entero app, texto leyenda_item, entero pos_x, entero pos_y) retorna entero
+    entero b = windows_boton_secundario_crear(app, leyenda_item)
+    windows_marco(b, pos_x, pos_y, 108, 32)
+    windows_fuente(b, 12, 600)
+    windows_padding(b, 12, 6)
+    retornar b
+fin_funcion
+
+// Enlace tipo texto (solo etiqueta, estilo azul).
+enviar funcion windows_nav_enlace_crear(entero app, texto texto_enlace, entero pos_x, entero pos_y) retorna entero
+    entero h = windows_texto(app, texto_enlace)
+    windows_marco(h, pos_x, pos_y, 120, 22)
+    windows_color_texto(h, windows_rgb(37, 99, 235))
+    windows_fuente(h, 13, 600)
+    retornar h
+fin_funcion
+
+// Fila de lista: linea fuerte + linea debil. Retorna el panel fila.
+enviar funcion windows_lista_item_crear(entero app, texto linea1, texto linea2, entero pos_x, entero pos_y, entero ancho) retorna entero
+    entero fila = windows_panel(app)
+    entero t1 = 0
+    entero t2 = 0
+    entero alto_fila = 56
+    entero in = pos_x + 12
+    entero iy = pos_y + 8
+    entero iw = ancho - 24
+    windows_marco(fila, pos_x, pos_y, ancho, alto_fila)
+    windows_color_fondo(fila, windows_rgb(255, 255, 255))
+    windows_color_borde(fila, windows_rgb(226, 232, 240))
+    windows_borde(fila, 1, 10)
+    windows_sombra(fila, 2, windows_rgb(241, 245, 249))
+    t1 = windows_texto(app, linea1)
+    windows_marco(t1, in, iy, iw, 22)
+    windows_color_texto(t1, windows_rgb(15, 23, 42))
+    windows_fuente(t1, 13, 600)
+    iy = iy + 24
+    t2 = windows_texto(app, linea2)
+    windows_marco(t2, in, iy, iw, 18)
+    windows_color_texto(t2, windows_rgb(100, 116, 139))
+    windows_fuente(t2, 11, 400)
+    retornar fila
+fin_funcion
+
+// Capa oscura a pantalla completa (crear al final para quedar encima del contenido).
+enviar funcion windows_modal_capa_crear(entero app) retorna entero
+    entero capa = windows_panel(app)
+    windows_responsivo(capa, 0, 0, 1000, 1000)
+    windows_color_fondo(capa, windows_rgb(30, 41, 59))
+    windows_color_borde(capa, windows_rgb(30, 41, 59))
+    windows_borde(capa, 0, 0)
+    windows_sombra(capa, 0, windows_rgb(30, 41, 59))
+    retornar capa
+fin_funcion
+
+// Hoja central del modal (titulo + mensaje).
+enviar funcion windows_modal_hoja_crear(entero app, texto titulo_modal, texto mensaje_modal) retorna entero
+    entero caja = windows_panel(app)
+    entero ht = 0
+    entero hm = 0
+    windows_responsivo(caja, 220, 240, 560, 520)
+    windows_limites(caja, 300, 200, 560, 420)
+    windows_color_fondo(caja, windows_rgb(255, 255, 255))
+    windows_color_borde(caja, windows_rgb(203, 213, 225))
+    windows_borde(caja, 1, 18)
+    windows_sombra(caja, 16, windows_rgb(148, 163, 184))
+    ht = windows_texto(app, titulo_modal)
+    windows_responsivo(ht, 235, 260, 520, 70)
+    windows_color_texto(ht, windows_rgb(15, 23, 42))
+    windows_fuente(ht, 17, 700)
+    hm = windows_texto(app, mensaje_modal)
+    windows_responsivo(hm, 235, 340, 520, 160)
+    windows_color_texto(hm, windows_rgb(71, 85, 105))
+    windows_fuente(hm, 13, 400)
+    retornar caja
+fin_funcion
+
+// Boton para cerrar modal (posicion relativa bajo la hoja).
+enviar funcion windows_modal_boton_cerrar_crear(entero app, texto leyenda) retorna entero
+    entero b = windows_boton_secundario_crear(app, leyenda)
+    windows_responsivo(b, 400, 520, 220, 75)
+    windows_limites(b, 100, 34, 220, 44)
+    retornar b
+fin_funcion

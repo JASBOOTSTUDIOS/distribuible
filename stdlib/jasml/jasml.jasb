@@ -1,0 +1,36 @@
+// JASML - Jasboot Machine Learning Library
+// Librería completa de Machine Learning para Jasboot
+// Inspirada en scikit-learn, NumPy y pandas de Python
+// Organización siguiendo el patrón de stdlib
+
+usar todas de ".\\codigo-jasb\\core.jasb"
+usar todas de ".\\codigo-jasb\\estadistica.jasb"
+usar todas de ".\\codigo-jasb\\regresion.jasb"
+usar todas de ".\\codigo-jasb\\clasificacion.jasb"
+usar todas de ".\\codigo-jasb\\clustering.jasb"
+usar todas de ".\\codigo-jasb\\preprocesamiento_simple.jasb"
+usar todas de ".\\codigo-jasb\\evaluacion_simple.jasb"
+
+// Identidad de la librería
+enviar funcion jasml_nombre() retorna texto
+    retornar "JASML"
+fin_funcion
+
+enviar funcion jasml_version() retorna texto
+    retornar "1.0.0"
+fin_funcion
+
+enviar funcion jasml_descripcion() retorna texto
+    retornar "Jasboot Machine Learning Library - ML para el ecosistema Jasboot"
+fin_funcion
+
+// Función de bienvenida para testing
+enviar funcion jasml_bienvenida() retorna texto
+    retornar concatenar(
+        concatenar(
+            concatenar("¡Bienvenido a ", jasml_nombre()),
+            concatenar(" v", jasml_version())
+        ),
+        concatenar(" - ", jasml_descripcion())
+    )
+fin_funcion

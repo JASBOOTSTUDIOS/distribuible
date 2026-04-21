@@ -1,0 +1,79 @@
+usar todas de "..\\..\\stdlib\\forja\\forja.jasb"
+usar todas de "..\\..\\stdlib\\forja\\frontend.jasb"
+
+funcion api(texto solicitud) retorna texto
+    si forja_es_get(solicitud, "/api/hola") entonces
+        retornar forja_json("{\"mensaje\":\"hola desde forja\"}")
+    fin_si
+
+    si forja_es_get(solicitud, "/api/info") entonces
+        retornar forja_json("{\"framework\":\"Forja\",\"modo\":\"monolito\"}")
+    fin_si
+
+    retornar forja_no_encontrado()
+fin_funcion
+
+
+funcion app_monolito(texto solicitud) retorna texto
+    si forja_es_get(solicitud, "/favicon.ico") entonces
+        retornar forja_favicon()
+    fin_si
+
+    si forja_es_front(solicitud) entonces
+        retornar forja_landing()
+    fin_si
+
+    si forja_es_get(solicitud, "/salud") entonces
+        retornar forja_salud_ok()
+    fin_si
+
+    retornar api(solicitud)
+fin_funcion
+
+funcion servidor_demo(texto host, entero puerto, entero max_solicitudes) retorna entero
+    socket srv = tcp_escuchar(host, puerto)
+    entero i = 0
+    entero acc = 0
+    si srv == 0 entonces
+        retornar 0
+    fin_si
+
+    mientras i < max_solicitudes hacer
+        socket cli = tcp_aceptar(srv)
+        si cli == 0 entonces
+        sino
+            bytes solicitud_bytes = tcp_recibir(cli, 8192)
+            texto solicitud = bytes_a_texto(solicitud_bytes)
+            texto respuesta = app_monolito(solicitud)
+            bytes respuesta_bytes = bytes_desde_texto(respuesta)
+            entero total_bytes = bytes_tamano(respuesta_bytes)
+            entero enviados = 0
+            mientras enviados < total_bytes hacer
+                bytes tramo = bytes_subbytes(respuesta_bytes, enviados, total_bytes - enviados)
+                entero n = tcp_enviar(cli, tramo)
+                si n <= 0 entonces
+                    enviados = total_bytes
+                sino
+                    enviados = enviados + n
+                fin_si
+            fin_mientras
+            tcp_cerrar(cli)
+            acc = acc + longitud_texto(solicitud)
+            i = i + 1
+        fin_si
+    fin_mientras
+
+    tcp_cerrar(srv)
+    retornar acc
+fin_funcion
+
+principal
+    imprimir forja_nombre()
+    imprimir forja_firma()
+    imprimir "app demo activa en http://127.0.0.1:18100"
+    imprimir "frontend: /"
+    imprimir "salud: /salud"
+    imprimir "api: /api/hola y /api/info"
+    imprimir "esperando multiples solicitudes..."
+    imprimir servidor_demo("127.0.0.1", 18100, 100)
+fin_principal

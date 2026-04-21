@@ -1,0 +1,104 @@
+usar todas de "../../stdlib/windows/ui.jasb"
+
+usar {
+    windows_panel_lateral_crear,
+    windows_panel_lateral_marca,
+    windows_hero_crear,
+    windows_tarjeta_crear,
+    windows_campo_formulario_crear,
+    windows_boton_primario_crear,
+    windows_boton_secundario_crear,
+    windows_navbar_crear,
+    windows_nav_item_crear,
+    windows_nav_enlace_crear,
+    windows_lista_item_crear,
+    windows_modal_capa_crear,
+    windows_modal_hoja_crear,
+    windows_modal_boton_cerrar_crear
+} de "../../stdlib/windows/windows_disenio.jasb"
+
+
+principal
+
+    entero app = windows_app_crear("Jasboot Windows — Diseno", 960, 680)
+    entero lateral = 0
+    entero tarj = 0
+    entero campo_correo = 0
+    entero btn_ok = 0
+    entero btn_cancel = 0
+    entero btn_aviso = 0
+    entero capa_modal = 0
+    entero hoja_modal = 0
+    entero btn_modal = 0
+    entero pulsado = 0
+    entero sigue = 0
+
+    si app == 0 entonces
+        imprimir "No se pudo crear la ventana nativa.\n"
+        imprimir "Construye primero la DLL: sdk-dependiente\\jasboot-win32-bridge\\build.bat\n"
+    sino
+        windows_fondo_app(app, windows_rgb(241, 245, 249))
+
+        lateral = windows_panel_lateral_crear(app, 220)
+        windows_panel_lateral_marca(app, "Jasboot")
+
+        windows_navbar_crear(app, "Mi panel", 220, 0, 720, 52)
+        windows_nav_item_crear(app, "Inicio", 420, 10)
+        windows_nav_item_crear(app, "Ajustes", 536, 10)
+        windows_nav_enlace_crear(app, "Ayuda", 652, 16)
+
+        windows_hero_crear(app, 240, 68, 660, "Panel con componentes", "Navbar, lista, modal y reacciones a botones desde Jasboot.")
+
+        tarj = windows_tarjeta_crear(app, 240, 175, 680, 210, "Resumen", "Esta tarjeta agrupa estilo de panel, borde, sombra y tipografia coherente.")
+
+        campo_correo = windows_campo_formulario_crear(app, "Correo", "nombre@ejemplo.com", 260, 400, 420)
+
+        btn_ok = windows_boton_primario_crear(app, "Guardar")
+        windows_marco(btn_ok, 260, 470, 200, 44)
+        windows_responsivo(btn_ok, 270, 680, 220, 65)
+        windows_limites(btn_ok, 160, 40, 260, 52)
+
+        btn_cancel = windows_boton_secundario_crear(app, "Cancelar")
+        windows_marco(btn_cancel, 480, 470, 200, 44)
+        windows_responsivo(btn_cancel, 520, 680, 230, 65)
+        windows_limites(btn_cancel, 160, 40, 280, 52)
+
+        windows_lista_item_crear(app, "Registro local", "Sincronizado hace 2 min", 260, 525, 640)
+        windows_lista_item_crear(app, "Copia de respaldo", "Listo · 1.2 MB", 260, 587, 640)
+
+        btn_aviso = windows_boton_secundario_crear(app, "Mostrar aviso")
+        windows_marco(btn_aviso, 260, 650, 180, 28)
+        windows_responsivo(btn_aviso, 270, 900, 200, 52)
+        windows_limites(btn_aviso, 140, 28, 220, 40)
+
+        capa_modal = windows_modal_capa_crear(app)
+        hoja_modal = windows_modal_hoja_crear(app, "Aviso", "Puedes cerrar este panel con el boton inferior.")
+        btn_modal = windows_modal_boton_cerrar_crear(app, "Cerrar")
+        windows_visible(capa_modal, 0)
+        windows_visible(hoja_modal, 0)
+        windows_visible(btn_modal, 0)
+
+        windows_mostrar(app)
+
+        sigue = 1
+        mientras sigue != 0 hacer
+            sigue = windows_ejecutar_paso(app)
+            pulsado = windows_boton_pulsado(app)
+            si pulsado == btn_aviso entonces
+                windows_visible(capa_modal, 1)
+                windows_visible(hoja_modal, 1)
+                windows_visible(btn_modal, 1)
+            fin_si
+            si pulsado == btn_modal entonces
+                windows_visible(capa_modal, 0)
+                windows_visible(hoja_modal, 0)
+                windows_visible(btn_modal, 0)
+            fin_si
+        fin_mientras
+
+        windows_destruir(app)
+
+    fin_si
+
+fin_principal
+

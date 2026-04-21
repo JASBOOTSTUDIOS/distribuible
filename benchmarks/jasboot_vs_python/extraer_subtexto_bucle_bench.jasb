@@ -1,0 +1,20 @@
+principal
+    texto s = "x"
+    entero i = 0
+    mientras i < 95000 hacer
+        s = concatenar(s, " ab ")
+        s = concatenar(s, "Jefry Astacio")
+        i += 1
+    fin_mientras
+
+    texto tmp = ""
+    entero j = 0
+    mientras j < 3000000 hacer
+        tmp = extraer_subtexto(s, 0, 120)
+        j += 1
+    fin_mientras
+
+    imprimir longitud_texto(s)
+    imprimir ""
+    imprimir tmp
+fin_principal

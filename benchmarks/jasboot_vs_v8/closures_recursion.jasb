@@ -1,0 +1,21 @@
+funcion fact(entero n) retorna entero
+    si n <= 1 entonces
+        retornar 1
+    fin_si
+    retornar n * fact(n - 1)
+fin_funcion
+
+principal
+    entero base = 7
+    funcion add7 = (entero x) => x + base
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 20000 hacer
+        acc = acc + add7(i % 5)
+        acc = acc + fact(6)
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

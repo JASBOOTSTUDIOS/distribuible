@@ -1,0 +1,29 @@
+principal
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 100 hacer
+        socket s = tcp_conectar("127.0.0.1", 18446)
+        si s == 0 entonces
+            imprimir 0
+            i = 100
+        sino
+            tls canal = tls_cliente(s, "localhost")
+            si canal == 0 entonces
+                tcp_cerrar(s)
+                imprimir 0
+                i = 100
+            sino
+                bytes solicitud = bytes_desde_texto("ping")
+                tls_enviar(canal, solicitud)
+                bytes raw = tls_recibir(canal, 16)
+                tls_cerrar(canal)
+                tcp_cerrar(s)
+                acc = acc + bytes_tamano(raw)
+                i = i + 1
+            fin_si
+        fin_si
+    fin_mientras
+
+    imprimir acc
+fin_principal

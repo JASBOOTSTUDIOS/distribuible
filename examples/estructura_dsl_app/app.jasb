@@ -1,0 +1,50 @@
+usar todas de "..\\..\\stdlib\\api\\api_basica.jasb"
+usar todas de "..\\..\\stdlib\\Estructa\\codigo-jasb\\estructura.jasb"
+usar todas de ".\\inicio.jasb"
+usar todas de ".\\productos.jasb"
+usar todas de ".\\equipo.jasb"
+usar todas de ".\\contacto.jasb"
+usar todas de ".\\layout.jasb"
+
+funcion resolver_app(texto solicitud_http) retorna texto
+    texto nav = layout_nav()
+    texto titulo = layout_titulo_app()
+    texto cuerpo_inicio = pagina_inicio()
+    texto cuerpo_productos = pagina_productos()
+    texto cuerpo_equipo = pagina_equipo()
+    texto cuerpo_contacto = pagina_contacto()
+    texto ruta = estructura_ruta_sin_query(solicitud_http)
+
+    imprimir concatenar("Navegando hacia ", ruta)
+    retornar estructura_resolver_ruta_cuerpos(
+        solicitud_http,
+        "/", cuerpo_inicio,
+        "/productos", cuerpo_productos,
+        "/equipo", cuerpo_equipo,
+        "/contacto", cuerpo_contacto,
+        titulo, nav
+    )
+fin_funcion
+
+principal
+    socket srv = tcp_escuchar("127.0.0.1", 18220)
+    entero i = 0
+    imprimir "Estructa"
+    imprimir "app multi pagina activa en http://127.0.0.1:18220"
+    si srv == 0 entonces
+        imprimir api_alerta_puerto_en_uso("127.0.0.1", 18220, "HTTP")
+    sino
+        mientras i < 100 hacer
+            socket cli = tcp_aceptar(srv)
+            si cli == 0 entonces
+            sino
+                texto solicitud_http = api_leer_solicitud_http(cli)
+                texto respuesta = resolver_app(solicitud_http)
+                api_tcp_enviar_texto_completo(cli, respuesta)
+                tcp_cerrar(cli)
+                i = i + 1
+            fin_si
+        fin_mientras
+        tcp_cerrar(srv)
+    fin_si
+fin_principal

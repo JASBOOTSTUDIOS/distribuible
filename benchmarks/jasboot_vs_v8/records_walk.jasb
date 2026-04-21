@@ -1,0 +1,21 @@
+registro Evento
+    entero id
+    entero total
+    texto nombre
+fin_registro
+
+principal
+    Evento ev
+    entero i = 0
+    entero acc = 0
+
+    mientras i < 80000 hacer
+        ev.id = i
+        ev.total = i * 2
+        ev.nombre = "evento"
+        acc = acc + ev.id + ev.total + longitud_texto(ev.nombre)
+        i = i + 1
+    fin_mientras
+
+    imprimir acc
+fin_principal

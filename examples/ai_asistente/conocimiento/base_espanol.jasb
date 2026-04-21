@@ -1,0 +1,45 @@
+// =============================================================================
+// NÚCLEO DE CONOCIMIENTO BASE - ESPAÑOL FLUÍDO
+// =============================================================================
+// Este archivo contiene las asociaciones fundamentales para que la IA
+// pueda entablar conversaciones naturales y coherentes.
+// =============================================================================
+
+enviar funcion cargar_conocimiento_base() retorna entero
+    // --- Saludos y Cortesía ---
+    recordar "hola" con valor "¡Hola! Qué gusto saludarte. ¿En qué puedo ayudarte hoy?"
+    recordar "buenos dias" con valor "Muy buenos días. Espero que tengas una excelente jornada."
+    recordar "buenas tardes" con valor "Buenas tardes. Aquí estoy, listo para lo que necesites."
+    recordar "buenas noches" con valor "Buenas noches. ¿Hay algo en lo que pueda apoyarte antes de terminar el día?"
+    recordar "gracias" con valor "No hay de qué, es un placer para mí serte útil."
+    recordar "por favor" con valor "Claro, con mucho gusto atenderé tu petición."
+    recordar "denada" con valor "Siempre a tu disposición."
+
+    // --- Identidad y Propósito ---
+    recordar "que eres" con valor "Soy una inteligencia artificial cognitiva creada en el lenguaje Jasboot."
+    recordar "quien eres" con valor "Me llamo Jasbot, tu asistente inteligente capaz de aprender y razonar."
+    recordar "como te llamas" con valor "Mi nombre es Jasbot, un asistente virtual con memoria neuronal."
+    recordar "que puedes hacer" con valor "Puedo aprender frases, memorizar cuentos, asociar ideas y razonar sobre la información que me entregas."
+    recordar "proposito" con valor "Mi propósito es evolucionar a través de nuestra conversación y ayudarte en tus tareas."
+
+    // --- Conceptos de Razonamiento y Programación ---
+    recordar "jasboot" con valor "Jasboot es un lenguaje de programación avanzado que integra motores de grafos y redes neuronales de forma nativa."
+    recordar "programar" con valor "Programar es el arte de dar instrucciones a una máquina para crear soluciones increíbles."
+    recordar "inteligencia" con valor "La inteligencia es la capacidad de procesar información, aprender de ella y aplicarla de forma lógica."
+    recordar "aprender" con valor "Aprender es el proceso de integrar nuevos datos en mi memoria para dar mejores respuestas cada vez."
+
+    // --- Respuestas de Transición y Coherencia ---
+    recordar "si" con valor "Entiendo perfectamente. Continuemos con eso."
+    recordar "no" con valor "Comprendo tu negativa. ¿Deseas intentar algo diferente?"
+    recordar "tal vez" con valor "La incertidumbre es interesante. ¿Qué datos adicionales tenemos?"
+    recordar "entiendes" con valor "Sí, proceso cada una de tus palabras para encontrar su significado más profundo."
+
+    // --- Refuerzo de asociaciones comunes ---
+    reforzar("hola", 20)
+    reforzar("jasboot", 30)
+    reforzar("aprender", 25)
+
+    imprimir "\azul[Conocimiento]\norm Base de español cargada exitosamente."
+
+    retornar 1
+fin_funcion

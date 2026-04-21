@@ -1,0 +1,87 @@
+usar todas de ".\\frontend.jasb"
+
+// Capa minima para servir una app React desde Forja sin depender de otro servidor.
+// La pagina entrega el HTML base, carga React desde CDN y ejecuta el codigo de la app.
+
+enviar funcion forja_js(texto codigo_js) retorna texto
+    retornar api_respuesta("200 OK", "application/javascript; charset=utf-8", codigo_js)
+fin_funcion
+
+enviar funcion forja_css(texto codigo_css) retorna texto
+    retornar api_respuesta("200 OK", "text/css; charset=utf-8", codigo_css)
+fin_funcion
+
+enviar funcion forja_react_documento(texto titulo, texto descripcion, texto estilos_css, texto app_js) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"
+    html = concatenar(html, "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
+    html = concatenar(html, "<title>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, "body{margin:0;background:#0b1020;color:#eef2ff;font:16px Segoe UI,Arial,sans-serif}")
+    html = concatenar(html, ".forja-react-shell{max-width:1100px;margin:0 auto;padding:32px 20px 48px 20px}")
+    html = concatenar(html, ".forja-react-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;border:1px solid #23304d;border-radius:18px;background:#121a2e;box-shadow:0 18px 45px rgba(0,0,0,.25)}")
+    html = concatenar(html, ".forja-react-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700}")
+    html = concatenar(html, "#root{display:block}")
+    html = concatenar(html, estilos_css)
+    html = concatenar(html, "</style></head><body><div class=\"forja-react-shell\"><div class=\"forja-react-top\"><div><strong>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</strong><div style=\"margin-top:6px;color:#a5b4fc\">")
+    html = concatenar(html, estructura_escapar(descripcion))
+    html = concatenar(html, "</div></div><span class=\"forja-react-badge\">Forja + React</span></div><div id=\"root\"></div></div>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react@18/umd/react.development.js\"></script>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react-dom@18/umd/react-dom.development.js\"></script>")
+    html = concatenar(html, "<script>")
+    html = concatenar(html, app_js)
+    html = concatenar(html, "</script></body></html>")
+    retornar html
+fin_funcion
+
+enviar funcion forja_react_respuesta(texto titulo, texto descripcion, texto estilos_css, texto app_js) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"
+    html = concatenar(html, "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
+    html = concatenar(html, "<title>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, "body{margin:0;background:#0b1020;color:#eef2ff;font:16px Segoe UI,Arial,sans-serif}")
+    html = concatenar(html, ".forja-react-shell{max-width:1100px;margin:0 auto;padding:32px 20px 48px 20px}")
+    html = concatenar(html, ".forja-react-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;border:1px solid #23304d;border-radius:18px;background:#121a2e;box-shadow:0 18px 45px rgba(0,0,0,.25)}")
+    html = concatenar(html, ".forja-react-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700}")
+    html = concatenar(html, "#root{display:block}")
+    html = concatenar(html, estilos_css)
+    html = concatenar(html, "</style></head><body><div class=\"forja-react-shell\"><div class=\"forja-react-top\"><div><strong>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</strong><div style=\"margin-top:6px;color:#a5b4fc\">")
+    html = concatenar(html, estructura_escapar(descripcion))
+    html = concatenar(html, "</div></div><span class=\"forja-react-badge\">Forja + React</span></div><div id=\"root\"></div></div>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react@18/umd/react.development.js\"></script>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react-dom@18/umd/react-dom.development.js\"></script>")
+    html = concatenar(html, "<script>")
+    html = concatenar(html, app_js)
+    html = concatenar(html, "</script></body></html>")
+    retornar forja_html(html)
+fin_funcion
+
+enviar funcion forja_react_respuesta_assets(texto titulo, texto descripcion, texto css_url, texto js_url) retorna texto
+    texto html = "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"
+    html = concatenar(html, "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">")
+    html = concatenar(html, "<title>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</title><style>")
+    html = concatenar(html, "body{margin:0;background:#0b1020;color:#eef2ff;font:16px Segoe UI,Arial,sans-serif}")
+    html = concatenar(html, ".forja-react-shell{max-width:1100px;margin:0 auto;padding:32px 20px 48px 20px}")
+    html = concatenar(html, ".forja-react-top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;padding:16px 20px;border:1px solid #23304d;border-radius:18px;background:#121a2e;box-shadow:0 18px 45px rgba(0,0,0,.25)}")
+    html = concatenar(html, ".forja-react-badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#1d4ed8;color:#fff;font-size:12px;font-weight:700}")
+    html = concatenar(html, "</style><link rel=\"stylesheet\" href=\"")
+    html = concatenar(html, estructura_escapar_atributo(css_url))
+    html = concatenar(html, "\"></head><body><div class=\"forja-react-shell\"><div class=\"forja-react-top\"><div><strong>")
+    html = concatenar(html, estructura_escapar(titulo))
+    html = concatenar(html, "</strong><div style=\"margin-top:6px;color:#a5b4fc\">")
+    html = concatenar(html, estructura_escapar(descripcion))
+    html = concatenar(html, "</div></div><span class=\"forja-react-badge\">Forja + React</span></div><div id=\"root\"></div></div>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react@18/umd/react.development.js\"></script>")
+    html = concatenar(html, "<script crossorigin src=\"https://unpkg.com/react-dom@18/umd/react-dom.development.js\"></script>")
+    html = concatenar(html, "<script src=\"")
+    html = concatenar(html, estructura_escapar_atributo(js_url))
+    html = concatenar(html, "\"></script></body></html>")
+    retornar forja_html(html)
+fin_funcion

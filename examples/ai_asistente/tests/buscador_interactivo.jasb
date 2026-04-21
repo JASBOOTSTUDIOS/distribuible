@@ -1,0 +1,325 @@
+// =============================================================================
+// BUSCADOR INTERACTIVO - Sistema de Pruebas Interactivo para Cerebro JMN
+// =============================================================================
+// Permite al usuario realizar búsquedas profundas en una base de conocimientos extensa
+// y probar todas las funcionalidades del sistema cognitivo
+// =============================================================================
+
+usar todas de "../cerebro/cerebro_jmn.jasb"
+usar todas de "base_conocimientos_extensa.jasb"
+
+// Función para mostrar menú principal
+funcion mostrar_menu() retorna entero
+    imprimir "\n\mage=== MENÚ PRINCIPAL - BUSCADOR COGNITIVO ===\norm"
+    imprimir "1. Búsqueda profunda en conceptos"
+    imprimir "2. Análisis semántico de consulta"
+    imprimir "3. Búsqueda por palabras clave"
+    imprimir "4. Procesamiento inteligente"
+    imprimir "5. Aprendizaje de nuevo concepto"
+    imprimir "6. Búsqueda de conceptos recién aprendidos"
+    imprimir "7. Diagnóstico del sistema"
+    imprimir "8. Pruebas automáticas"
+    imprimir "9. Estadísticas de uso"
+    imprimir "10. Salir"
+    imprimir_sin_salto "\cian> Seleccione una opción (1-10): \norm"
+    
+    texto opcion_str = ""
+    ingresar_texto opcion_str
+    entero opcion = str_a_entero(opcion_str)
+    
+    retornar opcion
+fin_funcion
+
+// Función para búsqueda profunda
+funcion ejecutar_busqueda_profunda(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== BÚSQUEDA PROFUNDA ===\norm"
+    imprimir "Busca un término en TODOS los conceptos almacenados."
+    imprimir "Ejemplos: 'python', 'inteligencia', 'aprendizaje', 'energía'"
+    imprimir_sin_salto "\cian> Ingrese término a buscar: \norm"
+    
+    texto termino = ""
+    ingresar_texto termino
+    
+    si longitud_texto(termino) > 0 entonces
+        imprimir "\azul[Buscando]\norm Analizando " + str_desde_numero(longitud_texto(termino)) + " conceptos..."
+        texto resultado = cerebro.buscar_profundo(termino)
+        imprimir "\verd[Resultado]\norm " + resultado
+    sino
+        imprimir "\rojo[Error]\norm Debe ingresar un término válido."
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para análisis semántico
+funcion ejecutar_analisis_semantico(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== ANÁLISIS SEMÁNTICO ===\norm"
+    imprimir "Analiza tu consulta y encuentra conceptos relacionados."
+    imprimir "Ejemplos: 'qué es la programación', 'tecnologías emergentes', 'ciencias naturales'"
+    imprimir_sin_salto "\cian> Ingrese consulta a analizar: \norm"
+    
+    texto consulta = ""
+    ingresar_texto consulta
+    
+    si longitud_texto(consulta) > 0 entonces
+        imprimir "\azul[Analizando]\norm Extrayendo palabras clave y buscando relaciones..."
+        texto resultado = cerebro.analizar_consulta(consulta)
+        imprimir "\verd[Resultado]\norm " + resultado
+    sino
+        imprimir "\rojo[Error]\norm Debe ingresar una consulta válida."
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para búsqueda por palabras clave
+funcion ejecutar_busqueda_palabras(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== BÚSQUEDA POR PALABRAS CLAVE ===\norm"
+    imprimir "Extrae palabras de tu texto y busca conceptos que las contengan."
+    imprimir "Ejemplos: 'hola gracias por favor', 'python javascript java', 'ciencia tecnología innovación'"
+    imprimir_sin_salto "\cian> Ingrese texto con palabras clave: \norm"
+    
+    texto texto_palabras = ""
+    ingresar_texto texto_palabras
+    
+    si longitud_texto(texto_palabras) > 0 entonces
+        imprimir "\azul[Buscando]\norm Analizando palabras clave..."
+        texto resultado = cerebro.buscar_por_palabras(texto_palabras)
+        imprimir "\verd[Resultado]\norm " + resultado
+    sino
+        imprimir "\rojo[Error]\norm Debe ingresar un texto válido."
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para procesamiento inteligente
+funcion ejecutar_procesamiento_inteligente(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== PROCESAMIENTO INTELIGENTE ===\norm"
+    imprimir "Procesa tu entrada usando múltiples estrategias cognitivas."
+    imprimir "Intenta con cualquier pregunta o frase."
+    imprimir_sin_salto "\cian> Ingrese texto para procesar: \norm"
+    
+    texto _entrada = ""
+    ingresar_texto _entrada
+    
+    si longitud_texto(_entrada) > 0 entonces
+        imprimir "\azul[Procesando]\norm Aplicando estrategias multinivel..."
+        texto _resultado = cerebro.procesar_entrada(_entrada)
+        imprimir "\verd[Resultado]\norm " + _resultado
+    sino
+        imprimir "\rojo[Error]\norm Debe ingresar un texto válido."
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para aprendizaje
+funcion ejecutar_aprendizaje(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== APRENDIZAJE COGNITIVO ===\norm"
+    imprimir "Enseña un nuevo concepto al sistema."
+    imprimir "Formato: 'concepto es definición'"
+    imprimir "Ejemplo: 'blockchain es tecnología de registro distribuido'"
+    imprimir_sin_salto "\cian> Ingrese nueva asociación: \norm"
+    
+    texto _nueva_asociacion = ""
+    ingresar_texto _nueva_asociacion
+    
+    si contiene_texto(_nueva_asociacion, " es ") entonces
+        texto _concepto = extraer_antes_de(_nueva_asociacion, " es ")
+        texto _definicion = extraer_despues_de(_nueva_asociacion, " es ")
+        
+        si longitud_texto(_concepto) > 0 y longitud_texto(_definicion) > 0 entonces
+            imprimir "\azul[Aprendiendo]\norm Integrando nuevo conocimiento..."
+            entero resultado_aprendizaje = cerebro.aprender_asociacion(_concepto, _definicion)
+            
+            si resultado_aprendizaje == 1 entonces
+                imprimir "\verd[Éxito]\norm Concepto '" + _concepto + "' aprendido exitosamente."
+                imprimir "Definición: " + _definicion
+            sino
+                imprimir "\rojo[Error]\norm No se pudo aprender el concepto."
+            fin_si
+        sino
+            imprimir "\rojo[Error]\norm Concepto y definición no pueden estar vacíos."
+        fin_si
+    sino
+        imprimir "\rojo[Error]\norm Formato incorrecto. Use: 'concepto es definición'"
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para buscar conceptos aprendidos
+funcion ejecutar_busqueda_aprendidos(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== BÚSQUEDA DE CONCEPTOS APRENDIDOS ===\norm"
+    imprimir "Busca en los conceptos que has enseñado al sistema."
+    imprimir_sin_salto "\cian> Ingrese término a buscar en conceptos aprendidos: \norm"
+    
+    texto _termino = ""
+    ingresar_texto _termino
+    
+    si longitud_texto(_termino) > 0 entonces
+        imprimir "\azul[Buscando]\norm Analizando conceptos aprendidos..."
+        texto _resultado = cerebro.buscar_profundo(_termino)
+        
+        si contiene_texto(_resultado, "He encontrado") entonces
+            imprimir "\verd[Encontrado]\norm " + _resultado
+        sino
+            imprimir "\amar[Info]\norm No se encontró el término en conceptos aprendidos."
+            imprimir "Intenta enseñar el concepto primero o usa otro término."
+        fin_si
+    sino
+        imprimir "\rojo[Error]\norm Debe ingresar un término válido."
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para diagnóstico
+funcion ejecutar_diagnostico(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== DIAGNÓSTICO DEL SISTEMA ===\norm"
+    imprimir "Generando reporte completo del estado cognitivo..."
+    
+    texto diagnostico = cerebro.diagnosticar()
+    imprimir diagnostico
+    
+    retornar 1
+fin_funcion
+
+// Función para pruebas automáticas
+funcion ejecutar_pruebas_automaticas(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== PRUEBAS AUTOMÁTICAS ===\norm"
+    imprimir "Ejecutando suite de pruebas predefinidas..."
+    
+    // Lista de términos de prueba
+    entero terminos_prueba = lista_crear()
+    lista_agregar(terminos_prueba, "python")
+    lista_agregar(terminos_prueba, "inteligencia")
+    lista_agregar(terminos_prueba, "energía")
+    lista_agregar(terminos_prueba, "aprendizaje")
+    lista_agregar(terminos_prueba, "tecnología")
+    
+    entero exitos = 0
+    entero total = lista_tamano(terminos_prueba)
+    
+    entero i = 0
+    mientras i < total hacer
+        texto termino_test = lista_obtener(terminos_prueba, i)
+        imprimir "\n[Caso " + str_desde_numero(i + 1) + "/" + str_desde_numero(total) + "] Buscando: '" + termino_test + "'"
+        
+        texto resultado_test = cerebro.buscar_profundo(termino_test)
+        
+        si contiene_texto(resultado_test, "He encontrado") entonces
+            imprimir "\verd[EXITO]\norm " + resultado_test
+            exitos = exitos + 1
+        sino
+            imprimir "\rojo[FALLO]\norm " + resultado_test
+        fin_si
+        
+        i = i + 1
+    fin_mientras
+    
+    // Resumen de pruebas
+    imprimir "\n\mage=== RESUMEN DE PRUEBAS ===\norm"
+    imprimir "Pruebas exitosas: " + str_desde_numero(exitos) + "/" + str_desde_numero(total)
+    imprimir "Tasa de éxito: " + str_desde_numero((exitos * 100) / total) + "%"
+    
+    si exitos == total entonces
+        imprimir "\verd[¡TODAS LAS PRUEBAS PASARON!]\norm"
+    sino
+        imprimir "\amar[Algunas pruebas fallaron]\norm"
+    fin_si
+    
+    retornar 1
+fin_funcion
+
+// Función para estadísticas
+funcion ejecutar_estadisticas(CerebroJMN cerebro) retorna entero
+    imprimir "\n\amar=== ESTADÍSTICAS DE USO ===\norm"
+    imprimir "Generando estadísticas detalladas del sistema..."
+    
+    texto estadisticas = cerebro.diagnosticar()
+    imprimir estadisticas
+    
+    // Información adicional
+    imprimir "\n\mage=== INFORMACIÓN ADICIONAL ===\norm"
+    imprimir "- Base de conocimientos: 100+ conceptos predefinidos"
+    imprimir "- Capacidades: Búsqueda profunda, análisis semántico, aprendizaje"
+    imprimir "- Tecnologías: Jasboot, JMN (Jasboot Memory Network)"
+    imprimir "- Arquitectura: Orientada a objetos con manejo robusto de errores"
+    imprimir "- Optimización: Caché de conceptos y búsquedas multinivel"
+    
+    retornar 1
+fin_funcion
+
+// Función principal del sistema interactivo
+principal
+    imprimir "\mage=== SISTEMA INTERACTIVO DE BÚSQUEDA COGNITIVA ===\norm"
+    imprimir "Bienvenido al buscador avanzado de conceptos en memoria neuronal."
+    imprimir "Este sistema puede buscar términos dentro de definiciones completas."
+    imprimir "Base de conocimientos: 100+ conceptos detallados sobre tecnología, ciencia, cultura y más.\n"
+    
+    // Inicializar el sistema
+    imprimir "\azul[Sistema]\norm Inicializando cerebro cognitivo..."
+    crear_memoria("buscador_interactivo.jmn")
+    cargar_base_extensa()
+    
+    CerebroJMN cerebro = CerebroJMN.iniciar("buscador_interactivo.jmn")
+    entero _activacion = cerebro.activar()
+    
+    si _activacion == 1 entonces
+        imprimir "\verd[Sistema]\norm Cerebro cognitivo activado exitosamente."
+        imprimir "Listo para procesar consultas y búsquedas profundas."
+    sino
+        imprimir "\rojo[Error]\norm No se pudo activar el cerebro cognitivo."
+    fin_si
+    
+    // Bucle principal del menú
+    bool ejecutando = verdadero
+    mientras ejecutando == verdadero hacer
+        entero opcion = mostrar_menu()
+        
+        seleccionar opcion hacer
+            caso "1"
+                ejecutar_busqueda_profunda(cerebro)
+            caso "2"
+                ejecutar_analisis_semantico(cerebro)
+            caso "3"
+                ejecutar_busqueda_palabras(cerebro)
+            caso "4"
+                ejecutar_procesamiento_inteligente(cerebro)
+            caso "5"
+                ejecutar_aprendizaje(cerebro)
+            caso "6"
+                ejecutar_busqueda_aprendidos(cerebro)
+            caso "7"
+                ejecutar_diagnostico(cerebro)
+            caso "8"
+                ejecutar_pruebas_automaticas(cerebro)
+            caso "9"
+                ejecutar_estadisticas(cerebro)
+            caso "10"
+                ejecutando = falso
+                imprimir "\azul[Sistema]\norm Finalizando sesión..."
+            defecto
+                imprimir "\rojo[Error]\norm Opción no válida. Seleccione 1-10."
+        fin_seleccionar
+        
+        si ejecutando entonces
+            imprimir "\n--- Presione Enter para continuar ---"
+            texto pausa = ""
+            ingresar_texto pausa
+        fin_si
+    fin_mientras
+    
+    // Cierre del sistema
+    imprimir "\azul[Sistema]\norm Apagando cerebro cognitivo..."
+    cerebro.apagar()
+    cerrar_memoria()
+    
+    imprimir "\verd[Sistema]\norm Sesión finalizada exitosamente."
+    imprimir "\mage=== ¡Gracias por usar el Buscador Cognitivo! ===\norm"
+    imprimir "Has explorado una base de conocimientos extensa utilizando búsqueda profunda."
+    imprimir "El sistema ha aprendido de tus interacciones y mejorado sus capacidades."
+    
+fin_principal

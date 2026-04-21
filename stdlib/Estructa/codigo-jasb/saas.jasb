@@ -1,0 +1,62 @@
+usar todas de ".\\estructura.jasb"
+
+enviar funcion estructura_saas_sidebar(texto solicitud) retorna texto
+    texto html = estructura_tarjeta("jb SaaS", "")
+    texto items = estructura_menu_lateral_item_html("/", "Resumen", solicitud)
+    items = concatenar(items, estructura_menu_lateral_item_html("/clientes", "Clientes", solicitud))
+    items = concatenar(items, estructura_menu_lateral_item_html("/facturacion", "Facturacion", solicitud))
+    items = concatenar(items, estructura_menu_lateral_item_html("/configuracion", "Configuracion", solicitud))
+    html = concatenar(html, estructura_columna(items))
+    retornar html
+fin_funcion
+
+enviar funcion estructura_saas_kpis() retorna texto
+    texto fila = ""
+    fila = concatenar(fila, estructura_kpi("MRR", "$24,800", "Ingresos recurrentes del mes"))
+    fila = concatenar(fila, estructura_kpi("Activas", "128", "Cuentas activas en produccion"))
+    fila = concatenar(fila, estructura_kpi("Conversion", "6.2%", "Leads convertidos esta semana"))
+    retornar estructura_fila_visual("16px", "stretch", fila)
+fin_funcion
+
+enviar funcion estructura_saas_tabla_clientes() retorna texto
+    texto encabezados = ""
+    encabezados = concatenar(encabezados, estructura_tabla_encabezado("Cliente"))
+    encabezados = concatenar(encabezados, estructura_tabla_encabezado("Plan"))
+    encabezados = concatenar(encabezados, estructura_tabla_encabezado("Estado"))
+    texto filas = ""
+    texto r1 = estructura_tabla_celda("Acme Studio")
+    r1 = concatenar(r1, estructura_tabla_celda("Growth"))
+    r1 = concatenar(r1, estructura_tabla_celda("Activa"))
+    filas = concatenar(filas, estructura_tabla_fila(r1))
+    texto r2 = estructura_tabla_celda("Nube Azul")
+    r2 = concatenar(r2, estructura_tabla_celda("Scale"))
+    r2 = concatenar(r2, estructura_tabla_celda("Pendiente"))
+    filas = concatenar(filas, estructura_tabla_fila(r2))
+    texto r3 = estructura_tabla_celda("Vector Labs")
+    r3 = concatenar(r3, estructura_tabla_celda("Starter"))
+    r3 = concatenar(r3, estructura_tabla_celda("Activa"))
+    filas = concatenar(filas, estructura_tabla_fila(r3))
+    retornar estructura_tabla_simple(encabezados, filas)
+fin_funcion
+
+enviar funcion estructura_saas_shell(texto solicitud, texto contenido) retorna texto
+    retornar estructura_panel_shell(estructura_saas_sidebar(solicitud), contenido)
+fin_funcion
+
+enviar funcion estructura_menu_lateral_item_html(texto ruta, texto etiqueta, texto solicitud) retorna texto
+    texto segura = estructura_escapar_atributo(ruta)
+    texto activa = ""
+    si estructura_ruta_sin_query(solicitud) == ruta entonces
+        activa = " style=\"box-shadow:inset 0 0 0 2px #bfdbfe\""
+    fin_si
+    texto html = "<div"
+    html = concatenar(html, activa)
+    html = concatenar(html, "><a class=\"fui-boton fui-boton-sec\" href=\"")
+    html = concatenar(html, segura)
+    html = concatenar(html, "\" data-estructa-ruta=\"")
+    html = concatenar(html, segura)
+    html = concatenar(html, "\">")
+    html = concatenar(html, estructura_escapar(etiqueta))
+    html = concatenar(html, "</a></div>")
+    retornar html
+fin_funcion

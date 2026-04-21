@@ -1,0 +1,39 @@
+usar todas de "..\\..\\stdlib\\http\\http_basico.jasb"
+
+funcion servir_100_seguro() retorna entero
+    socket srv = tcp_escuchar("127.0.0.1", 18443)
+    entero i = 0
+    entero acc = 0
+    bytes respuesta = bytes_desde_texto(http_crear_respuesta_texto("seguro=/hola"))
+    si srv == 0 entonces
+        retornar 0
+    sino
+        mientras i < 100 hacer
+            socket cli = tcp_aceptar(srv)
+            si cli == 0 entonces
+            sino
+                tls canal = tls_servidor(
+                    cli,
+                    "c:\\src\\jasboot\\tests\\P4_55_red_nativa\\certs\\localhost-cert.pem",
+                    "c:\\src\\jasboot\\tests\\P4_55_red_nativa\\certs\\localhost-key.pem"
+                )
+                si canal == 0 entonces
+                    tcp_cerrar(cli)
+                sino
+                    bytes bruto = tls_recibir(canal, 8192)
+                    tls_enviar(canal, respuesta)
+                    tls_cerrar(canal)
+                    tcp_cerrar(cli)
+                    acc = acc + bytes_tamano(bruto)
+                    i = i + 1
+                fin_si
+            fin_si
+        fin_mientras
+        tcp_cerrar(srv)
+    fin_si
+    retornar acc
+fin_funcion
+
+principal
+    imprimir servir_100_seguro()
+fin_principal

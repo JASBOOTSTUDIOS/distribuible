@@ -1,0 +1,150 @@
+usar todas de "C:/src/jasboot/stdlib/api/api_basica.jasb"
+usar todas de "C:/src/jasboot/stdlib/Estructa/codigo-jasb/estructura.jasb"
+usar todas de "C:/src/jasboot/stdlib/Estructa/codigo-jasb/ui.jasb"
+
+usar todas de "C:/src/jasboot/stdlib/Estructa/codigo-jasb/saas.jasb"
+
+funcion jd_tema_activo() retorna texto
+    retornar estructura_tema("#2563eb", "#0f172a", "#f8fafc", "#0f172a", "16px", "16px")
+fin_funcion
+
+funcion jd_vista_Inicio(texto solicitud) retorna texto
+    texto jd_hijos_0 = ""
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_titulo("Cesar"))
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_texto("Panel SaaS seguro construido con `.jd` y runtime Estructa."))
+    texto jd_hijos_2 = ""
+    jd_hijos_2 = concatenar(jd_hijos_2, estructura_texto("El sistema renderiza por SSR, escapa contenido y limita acciones del cliente."))
+    texto jd_bloque_3 = estructura_tarjeta_visual("Estado", "primaria", jd_hijos_2)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_3)
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_divisor())
+    texto jd_bloque_1 = estructura_columna(jd_hijos_0)
+    texto cuerpo = jd_bloque_1
+    texto panel = estructura_seccion_titulo("Resumen ejecutivo", "Metrica, estado y actividad del producto.")
+    panel = concatenar(panel, estructura_saas_kpis())
+    panel = concatenar(panel, estructura_tarjeta("Actividad", concatenar(estructura_texto("3 despliegues correctos en las ultimas 24h."), estructura_badge("Seguro por defecto"))))
+    cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+    retornar cuerpo
+fin_funcion
+
+funcion jd_vista_Clientes(texto solicitud) retorna texto
+    texto jd_hijos_0 = ""
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_titulo("Clientes"))
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_texto("Gestiona cuentas y observa el estado comercial actual."))
+    texto jd_hijos_2 = ""
+    jd_hijos_2 = concatenar(jd_hijos_2, estructura_texto("Usa las acciones declarativas para mostrar paneles sin DOM libre."))
+    texto jd_bloque_3 = estructura_tarjeta("Acciones", jd_hijos_2)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_3)
+    texto jd_hijos_4 = ""
+    jd_hijos_4 = concatenar(jd_hijos_4, estructura_boton_alerta("Notificar", "Recordatorio enviado al equipo comercial"))
+    jd_hijos_4 = concatenar(jd_hijos_4, estructura_boton_mostrar("panel-clientes", "Mostrar panel"))
+    jd_hijos_4 = concatenar(jd_hijos_4, estructura_boton_ocultar("panel-clientes", "Ocultar panel"))
+    texto jd_bloque_5 = estructura_fila(jd_hijos_4)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_5)
+    texto jd_hijos_6 = ""
+    jd_hijos_6 = concatenar(jd_hijos_6, estructura_texto("Panel visible solo mediante acciones seguras."))
+    texto jd_bloque_7 = estructura_panel_seguro("panel-clientes", jd_hijos_6)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_7)
+    texto jd_bloque_1 = estructura_columna(jd_hijos_0)
+    texto cuerpo = jd_bloque_1
+    texto panel = estructura_seccion_titulo("Base de clientes", "Listado resumido y seguro.")
+    panel = concatenar(panel, estructura_saas_tabla_clientes())
+    cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+    retornar cuerpo
+fin_funcion
+
+funcion jd_vista_Facturacion(texto solicitud) retorna texto
+    texto jd_hijos_0 = ""
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_titulo("Facturacion"))
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_texto("Simula una vista de cobros y estado financiero."))
+    texto jd_hijos_2 = ""
+    jd_hijos_2 = concatenar(jd_hijos_2, estructura_texto("97.8% de facturas conciliadas este mes."))
+    texto jd_bloque_3 = estructura_tarjeta_visual("Cobros", "oscura", jd_hijos_2)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_3)
+    texto jd_bloque_1 = estructura_columna(jd_hijos_0)
+    texto cuerpo = jd_bloque_1
+    texto panel = estructura_seccion_titulo("Facturacion", "Resumen de ingresos, alertas y seguimiento.")
+    texto fila_facturacion = estructura_kpi("Cobrado", "$18,200", "Cobros cerrados")
+    fila_facturacion = concatenar(fila_facturacion, estructura_kpi("Pendiente", "$2,400", "Cobros por confirmar"))
+    panel = concatenar(panel, estructura_fila(fila_facturacion))
+    cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+    retornar cuerpo
+fin_funcion
+
+funcion jd_vista_Configuracion(texto solicitud) retorna texto
+    texto jd_hijos_0 = ""
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_titulo("Configuracion"))
+    jd_hijos_0 = concatenar(jd_hijos_0, estructura_texto("Preferencias operativas del panel."))
+    texto jd_hijos_2 = ""
+    jd_hijos_2 = concatenar(jd_hijos_2, estructura_entrada("equipo", "jb Cloud", "Nombre visible"))
+    texto jd_bloque_3 = estructura_campo("Nombre del equipo", jd_hijos_2)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_3)
+    texto jd_hijos_4 = ""
+    jd_hijos_4 = concatenar(jd_hijos_4, estructura_entrada("correo", "ops@jb.local", "Correo de alertas"))
+    texto jd_bloque_5 = estructura_campo("Correo de alertas", jd_hijos_4)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_5)
+    texto jd_hijos_6 = ""
+    jd_hijos_6 = concatenar(jd_hijos_6, estructura_boton_secundario("/configuracion", "Restablecer"))
+    jd_hijos_6 = concatenar(jd_hijos_6, estructura_boton_alerta("Guardar", "Configuracion validada de forma segura"))
+    texto jd_bloque_7 = estructura_fila(jd_hijos_6)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_7)
+    texto jd_hijos_8 = ""
+    jd_hijos_8 = concatenar(jd_hijos_8, estructura_texto("Panel avanzado protegido."))
+    texto jd_bloque_9 = estructura_panel_seguro_oculto("preferencias-avanzadas", jd_hijos_8)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_9)
+    texto jd_hijos_10 = ""
+    jd_hijos_10 = concatenar(jd_hijos_10, estructura_boton_alternar("preferencias-avanzadas", "Alternar avanzado"))
+    texto jd_bloque_11 = estructura_fila(jd_hijos_10)
+    jd_hijos_0 = concatenar(jd_hijos_0, jd_bloque_11)
+    texto jd_bloque_1 = estructura_columna(jd_hijos_0)
+    texto cuerpo = jd_bloque_1
+    texto panel = estructura_seccion_titulo("Preferencias", "Formulario base para ajustes operativos.")
+    cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+    retornar cuerpo
+fin_funcion
+
+funcion jd_app(texto solicitud) retorna texto
+    texto nav = ""
+    nav = concatenar(nav, "<a data-estructa-ruta=\"/\" href=\"/\">Inicio</a>")
+    nav = concatenar(nav, "<a data-estructa-ruta=\"/clientes\" href=\"/clientes\">Clientes</a>")
+    nav = concatenar(nav, "<a data-estructa-ruta=\"/facturacion\" href=\"/facturacion\">Facturacion</a>")
+    nav = concatenar(nav, "<a data-estructa-ruta=\"/configuracion\" href=\"/configuracion\">Configuracion</a>")
+    texto ruta = estructura_ruta_sin_query(solicitud)
+    si api_metodo(solicitud) == "GET" entonces
+        si ruta == "/" entonces
+            retornar estructura_responder_tema("MiAppJD", nav, jd_vista_Inicio(solicitud), jd_tema_activo())
+        fin_si
+        si ruta == "/clientes" entonces
+            retornar estructura_responder_tema("MiAppJD", nav, jd_vista_Clientes(solicitud), jd_tema_activo())
+        fin_si
+        si ruta == "/facturacion" entonces
+            retornar estructura_responder_tema("MiAppJD", nav, jd_vista_Facturacion(solicitud), jd_tema_activo())
+        fin_si
+        si ruta == "/configuracion" entonces
+            retornar estructura_responder_tema("MiAppJD", nav, jd_vista_Configuracion(solicitud), jd_tema_activo())
+        fin_si
+    fin_si
+    retornar estructura_no_encontrado_tema("MiAppJD", nav, jd_tema_activo())
+fin_funcion
+
+principal
+    socket srv = tcp_escuchar("127.0.0.1", 18232)
+    entero i = 0
+    imprimir "MiAppJD"
+    imprimir "app jd activa en http://127.0.0.1:18232"
+    si srv == 0 entonces
+        imprimir api_alerta_puerto_en_uso("127.0.0.1", 18232, "HTTP")
+    sino
+        mientras i < 100 hacer
+            socket cli = tcp_aceptar(srv)
+            si cli == 0 entonces
+            sino
+                texto solicitud_http = api_leer_solicitud_http(cli)
+                texto respuesta = jd_app(solicitud_http)
+                api_tcp_enviar_texto_completo(cli, respuesta)
+                tcp_cerrar(cli)
+                i = i + 1
+            fin_si
+        fin_mientras
+        tcp_cerrar(srv)
+    fin_si
+fin_principal

@@ -1,0 +1,10 @@
+principal
+    entero i = 0
+    entero s = 0
+    entero n = 5000000
+    mientras i < n hacer
+        s += i
+        i += 1
+    fin_mientras
+    imprimir s
+fin_principal

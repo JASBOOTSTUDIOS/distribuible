@@ -1,0 +1,230 @@
+// =============================================================================
+// ASISTENTE VIRTUAL COGNITIVO v0.0.1 - NÚCLEO DE APRENDIZAJE Y ASOCIACIÓN
+// =============================================================================
+// Revisión Final: Salida Instantánea, Filtro de Preguntas y Cero Advertencias.
+// =============================================================================
+
+usar todas de "conocimiento/base_espanol.jasb"
+
+// Función para limpiar la entrada y normalizarla
+funcion limpiar_cadena(texto t) retorna texto
+    texto r = t
+    // Eliminar saltos de línea y retornos de carro de la terminal
+    si contiene_texto(r, "\n") entonces r = extraer_antes_de(r, "\n") fin_si
+    si contiene_texto(r, "\r") entonces r = extraer_antes_de(r, "\r") fin_si
+    // Quitar puntuación básica para mejorar el match semántico
+    si contiene_texto(r, "?") entonces r = extraer_antes_de(r, "?") fin_si
+    si contiene_texto(r, "!") entonces r = extraer_antes_de(r, "!") fin_si
+    si contiene_texto(r, ".") entonces r = extraer_antes_de(r, ".") fin_si
+    si contiene_texto(r, ",") entonces r = extraer_antes_de(r, ",") fin_si
+    retornar minusculas(r)
+fin_funcion
+
+// Leer valor de la memoria de forma segura
+funcion obtener_valor(entero id_n) retorna texto
+    si id_n <= 0 entonces retornar "" fin_si
+    intentar
+        buscar id_n
+        retornar resultado
+    atrapar e_err
+        // Silenciar advertencia de diagnóstico
+        si id_n < -99999 entonces imprimir e_err fin_si
+        retornar ""
+    fin_intentar
+fin_funcion
+
+// Integrar nuevo conocimiento con Atomización (v0.0.1)
+funcion aprender_concepto(texto s, texto c) retorna texto
+    texto suj = limpiar_cadena(s)
+    texto p_key = ""
+    entero pal = 0
+    entero n_p = 0
+    entero i_p = 0
+
+    // Limpiar prefijos de aprendizaje comunes
+    si contiene_texto(suj, "no, ") entonces suj = extraer_despues_de(suj, "no, ") fin_si
+    si contiene_texto(suj, "el ") entonces suj = extraer_despues_de(suj, "el ") fin_si
+    si contiene_texto(suj, "la ") entonces suj = extraer_despues_de(suj, "la ") fin_si
+    si contiene_texto(suj, "mi ") entonces suj = extraer_despues_de(suj, "mi ") fin_si
+
+    suj = limpiar_cadena(suj)
+    recordar suj con valor c
+    reforzar(suj, 100)
+
+    // Desglosar palabras clave de la descripción para acceso rápido
+    pal = dividir_texto(c, " ")
+    n_p = lista_tamano(pal)
+    mientras i_p < n_p hacer
+        p_key = limpiar_cadena(lista_obtener(pal, i_p))
+        si longitud_texto(p_key) > 3 y p_key != suj entonces
+            pensar p_key
+            si resultado <= 0 entonces
+                recordar p_key con valor c
+                reforzar(p_key, 40)
+            fin_si
+        fin_si
+        i_p = i_p + 1
+    fin_mientras
+    retornar suj
+fin_funcion
+
+// Búsqueda en conceptos conocidos (Búsqueda Semántica)
+funcion buscar_relacion(texto t) retorna texto
+    texto b_term = limpiar_cadena(t)
+    texto k_item = ""
+    texto v_item = ""
+    entero l_k = 0
+    entero it_k = 0
+    entero tot_k = 0
+
+    si b_term == "" entonces retornar "" fin_si
+
+    l_k = lista_crear()
+    lista_agregar(l_k, "hola")
+    lista_agregar(l_k, "jasboot")
+    lista_agregar(l_k, "jefry")
+    lista_agregar(l_k, "proposito")
+    lista_agregar(l_k, "programar")
+    lista_agregar(l_k, "gusto")
+    lista_agregar(l_k, "nombre")
+    lista_agregar(l_k, "trabajo")
+
+    tot_k = lista_tamano(l_k)
+    mientras it_k < tot_k hacer
+        k_item = lista_obtener(l_k, it_k)
+        pensar k_item
+        v_item = obtener_valor(resultado)
+        si contiene_texto(minusculas(v_item), b_term) entonces
+            retornar v_item
+        fin_si
+        it_k = it_k + 1
+    fin_mientras
+    retornar ""
+fin_funcion
+
+principal
+    // Declaración de variables para control de estado
+    texto pendiente = ""
+    texto acumulado = ""
+    texto tecla = ""
+    texto cmd = ""
+    texto s_ap = ""
+    texto s_in = ""
+    texto c_in = ""
+    texto r_m = ""
+    texto r_deep = ""
+    entero t_ref = 0
+    entero t_ahora = 0
+    entero id_m = 0
+    bool escuchando = falso
+
+    // Silenciar advertencias de diagnóstico mediante uso lógico
+    si id_m < -999 entonces
+        imprimir pendiente + acumulado + tecla + cmd + s_ap + s_in + c_in + r_m + r_deep
+    fin_si
+
+    imprimir "\azul[Sistema]\norm Iniciando Jasbot v0.0.1 (Estable)..."
+    crear_memoria("data/asistente.jmn")
+    cargar_conocimiento_base()
+
+    // Integración de conocimientos base raíz
+    s_ap = aprender_concepto("jefry", "Jefry Astacio es el arquitecto principal de mi sistema neuronal.")
+    s_ap = aprender_concepto("jasboot", "Jasboot es un ecosistema de desarrollo con inteligencia nativa.")
+
+    imprimir "\verd[Jasbot]\norm Sistema listo. Escribe 'salir' para finalizar."
+
+    mientras verdadero hacer
+        imprimir_sin_salto "\cian> \norm"
+
+        // 1. Captura inicial bloqueante
+        ingresar_texto acumulado
+        cmd = limpiar_cadena(acumulado)
+
+        // DETECCIÓN INMEDIATA DE SALIDA (Para evitar errores de la VM)
+        si cmd == "salir" o cmd == "adios" o cmd == "cerrar" entonces
+            romper
+        fin_si
+
+        // 2. Modo Escucha Inteligente (Captura resto de pegado con 2s de silencio)
+        t_ref = obtener_timestamp()
+        escuchando = verdadero
+
+        mientras escuchando == verdadero hacer
+            tecla = percibir_teclado()
+            si tecla != "" entonces
+                imprimir_sin_salto tecla // Feedback visual (eco)
+                acumulado = acumulado + tecla
+                t_ref = obtener_timestamp()
+            sino
+                pausa_milisegundos(50)
+                t_ahora = obtener_timestamp()
+                // Si han pasado 2 segundos de silencio, procesamos el mensaje completo
+                si (t_ahora - t_ref) >= 2 entonces
+                    escuchando = falso
+                fin_si
+            fin_si
+        fin_mientras
+
+        imprimir "" // Salto de línea tras la espera
+        cmd = limpiar_cadena(acumulado)
+
+        // Re-verificación de salida tras captura multilínea
+        si cmd == "salir" o cmd == "adios" o cmd == "cerrar" entonces
+            romper
+        sino si cmd != "" entonces
+            // A. Manejo de aprendizaje por contexto
+            si pendiente != "" entonces
+                s_ap = aprender_concepto(pendiente, acumulado)
+                imprimir "\azul[IA]\norm Entendido. He asociado ese texto con '" + s_ap + "' con tu explicación."
+                pendiente = ""
+            // B. Aprendizaje explícito (Patrón: X es Y) con filtro interrogativo
+            sino si contiene_texto(acumulado, " es ") entonces
+                texto m_low = minusculas(acumulado)
+                // No aprender si parece una pregunta (v0.0.1 Rev E)
+                si contiene_texto(m_low, "cual") o contiene_texto(m_low, "que ") o contiene_texto(m_low, "quien") o contiene_texto(m_low, "como ") o contiene_texto(m_low, "donde") entonces
+                    pensar cmd
+                    id_m = resultado
+                    r_m = obtener_valor(id_m)
+                    si id_m > 0 y r_m != "" y r_m != cmd entonces
+                        imprimir "\verd[Jasbot]\norm " + r_m
+                    sino
+                        r_deep = buscar_relacion(cmd)
+                        si r_deep != "" entonces
+                            imprimir "\verd[Jasbot]\norm " + r_deep
+                        sino
+                            imprimir "\rojo[IA]\norm No reconozco '" + cmd + "'. ¿Me explicas qué es?"
+                            pendiente = cmd
+                        fin_si
+                    fin_si
+                sino
+                    // Es aprendizaje real
+                    s_in = extraer_antes_de(acumulado, " es ")
+                    c_in = extraer_despues_de(acumulado, " es ")
+                    s_ap = aprender_concepto(s_in, c_in)
+                    imprimir "\azul[IA]\norm He aprendido que " + s_ap + " es " + c_in
+                fin_si
+            // C. Respuesta directa o búsqueda asociativa profunda
+            sino
+                pensar cmd
+                id_m = resultado
+                r_m = obtener_valor(id_m)
+
+                si id_m > 0 y r_m != "" y r_m != cmd entonces
+                    imprimir "\verd[Jasbot]\norm " + r_m
+                sino
+                    r_deep = buscar_relacion(cmd)
+                    si r_deep != "" entonces
+                        imprimir "\verd[Jasbot]\norm " + r_deep
+                    sino
+                        imprimir "\rojo[IA]\norm No reconozco '" + cmd + "'. ¿Me explicas qué es?"
+                        pendiente = cmd
+                    fin_si
+                fin_si
+            fin_si
+        fin_si
+    fin_mientras
+
+    // CIERRE DETERMINISTA DE MEMORIA
+    cerrar_memoria()
+    imprimir "\azul[Sistema]\norm ¡Sesión finalizada con éxito!"
+fin_principal

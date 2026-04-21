@@ -1,0 +1,27 @@
+usar todas de ".\\forja.jasb"
+usar todas de ".\\landig.jasb"
+
+// Capa frontend de Forja para servir la landing y respuestas HTML base.
+
+enviar funcion forja_html(texto html) retorna texto
+    retornar api_respuesta("200 OK", "text/html; charset=utf-8", html)
+fin_funcion
+
+enviar funcion forja_landing() retorna texto
+    texto html = forja_landing_html()
+    retornar forja_html(html)
+fin_funcion
+
+enviar funcion forja_favicon() retorna texto
+    retornar api_respuesta("204 No Content", "image/x-icon", "")
+fin_funcion
+
+enviar funcion forja_es_front(texto solicitud) retorna entero
+    si forja_es_get(solicitud, "/") entonces
+        retornar 1
+    fin_si
+    si forja_es_get(solicitud, "/favicon.ico") entonces
+        retornar 1
+    fin_si
+    retornar 0
+fin_funcion

@@ -1,0 +1,92 @@
+usar todas de "..\\api\\api_basica.jasb"
+usar todas de "..\\Estructa\\codigo-jasb\\ui.jasb"
+
+// Forja es el framework base de Jasboot para construir APIs y sistemas backend.
+// Esta capa expone una interfaz mas orientada a framework sobre la base de api_basica.
+
+// Identidad del framework.
+enviar funcion forja_nombre() retorna texto
+    retornar "Forja"
+fin_funcion
+
+// Frase corta del framework para logs, paginas de salud o introspeccion simple.
+enviar funcion forja_firma() retorna texto
+    retornar "Forja: donde se construyen sistemas reales"
+fin_funcion
+
+// Atajos de lectura de la solicitud.
+enviar funcion forja_metodo(texto solicitud) retorna texto
+    retornar api_metodo(solicitud)
+fin_funcion
+
+enviar funcion forja_ruta(texto solicitud) retorna texto
+    retornar api_ruta(solicitud)
+fin_funcion
+
+enviar funcion forja_cuerpo(texto solicitud) retorna texto
+    retornar api_cuerpo(solicitud)
+fin_funcion
+
+// Atajos de ruteo por metodo.
+enviar funcion forja_es_get(texto solicitud, texto ruta) retorna entero
+    retornar api_coincide(solicitud, "GET", ruta)
+fin_funcion
+
+enviar funcion forja_es_post(texto solicitud, texto ruta) retorna entero
+    retornar api_coincide(solicitud, "POST", ruta)
+fin_funcion
+
+enviar funcion forja_es_put(texto solicitud, texto ruta) retorna entero
+    retornar api_coincide(solicitud, "PUT", ruta)
+fin_funcion
+
+enviar funcion forja_es_delete(texto solicitud, texto ruta) retorna entero
+    retornar api_coincide(solicitud, "DELETE", ruta)
+fin_funcion
+
+// Respuestas expresivas del framework.
+enviar funcion forja_texto(texto cuerpo) retorna texto
+    retornar api_texto_ok(cuerpo)
+fin_funcion
+
+enviar funcion forja_json(texto cuerpo_json) retorna texto
+    retornar api_json_ok(cuerpo_json)
+fin_funcion
+
+enviar funcion forja_json_valor(entero dato_json) retorna texto
+    retornar api_json_valor_ok(dato_json)
+fin_funcion
+
+enviar funcion forja_error(texto cuerpo) retorna texto
+    retornar api_error_cliente(cuerpo)
+fin_funcion
+
+enviar funcion forja_no_encontrado() retorna texto
+    retornar api_no_encontrado()
+fin_funcion
+
+enviar funcion forja_error_interno() retorna texto
+    retornar api_error_interno()
+fin_funcion
+
+// Respuesta lista para endpoint de salud.
+enviar funcion forja_salud_ok() retorna texto
+    retornar forja_json("{\"estado\":\"ok\",\"framework\":\"Forja\"}")
+fin_funcion
+
+// Arranque HTTP/HTTPS sobre handlers Jasboot.
+enviar funcion forja_http(texto host, entero puerto, funcion app) retorna entero
+    retornar api_http_una_vez(host, puerto, app)
+fin_funcion
+
+enviar funcion forja_https(texto host, entero puerto, texto cert, texto key, funcion app) retorna entero
+    retornar api_https_una_vez(host, puerto, cert, key, app)
+fin_funcion
+
+enviar funcion forja_http_bucle(texto host, entero puerto, entero max_solicitudes, funcion app) retorna entero
+    retornar api_http_bucle(host, puerto, max_solicitudes, app)
+fin_funcion
+
+enviar funcion forja_https_bucle(texto host, entero puerto, texto cert, texto key, entero max_solicitudes, funcion app) retorna entero
+    retornar api_https_bucle(host, puerto, cert, key, max_solicitudes, app)
+fin_funcion

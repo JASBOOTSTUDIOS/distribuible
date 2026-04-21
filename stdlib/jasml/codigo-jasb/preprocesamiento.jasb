@@ -1,0 +1,493 @@
+// JASML Preprocesamiento - Funciones de preprocesamiento de datos
+// Similar a scikit-learn preprocessing de Python
+
+// ==========================================================
+// NORMALIZACIÓN Y ESCALADO
+// ==========================================================
+
+// Normalización Min-Max (escala a [0, 1])
+enviar funcion normalizar_min_max(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    flotante min_val = minimo(datos)
+    flotante max_val = maximo(datos)
+    flotante rango = max_val - min_val
+    
+    si rango == 0.0 entonces
+        // Todos los valores son iguales, devolver ceros
+        lista normalizados = crear_lista()
+        entero i = 0
+        entero tamano = lista_tamano(datos)
+        mientras i < tamano hacer
+            mem_lista_agregar(normalizados, "0.0")
+            i = i + 1
+        fin_mientras
+        retornar normalizados
+    fin_si
+    
+    lista normalizados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        flotante normalizado = (val - min_val) / rango
+        mem_lista_agregar(normalizados, str_desde_numero(normalizado))
+        i = i + 1
+    fin_mientras
+    
+    retornar normalizados
+fin_funcion
+
+// Estandarización Z-score (media 0, desviación 1)
+enviar funcion estandarizar_datos(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    flotante media_val = media(datos)
+    flotante desv_est = desviacion_estandar(datos)
+    
+    si desv_est == 0.0 entonces
+        // No hay variación, devolver ceros
+        lista estandarizados = crear_lista()
+        entero i = 0
+        entero tamano = lista_tamano(datos)
+        mientras i < tamano hacer
+            mem_lista_agregar(estandarizados, "0.0")
+            i = i + 1
+        fin_mientras
+        retornar estandarizados
+    fin_si
+    
+    lista estandarizados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        flotante estandarizado = (val - media_val) / desv_est
+        mem_lista_agregar(estandarizados, str_desde_numero(estandarizado))
+        i = i + 1
+    fin_mientras
+    
+    retornar estandarizados
+fin_funcion
+
+// Escalado robusto (usando cuantiles)
+enviar funcion escalar_robusto(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    flotante q1 = cuartil1(datos)
+    flotante q3 = cuartil3(datos)
+    flotante iqr = q3 - q1
+    
+    si iqr == 0.0 entonces iqr = 1.0 fin_si
+    
+    lista escalados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        
+        if val < q1 then
+            val = q1
+        else if val > q3 then
+            val = q3
+        end_if
+        
+        flotante escalado = (val - q1) / iqr
+        mem_lista_agregar(escalados, str_desde_numero(escalado))
+        i = i + 1
+    fin_mientras
+    
+    retornar escalados
+fin_funcion
+
+// Escalado unitario (norma L2)
+enviar funcion escalar_unitario(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    flotante norma = 0.0
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        norma = norma + (val * val)
+        i = i + 1
+    fin_mientras
+    
+    norma = raiz_cuadrada(norma)
+    
+    if norma == 0.0 then norma = 1.0 end_if
+    
+    lista escalados = crear_lista()
+    i = 0
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        mem_lista_agregar(escalados, str_desde_numero(val / norma))
+        i = i + 1
+    fin_mientras
+    
+    retornar escalados
+fin_funcion
+
+// ==========================================================
+// TRANSFORMACIONES DE DATOS
+// ==========================================================
+
+// Transformación logarítmica (para datos con sesgo positivo)
+enviar funcion transformacion_logaritmica(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista transformados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        
+        if val <= 0.0 then
+            val = 0.0  // Logaritmo de 0 o negativo no está definido
+        else
+            val = log(val)
+        end_if
+        
+        mem_lista_agregar(transformados, str_desde_numero(val))
+        i = i + 1
+    fin_mientras
+    
+    retornar transformados
+fin_funcion
+
+// Transformación de raíz cuadrada
+enviar funcion transformacion_raiz(lista datos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista transformados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        
+        if val < 0.0 then
+            val = 0.0  // Raíz de negativo no está definida
+        else
+            val = raiz_cuadrada(val)
+        end_if
+        
+        mem_lista_agregar(transformados, str_desde_numero(val))
+        i = i + 1
+    fin_mientras
+    
+    retornar transformados
+fin_funcion
+
+// Transformación Box-Cox simplificada (solo raíz cuadrada)
+enviar funcion transformacion_box_cox(lista datos) retorna lista
+    // Implementación simplificada: solo raíz cuadrada
+    retornar transformacion_raiz(datos)
+fin_funcion
+
+// ==========================================================
+// DISCRETIZACIÓN
+// ==========================================================
+
+// Discretización por igual frecuencia (k bins)
+enviar funcion discretizar_igual_frecuencia(lista datos, entero n_bins) retorna lista
+    si lista_tamano(datos) == 0 o n_bins <= 0 then
+        retornar crear_lista()
+    end_if
+    
+    lista ordenados = clonar_lista(datos)
+    entero tamano = lista_tamano(ordenados)
+    
+    // Ordenar datos (implementación simple)
+    entero i = 0
+    mientras i < tamano hacer
+        entero j = 0
+        mientras j < tamano - 1 hacer
+            flotante val1 = texto_a_numero(lista_obtener(ordenados, j))
+            flotante val2 = texto_a_numero(lista_obtener(ordenados, j + 1))
+            if val1 > val2 then
+                texto temp = lista_obtener(ordenados, j)
+                ordenados = intercambiar_elemento_lista(ordenados, j, j + 1, temp)
+            end_if
+            j = j + 1
+        fin_mientras
+        i = i + 1
+    fin_mientras
+    
+    // Calcular límites de bins
+    lista bin_limites = crear_lista()
+    mem_lista_agregar(bin_limites, lista_obtener(ordenados, 0))  // Límite inferior
+    
+    entero bin_size = tamano / n_bins
+    i = 1
+    mientras i < n_bins hacer
+        entero indice = i * bin_size
+        if indice >= tamano then
+            indice = tamano - 1
+        end_if
+        mem_lista_agregar(bin_limites, lista_obtener(ordenados, indice))
+        i = i + 1
+    fin_mientras
+    
+    // Discretizar datos
+    lista discretizados = crear_lista()
+    i = 0
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        entero bin = encontrar_bin(val, bin_limites)
+        mem_lista_agregar(discretizados, str_desde_numero(bin))
+        i = i + 1
+    fin_mientras
+    
+    retornar discretizados
+fin_funcion
+
+// Discretización por igual rango (k bins)
+enviar funcion discretizar_igual_rango(lista datos, entero n_bins) retorna lista
+    if lista_tamano(datos) == 0 or n_bins <= 0 then
+        retornar crear_lista()
+    end_if
+    
+    flotante min_val = minimo(datos)
+    flotante max_val = maximo(datos)
+    flotante rango = max_val - min_val
+    
+    if rango == 0.0 then
+        rango = 1.0
+    end_if
+    
+    flotante bin_width = rango / n_bins
+    lista discretizados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        entero bin = (val - min_val) / bin_width
+        if bin >= n_bins then
+            bin = n_bins - 1
+        end_if
+        mem_lista_agregar(discretizados, str_desde_numero(bin))
+        i = i + 1
+    fin_mientras
+    
+    retornar discretizados
+fin_funcion
+
+// ==========================================================
+// MANEJO DE VALORES FALTANTES
+// ==========================================================
+
+// Rellenar valores faltantes con la media
+enviar funcion rellenar_media(lista datos) retorna lista
+    if lista_tamano(datos) == 0 then
+        retornar crear_lista()
+    end_if
+    
+    flotante media_val = media(datos)
+    lista rellenados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        texto val = lista_obtener(datos, i)
+        if es_numero(val) == 0 or val == "" then
+            mem_lista_agregar(rellenados, str_desde_numero(media_val))
+        else
+            mem_lista_agregar(rellenados, val)
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar rellenados
+fin_funcion
+
+// Rellenar valores faltantes con la mediana
+enviar funcion rellenar_mediana(lista datos) retorna lista
+    if lista_tamano(datos) == 0 then
+        retornar crear_lista()
+    end_if
+    
+    flotante mediana_val = mediana(datos)
+    lista rellenados = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        texto val = lista_obtener(datos, i)
+        if es_numero(val) == 0 or val == "" then
+            mem_lista_agregar(rellenados, str_desde_numero(mediana_val))
+        else
+            mem_lista_agregar(rellenados, val)
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar rellenados
+fin_funcion
+
+// Rellenar valores faltantes con el valor anterior (forward fill)
+enviar funcion rellenar_anterior(lista datos) retorna lista
+    if lista_tamano(datos) == 0 then
+        retornar crear_lista()
+    end_if
+    
+    lista rellenados = crear_lista()
+    texto ultimo_valido = ""
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        texto val = lista_obtener(datos, i)
+        if es_numero(val) == 0 or val == "" then
+            mem_lista_agregar(rellenados, ultimo_valido)
+        else
+            mem_lista_agregar(rellenados, val)
+            ultimo_valido = val
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar rellenados
+fin_funcion
+
+// ==========================================================
+// SELECCIÓN DE CARACTERÍSTICAS
+// ==========================================================
+
+// Elimina características con baja varianza
+enviar funcion seleccionar_por_varianza(lista X, flotante umbral_varianza) retorna lista
+    if lista_tamano(X) == 0 then
+        retornar crear_lista()
+    end_if
+    
+    lista X_seleccionado = crear_lista()
+    entero n_caracteristicas = lista_tamano(lista_obtener(X, 0))
+    entero i = 0
+    
+    mientras i < n_caracteristicas hacer
+        lista caracteristica = crear_lista()
+        entero j = 0
+        entero n_muestras = lista_tamano(X)
+        
+        // Extraer característica i
+        mientras j < n_muestras hacer
+            lista punto = lista_obtener(X, j)
+            if i < lista_tamano(punto) then
+                mem_lista_agregar(caracteristica, lista_obtener(punto, i))
+            end_if
+            j = j + 1
+        fin_mientras
+        
+        // Calcular varianza
+        flotante var_caracteristica = varianza(caracteristica)
+        
+        if var_caracteristica >= umbral_varianza then
+            // Mantener característica
+            j = 0
+            mientras j < n_muestras hacer
+                lista punto = lista_obtener(X_seleccionado, j)
+                if j == 0 then
+                    punto = crear_lista()
+                    mem_lista_agregar(X_seleccionado, punto)
+                end_if
+                if i < lista_tamano(lista_obtener(X, j)) then
+                    mem_lista_agregar(punto, lista_obtener(lista_obtener(X, j), i))
+                end_if
+                j = j + 1
+            fin_mientras
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar X_seleccionado
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE PREPROCESAMIENTO
+// ==========================================================
+
+// Encuentra el bin adecuado para un valor
+enviar funcion encontrar_bin(flotante valor, lista limites) retorna entero
+    entero i = 0
+    entero n_limites = lista_tamano(limite)
+    
+    mientras i < n_limites - 1 hacer
+        flotante limite_inferior = texto_a_numero(lista_obtener(limite, i))
+        flotante limite_superior = texto_a_numero(lista_obtener(limite, i + 1))
+        
+        if valor >= limite_inferior and valor < limite_superior then
+            retornar i
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar n_limites - 2  // Último bin
+fin_funcion
+
+// Intercambia dos elementos en una lista (implementación simplificada)
+enviar funcion intercambiar_elemento_lista(lista original, entero pos1, entero pos2, texto temp) retorna lista
+    lista nueva_lista = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(original)
+    
+    mientras i < tamano hacer
+        if i == pos1 then
+            mem_lista_agregar(nueva_lista, lista_obtener(original, pos2))
+        else if i == pos2 then
+            mem_lista_agregar(nueva_lista, temp)
+        else
+            mem_lista_agregar(nueva_lista, lista_obtener(original, i))
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar nueva_lista
+fin_funcion
+
+// Detecta valores faltantes en una lista
+enviar funcion detectar_faltantes(lista datos) retorna lista
+    lista faltantes = crear_lista()
+    entero i = 0
+    entero tamano = lista_tamano(datos)
+    
+    mientras i < tamano hacer
+        texto val = lista_obtener(datos, i)
+        if es_numero(val) == 0 or val == "" then
+            mem_lista_agregar(faltantes, str_desde_numero(i))
+        end_if
+        i = i + 1
+    fin_mientras
+    
+    retornar faltantes
+fin_funcion
+
+// Imprime información de preprocesamiento
+enviar funcion imprimir_info_preprocesamiento(lista datos, texto nombre)
+    imprimir "=== Información de Preprocesamiento: " + nombre + " ==="
+    imprimir "Muestras: " + str_desde_numero(lista_tamano(datos))
+    imprimir "Media: " + str_desde_numero(media(datos))
+    imprimir "Desviación estándar: " + str_desde_numero(desviacion_estandar(datos))
+    imprimir "Mínimo: " + str_desde_numero(minimo(datos))
+    imprimir "Máximo: " + str_desde_numero(maximo(datos))
+    imprimir "Valores faltantes: " + str_desde_numero(lista_tamano(detectar_faltantes(datos)))
+    imprimir "====================================="
+fin_funcion

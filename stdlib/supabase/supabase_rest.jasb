@@ -1,0 +1,127 @@
+usar todas de "..\\http\\http_basico.jasb"
+
+// Cliente Supabase vía API REST (PostgREST), compatible con Jasboot.
+//
+// No usa el puerto 5432 ni el protocolo PostgreSQL binario (no hay driver PG en el VM).
+// La cadena postgresql://postgres.<REF>:...@pooler... sirve aquí solo para extraer <REF>
+// y hablar con https://<REF>.supabase.co/rest/v1/...
+//
+// Necesitas la "anon key" o "service_role" del panel (Project Settings → API), no la contraseña de la BD.
+
+enviar texto supabase_cfg_host = ""
+enviar texto supabase_cfg_llave = ""
+
+enviar funcion supabase_ref_desde_uri_postgres(texto uri) retorna texto
+    si contiene_texto(uri, "postgresql://") == 0 entonces
+        retornar ""
+    fin_si
+    texto resto = extraer_despues_de(uri, "postgresql://")
+    si contiene_texto(resto, "@") == 0 entonces
+        retornar ""
+    fin_si
+    texto userpass = extraer_antes_de(resto, "@")
+    si contiene_texto(userpass, ":") == 0 entonces
+        retornar ""
+    fin_si
+    texto user = extraer_antes_de(userpass, ":")
+    si contiene_texto(user, "postgres.") == 0 entonces
+        retornar ""
+    fin_si
+    retornar extraer_despues_de(user, "postgres.")
+fin_funcion
+
+// Configura host (<ref>.supabase.co) y llave API. Usa esto si ya conoces el ref del proyecto.
+enviar funcion supabase_configurar(texto proyecto_ref, texto llave_api) retorna entero
+    si longitud_texto(proyecto_ref) == 0 entonces
+        retornar 0
+    fin_si
+    si longitud_texto(llave_api) == 0 entonces
+        retornar 0
+    fin_si
+    supabase_cfg_host = concatenar(proyecto_ref, ".supabase.co")
+    supabase_cfg_llave = llave_api
+    retornar 1
+fin_funcion
+
+// Igual que supabase_configurar pero obtiene proyecto_ref del usuario postgres.<REF> en el URI.
+// uri: postgresql://postgres.abcdef:TU_CLAVE_BD@...:5432/postgres
+// llave_api: JWT anon o service_role (Settings → API en Supabase).
+enviar funcion supabase_configurar_desde_uri_postgres(texto uri, texto llave_api) retorna entero
+    texto ref = supabase_ref_desde_uri_postgres(uri)
+    si longitud_texto(ref) == 0 entonces
+        retornar 0
+    fin_si
+    retornar supabase_configurar(ref, llave_api)
+fin_funcion
+
+enviar funcion supabase_esta_configurado() retorna entero
+    si longitud_texto(supabase_cfg_host) == 0 entonces
+        retornar 0
+    fin_si
+    si longitud_texto(supabase_cfg_llave) == 0 entonces
+        retornar 0
+    fin_si
+    retornar 1
+fin_funcion
+
+enviar funcion supabase_cabeceras_auth() retorna texto
+    texto cab = "apikey: "
+    cab = concatenar(cab, supabase_cfg_llave)
+    cab = concatenar(cab, "\r\nAuthorization: Bearer ")
+    cab = concatenar(cab, supabase_cfg_llave)
+    cab = concatenar(cab, "\r\nAccept: application/json\r\n")
+    retornar cab
+fin_funcion
+
+enviar funcion supabase_solicitud(texto metodo, texto ruta_rest, texto cabeceras_mas, texto cuerpo) retorna texto
+    si supabase_esta_configurado() == 0 entonces
+        retornar ""
+    fin_si
+    texto cab = supabase_cabeceras_auth()
+    cab = concatenar(cab, cabeceras_mas)
+    si longitud_texto(cuerpo) > 0 entonces
+        cab = concatenar(cab, "Content-Type: application/json\r\n")
+    fin_si
+    retornar https_solicitud_texto(supabase_cfg_host, 443, metodo, ruta_rest, cab, cuerpo)
+fin_funcion
+
+// GET /rest/v1/<tabla><consulta>  consulta debe empezar con ? o ir vacia (p. ej. "?select=*").
+enviar funcion supabase_seleccionar(texto tabla, texto consulta) retorna texto
+    texto ruta = "/rest/v1/"
+    ruta = concatenar(ruta, tabla)
+    ruta = concatenar(ruta, consulta)
+    retornar supabase_solicitud("GET", ruta, "", "")
+fin_funcion
+
+// POST cuerpo JSON (un objeto o un array de filas). Prefer devuelve filas insertadas.
+enviar funcion supabase_insertar(texto tabla, texto cuerpo_json) retorna texto
+    texto ruta = "/rest/v1/"
+    ruta = concatenar(ruta, tabla)
+    texto cab = "Prefer: return=representation\r\n"
+    retornar supabase_solicitud("POST", ruta, cab, cuerpo_json)
+fin_funcion
+
+// PATCH con filtro PostgREST en consulta, p. ej. "?id=eq.1"
+enviar funcion supabase_actualizar(texto tabla, texto consulta, texto cuerpo_json) retorna texto
+    texto ruta = "/rest/v1/"
+    ruta = concatenar(ruta, tabla)
+    ruta = concatenar(ruta, consulta)
+    texto cab = "Prefer: return=representation\r\n"
+    retornar supabase_solicitud("PATCH", ruta, cab, cuerpo_json)
+fin_funcion
+
+// DELETE con filtro en consulta, p. ej. "?id=eq.1"
+enviar funcion supabase_borrar(texto tabla, texto consulta) retorna texto
+    texto ruta = "/rest/v1/"
+    ruta = concatenar(ruta, tabla)
+    ruta = concatenar(ruta, consulta)
+    retornar supabase_solicitud("DELETE", ruta, "", "")
+fin_funcion
+
+enviar funcion supabase_codigo_http(texto respuesta_cruda) retorna entero
+    retornar http_extraer_estado(respuesta_cruda)
+fin_funcion
+
+enviar funcion supabase_cuerpo(texto respuesta_cruda) retorna texto
+    retornar http_extraer_cuerpo(respuesta_cruda)
+fin_funcion

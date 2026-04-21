@@ -1,0 +1,245 @@
+// JASML Evaluación - Métricas de evaluación de modelos
+// Versión simplificada compatible con Jasboot
+
+// ==========================================================
+// MÉTRICAS DE REGRESIÓN
+// ==========================================================
+
+// Error Cuadrático Medio (Mean Squared Error)
+enviar funcion mean_squared_error(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 999999.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    flotante suma_errores = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        flotante val_true = texto_a_numero(lista_obtener(y_true, i))
+        flotante val_pred = texto_a_numero(lista_obtener(y_pred, i))
+        flotante error = val_true - val_pred
+        suma_errores = suma_errores + (error * error)
+        i = i + 1
+    fin_mientras
+    
+    retornar suma_errores / n_muestras
+fin_funcion
+
+// Error Absoluto Medio (Mean Absolute Error)
+enviar funcion mean_absolute_error(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 999999.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    flotante suma_errores = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        flotante val_true = texto_a_numero(lista_obtener(y_true, i))
+        flotante val_pred = texto_a_numero(lista_obtener(y_pred, i))
+        flotante error = val_true - val_pred
+        si error < 0.0 entonces
+            error = error * -1.0
+        fin_si
+        suma_errores = suma_errores + error
+        i = i + 1
+    fin_mientras
+    
+    retornar suma_errores / n_muestras
+fin_funcion
+
+// Coeficiente de Determinación R²
+enviar funcion r2_score(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante mse = mean_squared_error(y_true, y_pred)
+    flotante varianza_y = varianza(y_true)
+    
+    si varianza_y == 0.0 entonces
+        retornar 1.0  // Predicción perfecta si no hay varianza
+    fin_si
+    
+    si mse == 999999.0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante r2 = 1.0 - (mse / varianza_y)
+    si r2 < 0.0 entonces r2 = 0.0 fin_si  // R² no puede ser negativo
+    
+    retornar r2
+fin_funcion
+
+// ==========================================================
+// MÉTRICAS DE CLASIFICACIÓN
+// ==========================================================
+
+// Accuracy (Precisión)
+enviar funcion accuracy_score(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    entero correctas = 0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        si lista_obtener(y_true, i) == lista_obtener(y_pred, i) entonces
+            correctas = correctas + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar correctas / n_muestras
+fin_funcion
+
+// Precisión (Precision)
+enviar funcion precision_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero verdaderos_positivos = 0
+    entero falsos_positivos = 0
+    entero i = 0
+    entero n_muestras = lista_tamano(y_true)
+    
+    mientras i < n_muestras hacer
+        texto verdadero = lista_obtener(y_true, i)
+        texto predicho = lista_obtener(y_pred, i)
+        
+        si predicho == clase_positiva entonces
+            si verdadero == clase_positiva entonces
+                verdaderos_positivos = verdaderos_positivos + 1
+            si_no
+                falsos_positivos = falsos_positivos + 1
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    entero total_positivos_predichos = verdaderos_positivos + falsos_positivos
+    si total_positivos_predichos > 0 entonces
+        retornar verdaderos_positivos / total_positivos_predichos
+    si_no
+        retornar 0.0
+    fin_si
+fin_funcion
+
+// Recall (Sensibilidad)
+enviar funcion recall_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero verdaderos_positivos = 0
+    entero falsos_negativos = 0
+    entero i = 0
+    entero n_muestras = lista_tamano(y_true)
+    
+    mientras i < n_muestras hacer
+        texto verdadero = lista_obtener(y_true, i)
+        texto predicho = lista_obtener(y_pred, i)
+        
+        si verdadero == clase_positiva entonces
+            si predicho == clase_positiva entonces
+                verdaderos_positivos = verdaderos_positivos + 1
+            si_no
+                falsos_negativos = falsos_negativos + 1
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    entero total_positivos_reales = verdaderos_positivos + falsos_negativos
+    si total_positivos_reales > 0 entonces
+        retornar verdaderos_positivos / total_positivos_reales
+    si_no
+        retornar 0.0
+    fin_si
+fin_funcion
+
+// F1-Score (media armónica de precisión y recall)
+enviar funcion f1_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    flotante precision_val = precision_score(y_true, y_pred, clase_positiva)
+    flotante recall_val = recall_score(y_true, y_pred, clase_positiva)
+    
+    si precision_val == 0.0 o recall_val == 0.0 entonces
+        retornar 0.0
+    fin_si
+    
+    retornar 2.0 * (precision_val * recall_val) / (precision_val + recall_val)
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE EVALUACIÓN
+// ==========================================================
+
+// Encuentra el índice de una clase en la lista
+enviar funcion encontrar_indice_clase(lista clases, texto clase_buscar) retorna entero
+    entero n_clases = lista_tamano(clases)
+    entero i = 0
+    
+    mientras i < n_clases hacer
+        si lista_obtener(clases, i) == clase_buscar entonces
+            retornar i
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar -1
+fin_funcion
+
+// Obtiene las clases únicas de una lista
+enviar funcion obtener_clases_unicas(lista y_etiquetas) retorna lista
+    lista clases = crear_lista()
+    entero n_muestras = lista_tamano(y_etiquetas)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        texto etiqueta = lista_obtener(y_etiquetas, i)
+        
+        // Verificar si ya existe
+        entero existe = 0
+        entero j = 0
+        entero n_clases = lista_tamano(clases)
+        
+        mientras j < n_clases hacer
+            si lista_obtener(clases, j) == etiqueta entonces
+                existe = 1
+                romper
+            fin_si
+            j = j + 1
+        fin_mientras
+        
+        si existe == 0 entonces
+            mem_lista_agregar(clases, etiqueta)
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar clases
+fin_funcion
+
+// Imprime métricas de regresión
+enviar funcion imprimir_metricas_regresion(lista metricas)
+    imprimir "=== Métricas de Regresión ==="
+    imprimir "MSE (Error Cuadrático Medio): " + lista_obtener(metricas, 0)
+    imprimir "MAE (Error Absoluto Medio): " + lista_obtener(metricas, 1)
+    imprimir "R² (Coeficiente de Determinación): " + lista_obtener(metricas, 2)
+    imprimir "============================="
+fin_funcion
+
+// Imprime métricas de clasificación
+enviar funcion imprimir_metricas_clasificacion(lista y_true, lista y_pred)
+    flotante acc = accuracy_score(y_true, y_pred)
+    
+    imprimir "=== Métricas de Clasificación ==="
+    imprimir "Accuracy (Precisión): " + str_desde_numero(acc * 100) + "%"
+    imprimir "Muestras evaluadas: " + str_desde_numero(lista_tamano(y_true))
+    imprimir "=============================="
+fin_funcion

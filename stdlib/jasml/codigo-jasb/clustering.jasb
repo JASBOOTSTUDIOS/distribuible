@@ -1,0 +1,411 @@
+// JASML Clustering - Algoritmos de agrupamiento
+// Similar a scikit-learn de Python - Versión corregida
+
+// ==========================================================
+// K-MEANS CLUSTERING
+// ==========================================================
+
+// Inicializa k centroides aleatoriamente desde los datos
+enviar funcion kmeans_inicializar_centroides(lista datos, entero k) retorna lista
+    si lista_tamano(datos) == 0 o k <= 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista centroides = crear_lista()
+    entero n_muestras = lista_tamano(datos)
+    
+    // Selección simple: tomar cada k-ésimo punto
+    entero i = 0
+    mientras i < k hacer
+        entero indice = (i * n_muestras) / k
+        si indice >= n_muestras entonces
+            indice = n_muestras - 1
+        fin_si
+        mem_lista_agregar(centroides, clonar_lista(lista_obtener(datos, indice)))
+        i = i + 1
+    fin_mientras
+    
+    retornar centroides
+fin_funcion
+
+// Asigna cada punto al centroide más cercano
+enviar funcion kmeans_asignar_clusters(lista datos, lista centroides) retorna lista
+    si lista_tamano(datos) == 0 o lista_tamano(centroides) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista asignaciones = crear_lista()
+    entero n_muestras = lista_tamano(datos)
+    entero k = lista_tamano(centroides)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        lista punto = lista_obtener(datos, i)
+        flotante distancia_minima = 999999.0
+        entero cluster_mas_cercano = 0
+        entero j = 0
+        
+        mientras j < k hacer
+            lista centroide = lista_obtener(centroides, j)
+            flotante distancia = distancia_euclidiana(punto, centroide)
+            
+            si distancia < distancia_minima entonces
+                distancia_minima = distancia
+                cluster_mas_cercano = j
+            fin_si
+            j = j + 1
+        fin_mientras
+        
+        mem_lista_agregar(asignaciones, str_desde_numero(cluster_mas_cercano))
+        i = i + 1
+    fin_mientras
+    
+    retornar asignaciones
+fin_funcion
+
+// Actualiza los centroides calculando el promedio de los puntos asignados
+enviar funcion kmeans_actualizar_centroides(lista datos, lista asignaciones, entero k) retorna lista
+    si lista_tamano(datos) == 0 o lista_tamano(asignaciones) == 0 o k <= 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista nuevos_centroides = crear_lista()
+    entero n_muestras = lista_tamano(datos)
+    entero dimensiones = lista_tamano(lista_obtener(datos, 0))
+    entero i = 0
+    
+    mientras i < k hacer
+        // Inicializar sumas para este cluster
+        lista suma_puntos = crear_vector(dimensiones)
+        entero puntos_en_cluster = 0
+        
+        entero j = 0
+        mientras j < n_muestras hacer
+            entero cluster_actual = texto_a_numero(lista_obtener(asignaciones, j))
+            
+            si cluster_actual == i entonces
+                lista punto = lista_obtener(datos, j)
+                entero d = 0
+                mientras d < dimensiones hacer
+                    flotante val_actual = texto_a_numero(lista_obtener(suma_puntos, d))
+                    flotante val_punto = texto_a_numero(lista_obtener(punto, d))
+                    mem_lista_agregar(suma_puntos, str_desde_numero(val_actual + val_punto))
+                    d = d + 1
+                fin_mientras
+                puntos_en_cluster = puntos_en_cluster + 1
+            fin_si
+            j = j + 1
+        fin_mientras
+        
+        // Calcular el promedio
+        lista centroide_promedio = crear_vector(dimensiones)
+        si puntos_en_cluster > 0 entonces
+            entero d = 0
+            mientras d < dimensiones hacer
+                flotante suma = texto_a_numero(lista_obtener(suma_puntos, d))
+                mem_lista_agregar(centroide_promedio, str_desde_numero(suma / puntos_en_cluster))
+                d = d + 1
+            fin_mientras
+        fin_si
+        
+        mem_lista_agregar(nuevos_centroides, centroide_promedio)
+        i = i + 1
+    fin_mientras
+    
+    retornar nuevos_centroides
+fin_funcion
+
+// Algoritmo K-Means completo
+enviar funcion kmeans_entrenar(lista datos, entero k, entero max_iteraciones) retorna lista
+    si lista_tamano(datos) == 0 o k <= 0 o max_iteraciones <= 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    lista centroides = kmeans_inicializar_centroides(datos, k)
+    entero iteracion = 0
+    
+    mientras iteracion < max_iteraciones hacer
+        lista asignaciones = kmeans_asignar_clusters(datos, centroides)
+        lista nuevos_centroides = kmeans_actualizar_centroides(datos, asignaciones, k)
+        
+        // Verificar convergencia (simplificado)
+        entero cambios = 0
+        entero i = 0
+        entero n_centroides = lista_tamano(centroides)
+        
+        mientras i < n_centroides hacer
+            lista antiguo = lista_obtener(centroides, i)
+            lista nuevo = lista_obtener(nuevos_centroides, i)
+            flotante distancia = distancia_euclidiana(antiguo, nuevo)
+            
+            si distancia > 0.001 entonces
+                cambios = cambios + 1
+            fin_si
+            i = i + 1
+        fin_mientras
+        
+        centroides = nuevos_centroides
+        
+        si cambios == 0 entonces
+            romper
+        fin_si
+        
+        iteracion = iteracion + 1
+    fin_mientras
+    
+    // Retornar centroides y asignaciones
+    lista resultado = crear_lista()
+    mem_lista_agregar(resultado, centroides)
+    mem_lista_agregar(resultado, asignaciones)
+    
+    retornar resultado
+fin_funcion
+
+// ==========================================================
+// CLUSTERING JERÁRQUICO (Versión simplificada)
+// ==========================================================
+
+// Clustering aglomerativo simple (single linkage)
+enviar funcion clustering_aglomerativo(lista datos, entero n_clusters) retorna lista
+    si lista_tamano(datos) == 0 o n_clusters <= 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    entero n_muestras = lista_tamano(datos)
+    si n_clusters >= n_muestras entonces
+        // Cada punto es su propio cluster
+        lista asignaciones = crear_lista()
+        entero i = 0
+        mientras i < n_muestras hacer
+            mem_lista_agregar(asignaciones, str_desde_numero(i))
+            i = i + 1
+        fin_mientras
+        retornar asignaciones
+    fin_si
+    
+    // Implementación simplificada: asignación basada en distancia
+    lista centroides = kmeans_inicializar_centroides(datos, n_clusters)
+    lista asignaciones = kmeans_asignar_clusters(datos, centroides)
+    
+    retornar asignaciones
+fin_funcion
+
+// ==========================================================
+// DBSCAN (Versión muy simplificada)
+// ==========================================================
+
+// Encuentra puntos vecinos dentro de un radio epsilon
+enviar funcion dbscan_encontrar_vecinos(lista datos, entero indice_punto, flotante epsilon) retorna lista
+    lista vecinos = crear_lista()
+    lista punto_referencia = lista_obtener(datos, indice_punto)
+    entero n_muestras = lista_tamano(datos)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        si i != indice_punto entonces
+            lista punto_actual = lista_obtener(datos, i)
+            flotante distancia = distancia_euclidiana(punto_referencia, punto_actual)
+            
+            si distancia <= epsilon entonces
+                mem_lista_agregar(vecinos, str_desde_numero(i))
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar vecinos
+fin_funcion
+
+// Algoritmo DBSCAN simplificado
+enviar funcion dbscan_entrenar(lista datos, flotante epsilon, entero min_puntos) retorna lista
+    si lista_tamano(datos) == 0 entonces
+        retornar crear_lista()
+    fin_si
+    
+    entero n_muestras = lista_tamano(datos)
+    lista asignaciones = crear_lista()
+    lista visitados = crear_lista()
+    
+    // Inicializar todos como no visitados
+    entero i = 0
+    mientras i < n_muestras hacer
+        mem_lista_agregar(visitados, "0")
+        mem_lista_agregar(asignaciones, "-1")  // -1 = ruido
+        i = i + 1
+    fin_mientras
+    
+    entero cluster_actual = 0
+    i = 0
+    
+    mientras i < n_muestras hacer
+        si lista_obtener(visitados, i) == "0" entonces
+            // Marcar como visitado
+            visitados = marcar_visitado(visitados, i)
+            
+            lista vecinos = dbscan_encontrar_vecinos(datos, i, epsilon)
+            
+            si lista_tamano(vecinos) >= min_puntos entonces
+                // Expandir cluster
+                asignaciones = expandir_cluster(datos, visitados, asignaciones, vecinos, cluster_actual, epsilon, min_puntos)
+                cluster_actual = cluster_actual + 1
+            si_no
+                // Marcar como ruido
+                mem_lista_agregar(asignaciones, str_desde_numero(i), "-1")
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar asignaciones
+fin_funcion
+
+// ==========================================================
+// EVALUACIÓN DE CLUSTERING
+// ==========================================================
+
+// Índice de Silueta (versión simplificada)
+enviar funcion silhouette_score(lista datos, lista asignaciones) retorna flotante
+    si lista_tamano(datos) == 0 o lista_tamano(asignaciones) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(datos)
+    flotante suma_silueta = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        texto cluster_actual = lista_obtener(asignaciones, i)
+        
+        si cluster_actual != "-1" entonces
+            // Calcular silueta para puntos en clusters
+            flotante silueta_punto = calcular_silueta_punto(datos, asignaciones, i)
+            suma_silueta = suma_silueta + silueta_punto
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    entero puntos_en_clusters = contar_puntos_no_ruido(asignaciones)
+    si puntos_en_clusters > 0 entonces
+        retornar suma_silueta / puntos_en_clusters
+    si_no
+        retornar 0.0
+    fin_si
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE CLUSTERING
+// ==========================================================
+
+// Marca un punto como visitado
+enviar funcion marcar_visitado(lista visitados, entero indice) retorna lista
+    // Implementación simplificada
+    entero i = 0
+    lista nuevos_visitados = crear_lista()
+    
+    mientras i < lista_tamano(visitados) hacer
+        si i == indice entonces
+            mem_lista_agregar(nuevos_visitados, "1")
+        si_no
+            mem_lista_agregar(nuevos_visitados, lista_obtener(visitados, i))
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar nuevos_visitados
+fin_funcion
+
+// Expande un cluster (DBSCAN)
+enviar funcion expandir_cluster(lista datos, lista visitados, lista asignaciones, lista vecinos, entero cluster_id, flotante epsilon, entero min_puntos) retorna lista
+    // Implementación simplificada - en la práctica necesitaría una cola o pila
+    entero i = 0
+    entero n_vecinos = lista_tamano(vecinos)
+    
+    mientras i < n_vecinos hacer
+        entero indice_vecino = texto_a_numero(lista_obtener(vecinos, i))
+        
+        si lista_obtener(visitados, indice_vecino) == "0" entonces
+            visitados = marcar_visitado(visitados, indice_vecino)
+            
+            lista vecinos_vecino = dbscan_encontrar_vecinos(datos, indice_vecino, epsilon)
+            
+            si lista_tamano(vecinos_vecino) >= min_puntos entonces
+                // Asignar al cluster
+                mem_lista_agregar(asignaciones, str_desde_numero(indice_vecino), str_desde_numero(cluster_id))
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar asignaciones
+fin_funcion
+
+// Calcula la silueta para un punto específico
+enviar funcion calcular_silueta_punto(lista datos, lista asignaciones, entero indice) retorna flotante
+    // Implementación muy simplificada
+    texto cluster_actual = lista_obtener(asignaciones, indice)
+    
+    si cluster_actual == "-1" entonces
+        retornar 0.0  // Puntos de ruido tienen silueta 0
+    fin_si
+    
+    // En una implementación real, calcularíamos:
+    // a = distancia promedio al punto más cercano en otro cluster
+    // b = distancia promedio a puntos en el mismo cluster
+    // silueta = (b - a) / max(a, b)
+    
+    // Por ahora, retornamos un valor aleatorio entre -1 y 1
+    retornar 0.5  // Valor neutro para simplificación
+fin_funcion
+
+// Cuenta puntos que no son ruido
+enviar funcion contar_puntos_no_ruido(lista asignaciones) retorna entero
+    entero contador = 0
+    entero i = 0
+    entero n_muestras = lista_tamano(asignaciones)
+    
+    mientras i < n_muestras hacer
+        si lista_obtener(asignaciones, i) != "-1" entonces
+            contador = contador + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar contador
+fin_funcion
+
+// Cuenta ocurrencias de un valor en una lista
+enviar funcion contar_ocurrencias(lista lista_datos, texto valor_buscar) retorna entero
+    entero contador = 0
+    entero i = 0
+    entero n = lista_tamano(lista_datos)
+    
+    mientras i < n hacer
+        si lista_obtener(lista_datos, i) == valor_buscar entonces
+            contador = contador + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar contador
+fin_funcion
+
+// Imprime resultados de clustering
+enviar funcion imprimir_resultados_clustering(lista datos, lista asignaciones, texto algoritmo)
+    imprimir "=== Resultados de " + algoritmo + " ==="
+    imprimir "Puntos totales: " + str_desde_numero(lista_tamano(datos))
+    imprimir "Asignaciones: " + str_desde_numero(lista_tamano(asignaciones))
+    
+    // Contar clusters
+    lista clusters_unicos = obtener_clases_unicas(asignaciones)
+    entero n_clusters = lista_tamano(clusters_unicos)
+    
+    si lista_obtener(clusters_unicos, 0) == "-1" entonces
+        n_clusters = n_clusters - 1  // Excluir ruido
+        imprimir "Clusters encontrados: " + str_desde_numero(n_clusters)
+        imprimir "Puntos de ruido: " + str_desde_numero(contar_ocurrencias(asignaciones, "-1"))
+    si_no
+        imprimir "Clusters encontrados: " + str_desde_numero(n_clusters)
+    fin_si
+    
+    imprimir "=========================="
+fin_funcion

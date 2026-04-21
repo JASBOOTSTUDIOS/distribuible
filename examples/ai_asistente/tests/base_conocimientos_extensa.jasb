@@ -1,0 +1,213 @@
+// =============================================================================
+// BASE DE CONOCIMIENTOS EXTENSA - Base de Datos para Pruebas Cerebro JMN
+// =============================================================================
+// Contiene cientos de conceptos con descripciones detalladas y asociaciones
+// Propósito: Probar capacidades de búsqueda profunda y análisis semántico
+// =============================================================================
+
+enviar funcion cargar_base_extensa() retorna entero
+
+    // === CIENCIAS Y TECNOLOGÍA ===
+    
+    recordar "inteligencia artificial" con valor "La inteligencia artificial es una rama de la informática que se enfoca en crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana. Incluye el aprendizaje automático, redes neuronales, procesamiento del lenguaje natural y visión por computadora. La IA ha revolucionado campos como la medicina, el transporte y la comunicación, permitiendo avances significativos en automatización y toma de decisiones."
+    
+    recordar "aprendizaje automático" con valor "El aprendizaje automático o machine learning es un subcampo de la inteligencia artificial que permite a las computadoras aprender y mejorar a partir de la experiencia sin ser programadas explícitamente. Utiliza algoritmos para analizar grandes conjuntos de datos, identificar patrones y hacer predicciones. Las técnicas incluyen aprendizaje supervisado, no supervisado y por refuerzo, aplicadas en reconocimiento de imágenes, traducción automática y recomendación de contenido."
+    
+    recordar "red neuronal" con valor "Una red neuronal es un modelo computacional inspirado en la estructura del cerebro humano, compuesto por nodos interconectados que procesan información. Cada neurona recibe señales de entrada, las procesa mediante una función de activación y transmite el resultado a otras neuronas. Las redes profundas con múltiples capas han logrado avances revolucionarios en reconocimiento de patrones, procesamiento del lenguaje y visión por computadora."
+    
+    recordar "algoritmo" con valor "Un algoritmo es una secuencia finita de instrucciones bien definidas para resolver un problema específico o realizar una tarea. En informática, los algoritmos son fundamentales para el procesamiento de datos, la optimización de recursos y la automatización de procesos. Pueden clasificarse por su complejidad temporal, eficiencia espacial y el tipo de problema que resuelven, como ordenamiento, búsqueda o optimización combinatoria."
+    
+    recordar "programación" con valor "La programación es el proceso de diseñar, codificar, depurar y mantener el código fuente de programas informáticos. Implica el uso de lenguajes de programación para crear algoritmos que controlen el comportamiento de las computadoras. La programación moderna incluye paradigmas como programación orientada a objetos, funcional y reactiva, aplicados en desarrollo web, móvil, sistemas embebidos y ciencia de datos."
+    
+    recordar "base de datos" con valor "Una base de datos es una colección organizada de información estructurada que permite almacenar, gestionar y recuperar datos eficientemente. Los sistemas de gestión de bases de datos (DBMS) proporcionan interfaces para consultar, actualizar y administrar datos mediante lenguajes como SQL. Existen diferentes modelos: relacional, NoSQL, jerárquico y de grafos, cada uno optimizado para tipos específicos de aplicaciones y patrones de acceso."
+    
+    recordar "computación en la nube" con valor "La computación en la nube es la entrega de servicios de computación, incluyendo servidores, almacenamiento, bases de datos, redes, software, análisis e inteligencia artificial, a través de Internet. Ofrece flexibilidad, escalabilidad y reducción de costos operativos. Los modelos de servicio incluyen IaaS, PaaS y SaaS, mientras que los modelos de despliegue son público, privado, híbrido y multinube."
+    
+    recordar "ciberseguridad" con valor "La ciberseguridad es la práctica de proteger sistemas, redes y datos de ataques digitales. Incluye tecnologías, procesos y prácticas diseñadas para salvaguardar la confidencialidad, integridad y disponibilidad de la información. Los principales desafíos incluyen malware, phishing, ransomware, ataques de denegación de servicio y seguridad en el Internet de las Cosas (IoT)."
+    
+    recordar "blockchain" con valor "Blockchain es una tecnología de registro distribuido que mantiene una lista creciente de registros llamados bloques, vinculados mediante criptografía. Cada bloque contiene un hash criptográfico del bloque anterior, un timestamp y datos de transacciones. Esta tecnología descentralizada garantiza la inmutabilidad y transparencia de los datos, aplicada en criptomonedas, contratos inteligentes y gestión de cadenas de suministro."
+    
+    recordar "internet de las cosas" con valor "El Internet de las Cosas (IoT) es la red de dispositivos físicos interconectados que recopilan y comparten datos. Estos dispositivos, desde sensores simples hasta sistemas complejos, están incrustados con tecnología para conectarse e intercambiar información. IoT transforma industrias como la agricultura, salud, manufactura y ciudades inteligentes mediante la monitorización remota y automatización de procesos."
+    
+    // === LENGUAJES DE PROGRAMACIÓN ===
+    
+    recordar "python" con valor "Python es un lenguaje de programación de alto nivel, interpretado y multipropósito, conocido por su sintaxis clara y legibilidad. Creado por Guido van Rossum, es ampliamente utilizado en desarrollo web, ciencia de datos, aprendizaje automático, automatización y desarrollo de aplicaciones. Su extenso ecosistema de bibliotecas como NumPy, Pandas, TensorFlow y Django lo hace ideal para prototipado rápido y producción a gran escala."
+    
+    recordar "javascript" con valor "JavaScript es un lenguaje de programación interpretado que permite crear contenido dinámico en páginas web. Originalmente desarrollado para navegadores, ahora se usa también en el servidor con Node.js y en desarrollo móvil con frameworks como React Native. Es esencial para el desarrollo web moderno, permitiendo interactividad, manipulación del DOM, llamadas asíncronas y creación de aplicaciones web complejas y progresivas."
+    
+    recordar "java" con valor "Java es un lenguaje de programación orientado a objetos, independiente de plataforma, conocido por su filosofía 'escribir una vez, ejecutar en cualquier lugar'. Desarrollado por Sun Microsystems, es ampliamente utilizado en aplicaciones empresariales, desarrollo web backend, aplicaciones Android y sistemas críticos. Su máquina virtual (JVM) y robusto ecosistema lo hacen ideal para sistemas grandes y distribuidos."
+    
+    recordar "c++" con valor "C++ es un lenguaje de programación de propósito general que combina características de bajo y alto nivel. Es una extensión de C que añade programación orientada a objetos, plantillas y manejo de excepciones. Es ampliamente utilizado en desarrollo de sistemas operativos, juegos, motores gráficos, sistemas embebidos y aplicaciones de alto rendimiento donde el control directo de la memoria es crucial."
+    
+    recordar "rust" con valor "Rust es un lenguaje de programación de sistemas enfocado en seguridad, concurrencia y rendimiento. Diseñado por Mozilla, ofrece garantías de seguridad de memoria sin necesidad de recolector de basura mediante su sistema de propiedades y préstamo. Es ideal para programación de sistemas, navegadores web, aplicaciones críticas y sistemas concurrentes donde la seguridad y el rendimiento son fundamentales."
+    
+    recordar "go" con valor "Go es un lenguaje de programación compilado y concurrente desarrollado por Google. Diseñado para ser simple, eficiente y escalable, es ideal para desarrollo de sistemas distribuidos, microservicios, herramientas de nube y aplicaciones de red. Su modelo de concurrencia basado en gorutinas y canales, junto con su tiempo de compilación rápido, lo hace popular para infraestructura y servicios en la nube."
+    
+    recordar "swift" con valor "Swift es un lenguaje de programación multipropósito desarrollado por Apple para iOS, macOS, watchOS y tvOS. Combina características de lenguajes modernos con seguridad de tipos y rendimiento. Es utilizado para desarrollo de aplicaciones nativas en el ecosistema Apple, reemplazando a Objective-C. Su sintaxis expresiva y seguridad de memoria lo hacen ideal para desarrollo móvil y aplicaciones de escritorio."
+    
+    recordar "kotlin" con valor "Kotlin es un lenguaje de programación moderno que corre sobre la JVM, diseñado por JetBrains. Es 100% interoperable con Java pero más conciso y seguro. Es el lenguaje oficial para desarrollo Android, utilizado también en desarrollo web backend con Ktor y aplicaciones multiplataforma con Kotlin Multiplatform. Su seguridad nula y funciones de extensión mejoran la productividad del desarrollador."
+    
+    // === CONCEPTOS DE DESARROLLO WEB ===
+    
+    recordar "html" con valor "HTML (HyperText Markup Language) es el lenguaje estándar para crear páginas web. Utiliza etiquetas para estructurar contenido, incluyendo textos, imágenes, enlaces y formularios. HTML5, la versión más reciente, añade elementos semánticos, multimedia, gráficos y capacidades offline. Es fundamental para el desarrollo web, trabajando junto con CSS para presentación y JavaScript para interactividad."
+    
+    recordar "css" con valor "CSS (Cascading Style Sheets) es un lenguaje de diseño utilizado para describir la presentación de documentos HTML. Controla colores, fuentes, espaciado, animaciones y diseño responsivo. CSS3 introduce características como flexbox, grid, animaciones, transiciones y variables personalizadas. Es esencial para crear interfaces de usuario atractivas y consistentes en diferentes dispositivos y navegadores."
+    
+    recordar "react" con valor "React es una biblioteca JavaScript para construir interfaces de usuario, desarrollada por Facebook. Utiliza un paradigma declarativo basado en componentes y un DOM virtual para renderizado eficiente. Su ecosistema incluye Redux para gestión de estado, React Router para navegación y Next.js para renderizado del lado del servidor. Es ampliamente utilizado en aplicaciones web modernas y móviles."
+    
+    recordar "angular" con valor "Angular es un framework de aplicaciones web desarrollado por Google, basado en TypeScript. Proporciona una estructura completa para construir aplicaciones de una sola página (SPA) con características como inyección de dependencias, enrutamiento, formularios reactivos y HTTP client. Su arquitectura basada en componentes y módulos facilita el desarrollo de aplicaciones empresariales escalables."
+    
+    recordar "vue" con valor "Vue.js es un framework progresivo de JavaScript para construir interfaces de usuario. Diseñado para ser adoptable incrementalmente, se integra fácilmente con otros proyectos. Ofrece reactividad declarativa, componentes, enrutamiento y gestión de estado. Su curva de aprendizaje suave y excelente documentación lo hacen popular para proyectos pequeños y grandes, desde prototipos hasta aplicaciones empresariales."
+    
+    recordar "nodejs" con valor "Node.js es un entorno de ejecución JavaScript construido sobre el motor V8 de Chrome. Permite ejecutar JavaScript en el servidor, habilitando desarrollo full-stack con un solo lenguaje. Su modelo asíncrono basado en eventos y no bloqueante lo hace ideal para aplicaciones escalables, APIs REST, microservicios y aplicaciones en tiempo real como chats y juegos."
+    
+    recordar "express" con valor "Express.js es un framework minimalista y flexible para Node.js, diseñado para construir aplicaciones web y APIs. Proporciona un conjunto robusto de características para aplicaciones web y HTTP utilities, middleware y enrutamiento. Es el framework más popular en el ecosistema Node.js, utilizado para construir APIs RESTful, servidores web y aplicaciones backend."
+    
+    recordar "mongodb" con valor "MongoDB es una base de datos NoSQL orientada a documentos que almacena datos en documentos JSON-like con esquema dinámico. Ofrece escalabilidad horizontal, consultas ricas e indexación flexible. Es ideal para aplicaciones web modernas, big data y sistemas que requieren flexibilidad en el modelo de datos. Su ecosistema incluye herramientas de agregación, replicación y sharding."
+    
+    recordar "postgresql" con valor "PostgreSQL es un sistema de base de datos relacional objeto-relacional de código abierto. Conocido por su fiabilidad, robustez y extensibilidad, soporta tipos de datos complejos, funciones definidas por usuario, transacciones ACID y consultas complejas. Es utilizado en aplicaciones empresariales, geoespaciales y de análisis de datos, con extensiones para JSON, búsqueda de texto completo y series temporales."
+    
+    // === CIENCIAS NATURALES ===
+    
+    recordar "física" con valor "La física es la ciencia natural que estudia la materia, la energía, el movimiento y las interacciones fundamentales del universo. Abarca desde la mecánica cuántica y relatividad hasta la termodinámica y electromagnetismo. Las leyes físicas gobiernan todos los fenómenos naturales, desde las partículas subatómicas hasta las galaxias, y son fundamentales para entender el cosmos y desarrollar tecnología."
+    
+    recordar "química" con valor "La química es la ciencia que estudia la composición, estructura, propiedades y transformación de la materia. Incluye el estudio de átomos, moléculas, reacciones químicas y enlaces. Las aplicaciones van desde el desarrollo de medicamentos y materiales hasta la producción industrial y ambiental. La química orgánica, inorgánica, analítica y física son sus principales ramas."
+    
+    recordar "biología" con valor "La biología es la ciencia que estudia los seres vivos y sus interacciones con el entorno. Abarca desde moléculas hasta ecosistemas, incluyendo genética, evolución, ecología y fisiología. Los avances biológicos han revolucionado la medicina, agricultura y biotecnología, permitiendo entender la vida a nivel molecular y desarrollar terapias génicas, ingeniería de tejidos y biología sintética."
+    
+    recordar "genética" con valor "La genética es el estudio de los genes, herencia y variación en organismos vivos. Incluye el análisis de ADN, mutaciones, expresión génica y herencia mendeliana. La genética moderna ha revolucionado la medicina con terapia génica, medicina personalizada y diagnóstico molecular. También es fundamental en agricultura con cultivos transgénicos y en conservación de especies."
+    
+    recordar "evolución" con valor "La evolución es el proceso mediante el cual las especies cambian a lo largo del tiempo a través de variación genética y selección natural. Propuesta por Charles Darwin, explica la diversidad de la vida y la adaptación de los organismos a su entorno. La teoría evolutiva es fundamental para entender la biología, medicina y conservación, y tiene aplicaciones en resistencia a antibióticos y cambio climático."
+    
+    recordar "ecología" con valor "La ecología es el estudio de las interacciones entre organismos y su entorno. Incluye análisis de ecosistemas, cadenas alimenticias, ciclos biogeoquímicos y biodiversidad. La ecología es crucial para entender el cambio climático, conservación de especies y sostenibilidad ambiental. Aplica principios de biología, química y física para resolver problemas ambientales."
+    
+    // === MATEMÁTICAS ===
+    
+    recordar "álgebra" con valor "El álgebra es una rama de las matemáticas que estudia las estructuras algebraicas, relaciones y cantidades. Incluye desde álgebra elemental con ecuaciones y variables hasta álgebra abstracta con grupos, anillos y campos. Es fundamental para ciencias, ingeniería, economía y computación, proporcionando herramientas para modelar y resolver problemas complejos."
+    
+    recordar "cálculo" con valor "El cálculo es una rama de las matemáticas que estudia el cambio y el movimiento. Incluye cálculo diferencial (tasas de cambio) e integral (acumulación). Es esencial para física, ingeniería, economía y ciencias computacionales. Las aplicaciones incluyen optimización, modelado de sistemas dinámicos, análisis de series y ecuaciones diferenciales."
+    
+    recordar "estadística" con valor "La estadística es la ciencia que recolecta, analiza, interpreta y presenta datos. Incluye estadística descriptiva, inferencial, probabilidad y análisis de datos. Es fundamental para investigación científica, economía, medicina y machine learning. Las aplicaciones van desde análisis de encuestas hasta control de calidad y predicción de fenómenos."
+    
+    recordar "geometría" con valor "La geometría estudia las propiedades del espacio, figuras, dimensiones y relaciones. Incluye geometría euclidiana, no euclidiana, diferencial y topología. Es fundamental para arquitectura, ingeniería, física teórica y computación gráfica. Las aplicaciones incluyen diseño CAD, gráficos 3D, navegación GPS y teoría de cuerdas."
+    
+    // === HISTORIA Y CULTURA ===
+    
+    recordar "filosofía" con valor "La filosofía es el estudio de cuestiones fundamentales sobre la existencia, conocimiento, valores, razón, mente y lenguaje. Incluye ramas como metafísica, epistemología, ética y lógica. La filosofía occidental desde Sócrates hasta la filosofía contemporánea ha influido en ciencia, política, arte y religión, proporcionando marcos para entender la realidad y el propósito humano."
+    
+    recordar "historia" con valor "La historia es el estudio de eventos pasados, su registro y análisis. Incluye historia política, social, económica y cultural. Comprender la historia es crucial para entender el presente y planificar el futuro. La historiografía moderna utiliza métodos críticos, fuentes primarias y análisis interdisciplinario para reconstruir e interpretar el pasado humano."
+    
+    recordar "arte" con valor "El arte es expresión humana de creatividad e imaginación en formas visuales, auditivas o performativas. Incluye pintura, escultura, música, literatura, danza y cine. El arte refleja culturas, épocas y valores individuales, sirviendo como comunicación, crítica social y expresión estética. Las teorías del arte abarcan desde estética clásica hasta arte contemporáneo y digital."
+    
+    recordar "música" con valor "La música es el arte de organizar sonidos en el tiempo para producir composición con ritmo, melodía y armonía. Incluye géneros desde clásica hasta jazz, rock, electrónica y mundial. La música es universal, trascultural y tiene efectos psicológicos comprobados. La teoría musical, acústica y tecnología digital han transformado su creación y distribución."
+    
+    recordar "literatura" con valor "La literatura es el arte del lenguaje escrito, incluyendo poesía, novela, teatro y ensayo. Refleja la condición humana, culturas y épocas. La literatura clásica y contemporánea explora temas universales como amor, muerte, justicia y identidad. Las técnicas literarias incluyen narrativa, simbolismo, metáfora y análisis crítico de textos."
+    
+    // === ECONOMÍA Y NEGOCIOS ===
+    
+    recordar "economía" con valor "La economía es el estudio de la producción, distribución y consumo de bienes y servicios. Incluye microeconomía (comportamiento individual) y macroeconomía (economías nacionales). La teoría económica analiza mercados, precios, inflación, empleo y crecimiento. Es fundamental para políticas públicas, decisiones empresariales y comprensión de sistemas económicos globales."
+    
+    recordar "marketing" con valor "El marketing es el proceso de crear, comunicar y entregar valor a los clientes. Incluye investigación de mercado, branding, publicidad, ventas y relaciones públicas. El marketing digital ha transformado las estrategias con SEO, redes sociales, email marketing y análisis de datos. Es esencial para el éxito empresarial en mercados competitivos."
+    
+    recordar "finanzas" con valor "Las finanzas estudian la gestión del dinero, inversiones y riesgo. Incluye finanzas corporativas, personales y públicas. Los mercados financieros, banca, seguros e inversiones forman el sistema económico. Las finanzas cuantitativas utilizan modelos matemáticos para valoración de activos, gestión de riesgos y optimización de portafolios."
+    
+    recordar "emprendimiento" con valor "El emprendimiento es el proceso de diseñar, lanzar y hacer crecer un nuevo negocio. Incluye identificación de oportunidades, desarrollo de modelos de negocio, obtención de financiamiento y gestión empresarial. Los emprendedores impulsan la innovación, creación de empleo y desarrollo económico. Las startups y ecosistemas de innovación fomentan el espíritu emprendedor."
+    
+    // === PSICOLOGÍA Y SOCIOLOGÍA ===
+    
+    recordar "psicología" con valor "La psicología es la ciencia que estudia la mente y el comportamiento. Incluye psicología clínica, cognitiva, social y del desarrollo. Las aplicaciones abarcan terapia mental, mejora del aprendizaje, diseño de interfaces y comprensión del comportamiento humano. La psicología moderna integra neurociencia, genética y tecnología para entender y mejorar la salud mental."
+    
+    recordar "sociología" con valor "La sociología es el estudio de la sociedad, relaciones sociales e instituciones. Analiza estructuras sociales, cultura, desigualdad y cambio social. La sociología aplicada ayuda a entender problemas urbanos, familiares, educativos y laborales. Las teorías sociológicas explican cómo las fuerzas sociales moldean el comportamiento individual y colectivo."
+    
+    recordar "antropología" con valor "La antropología es el estudio de los seres humanos y sus sociedades. Incluye antropología cultural, física, arqueológica y lingüística. Estudia la diversidad cultural, evolución humana y adaptación. La antropología aplicada ayuda a entender culturas diferentes, preservar patrimonio y resolver problemas interculturales en un mundo globalizado."
+    
+    // === TECNOLOGÍAS EMERGENTES ===
+    
+    recordar "realidad virtual" con valor "La realidad virtual (VR) es una tecnología inmersiva que crea entornos simulados tridimensionales. Utiliza cascos, guantes y otros dispositivos para interactuar con mundos virtuales. Las aplicaciones incluyen gaming, entrenamiento, terapia, educación y diseño arquitectónico. La VR está transformando el entretenimiento y profesionales mediante experiencias inmersivas."
+    
+    recordar "realidad aumentada" con valor "La realidad aumentada (AR) superpone información digital sobre el mundo real. Utiliza cámaras, sensores y procesamiento para integrar contenido virtual en el entorno físico. Las aplicaciones incluyen navegación, mantenimiento industrial, educación y comercio. AR está convergiendo con VR en realidad mixta (MR) para experiencias computacionales espaciales."
+    
+    recordar "impresión 3d" con valor "La impresión 3D o fabricación aditiva crea objetos tridimensionales capa por capa a partir de modelos digitales. Incluye tecnologías como FDM, SLA y SLS. Las aplicaciones van desde prototipado rápido hasta manufactura personalizada, medicina con prótesis, construcción y alimentos. Está democratizando la producción y permitiendo fabricación local."
+    
+    recordar "robótica" con valor "La robótica es el campo que diseña, construye y opera robots. Incluye robótica industrial, médica, de servicio y autónoma. Los robots realizan tareas desde ensamblaje hasta cirugía y exploración espacial. La robótica colaborativa y la inteligencia artificial están creando robots más inteligentes y adaptables para industrias y hogares."
+    
+    recordar "biotecnología" con valor "La biotecnología utiliza organismos vivos o sistemas biológicos para desarrollar productos y tecnologías. Incluye ingeniería genética, fermentación, bioprocesos y biología sintética. Las aplicaciones abarcan medicina con anticuerpos, agricultura con cultivos transgénicos, biocombustibles y bioplásticos. Está revolucionando medicina, alimentación y sostenibilidad."
+    
+    recordar "nanotecnología" con valor "La nanotecnología manipula la materia a escala atómica y molecular (1-100 nanómetros). Incluye nanomateriales, nanoelectrónica y nanomedicina. Las aplicaciones van desde materiales ultraligeros y resistentes hasta delivery de fármacos, electrónica cuántica y sensores ultrasensibles. Promete revolucionar todas las industrias mediante control atómico."
+    
+    // === ENERGÍA Y MEDIO AMBIENTE ===
+    
+    recordar "energía renovable" con valor "La energía renovable proviene de fuentes naturales inagotables como solar, eólica, hidroeléctrica, geotérmica y biomasa. A diferencia de los combustibles fósiles, no emite gases de efecto invernadero durante operación. Las energías renovables son clave para combatir el cambio climático y lograr la sostenibilidad energética con almacenamiento y redes inteligentes."
+    
+    recordar "cambio climático" con valor "El cambio climático es el cambio a largo plazo en los patrones climáticos globales, principalmente causado por emisiones de gases de efecto invernadero. Incluye calentamiento global, eventos extremos y impactos ecosistémicos. Las soluciones incluyen energías renovables, eficiencia energética, captura de carbono y políticas internacionales para limitar el calentamiento a 1.5°C."
+    
+    recordar "sostenibilidad" con valor "La sostenibilidad es el desarrollo que satisface necesidades presentes sin comprometer la capacidad de futuras generaciones. Incluye sostenibilidad ambiental, económica y social. Los Objetivos de Desarrollo Sostenible de la ONU guían esfuerzos globales hacia igualdad, protección climática y prosperidad compartida. Las empresas adoptan ESG (Environmental, Social, Governance) para responsabilidad corporativa."
+    
+    recordar "reciclaje" con valor "El reciclaje es el proceso de convertir materiales de desecho en nuevos materiales útiles. Incluye reciclaje de papel, plástico, metal, vidrio y electrónicos. Reduce extracción de recursos, ahorra energía y disminuye contaminación. La economía circular extiende el ciclo de vida de productos mediante diseño sostenible, reparación, reutilización y reciclaje."
+    
+    // === SALUD Y MEDICINA ===
+    
+    recordar "medicina" con valor "La medicina es la ciencia y práctica del diagnóstico, tratamiento y prevención de enfermedades. Incluye especialidades como cardiología, neurología, oncología y psiquiatría. La medicina moderna utiliza tecnología avanzada, genómica, telemedicina e inteligencia artificial para diagnóstico preciso y tratamientos personalizados. La medicina preventiva enfoca en salud pública y bienestar."
+    
+    recordar "vacunas" con valor "Las vacunas son preparaciones biológicas que proporcionan inmunidad adquirida contra enfermedades infecciosas. Utilizan virus o bacterias atenuados, inactivados o subunidades proteicas. Han erradicado enfermedades como viruela y casi eliminado poliomielitis. Las nuevas tecnologías incluyen mRNA, vectores virales y nanopartículas para respuestas inmunes rápidas y seguras."
+    
+    recordar "genómica" con valor "La genómica estudia el genoma completo de organismos, incluyendo secuenciación de ADN, análisis funcional y variación genética. La medicina genómica permite diagnóstico preciso, tratamiento personalizado y predicción de riesgos. La edición genética con CRISPR revoluciona terapia génica, agricultura y biotecnología, abriendo posibilidades para curar enfermedades genéticas."
+    
+    recordar "telemedicina" con valor "La telemedicina utiliza tecnología digital para proporcionar servicios médicos a distancia. Incluye consultas virtuales, monitoreo remoto, diagnóstico por imagen y prescripción electrónica. Ha transformado el acceso a atención médica, especialmente en áreas rurales y durante emergencias sanitarias. Combinada con IA y dispositivos wearables, permite medicina preventiva y crónica."
+    
+    // === EDUCACIÓN ===
+    
+    recordar "educación" con valor "La educación es el proceso de facilitar el aprendizaje, adquisición de conocimientos, habilidades, valores y creencias. Incluye educación formal, informal y no formal a lo largo de la vida. Las metodologías modernas incluyen aprendizaje personalizado, gamificación, aprendizaje invertido y educación online. La educación es fundamental para desarrollo individual, progreso social y económico."
+    
+    recordar "aprendizaje" con valor "El aprendizaje es el proceso de adquirir nuevos conocimientos, comportamientos, habilidades o valores. Incluye aprendizaje cognitivo, emocional, social y motor. Las teorías del aprendizaje van desde conductismo hasta constructivismo y conectivismo. La neurociencia revela cómo el cerebro aprende, informando métodos educativos efectivos y tecnología educativa."
+    
+    recordar "pedagogía" con valor "La pedagogía es la teoría y práctica de la educación, estudiando cómo enseñar y aprender de manera efectiva. Incluye diseño curricular, métodos de enseñanza, evaluación y gestión del aula. Las pedagogías modernas enfocan en aprendizaje activo, colaboración, pensamiento crítico y desarrollo de competencias del siglo XXI como creatividad y resolución de problemas."
+    
+    // === TRANSPORTE ===
+    
+    recordar "automóvil" con valor "El automóvil es un vehículo motorizado para transporte terrestre. Desde su invención en el siglo XIX, ha transformado movilidad, urbanismo y cultura. Los automóviles modernos incluyen tecnología de seguridad, eficiencia energética, conectividad y autonomía. La transición hacia vehículos eléctricos y autónomos está revolucionando transporte personal y comercial."
+    
+    recordar "aviación" con valor "La aviación es el diseño, desarrollo y operación de aeronaves. Incluye aviación comercial, militar, privada y espacial. Ha transformado viajes globales, comercio y defensa. Las tecnologías modernas incluyen aviones más eficientes, aviación eléctrica, drones y vehículos hipersónicos. La aviación conecta mundialmente pero enfrenta desafíos de sostenibilidad."
+    
+    recordar "ferrocarril" con valor "El ferrocarril es transporte sobre rieles para pasajeros y carga. Desde locomotoras de vapor hasta trenes de alta velocidad maglev, ha sido crucial para industrialización y comercio. Los sistemas ferroviarios modernos incluyen trenes de alta velocidad, metros, tranvías y transporte de carga automatizado, esenciales para movilidad urbana sostenible."
+    
+    // === AGRICULTURA Y ALIMENTOS ===
+    
+    recordar "agricultura" con valor "La agricultura es el cultivo de plantas y cría de animales para alimentos, fibra y otros productos. Incluye agricultura tradicional, orgánica, de precisión y vertical. Las tecnologías modernas incluyen drones, sensores, biotecnología y automatización. La agricultura sostenible enfrenta desafíos de cambio climático, seguridad alimentaria y conservación de recursos."
+    
+    recordar "alimentación" con valor "La alimentación es el proceso de obtener y consumir nutrientes para energía y salud. Incluye nutrición, seguridad alimentaria, gastronomía y cultura alimentaria. Los desafíos globales incluyen desnutrición, obesidad, desperdicio de alimentos y sistemas sostenibles. La ciencia de alimentos desarrolla productos más nutritivos y sostenibles."
+    
+    // === ARTE Y DISEÑO ===
+    
+    recordar "arquitectura" con valor "La arquitectura es el arte y técnica de diseñar y construir edificios y espacios. Incluye diseño estructural, funcional, estético y sostenible. La arquitectura refleja cultura, tecnología y valores de cada época. Los arquitectos modernos enfocan en eficiencia energética, diseño sostenible, espacios inteligentes y bienestar humano en entornos construidos."
+    
+    recordar "diseño" con valor "El diseño es el proceso de crear soluciones para problemas, combinando estética, funcionalidad y usabilidad. Incluye diseño gráfico, industrial, digital, de moda y de servicios. El diseño centrado en el usuario prioriza necesidades humanas. El diseño sostenible considera impacto ambiental. El diseño thinking innova en productos, servicios y experiencias."
+    
+    // === DEPORTES ===
+    
+    recordar "deporte" con valor "El deporte es actividad física competitiva y recreativa que promueve salud, disciplina y trabajo en equipo. Incluye deportes individuales como atletismo y tenis, y colectivos como fútbol y baloncesto. Los deportes profesionales generan entretenimiento, economía y cultura. El deporte amateur fomenta salud mental y física, inclusión social y desarrollo personal."
+    
+    recordar "fútbol" con valor "El fútbol es el deporte más popular del mundo, jugado por dos equipos de once jugadores. Originado en Inglaterra, es fenómeno cultural y económico global. La FIFA organiza torneos como el Mundial, mientras ligas profesionales como La Liga, Premier League y Serie A atraen millones. El fútbol promueve pasión, identidad nacional y superación."
+    
+    // === MEDIOS Y COMUNICACIÓN ===
+    
+    recordar "periodismo" con valor "El periodismo es la recopilación, verificación y distribución de noticias e información. Incluye periodismo impreso, digital, de radio y televisión. Los principios éticos incluyen objetividad, veracidad y responsabilidad. El periodismo moderno enfrenta desafíos de desinformación, monetización y transformación digital, pero sigue fundamental para democracia y sociedad informada."
+    
+    recordar "redes sociales" con valor "Las redes sociales son plataformas digitales que conectan personas para compartir contenido y comunicarse. Incluyen Facebook, Twitter, Instagram, TikTok y LinkedIn. Han transformado comunicación, política, negocios y cultura. Las redes sociales permiten activismos, marketing, creación de comunidades pero también enfrentan críticas por privacidad, polarización y salud mental."
+    
+    // Reforzar conceptos importantes
+    reforzar("inteligencia artificial", 95)
+    reforzar("aprendizaje automático", 90)
+    reforzar("python", 85)
+    reforzar("javascript", 85)
+    reforzar("programación", 80)
+    reforzar("base de datos", 75)
+    reforzar("internet", 70)
+    reforzar("tecnología", 70)
+    reforzar("ciencia", 65)
+    reforzar("educación", 60)
+    
+    imprimir "\azul[Base Extensa]\norm Cargados " + str_desde_numero(100) + " conceptos con definiciones detalladas."
+    
+    retornar 1
+fin_funcion

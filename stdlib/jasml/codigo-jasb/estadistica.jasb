@@ -1,0 +1,266 @@
+// JASML Estadística - Funciones estadísticas descriptivas
+// Similar a pandas/NumPy de Python - Versión corregida
+
+// ==========================================================
+// ESTADÍSTICA DESCRIPTIVA BÁSICA
+// ==========================================================
+
+// Calcula la media (promedio) de los datos
+enviar funcion media(lista datos) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante suma = 0.0
+    entero tamano = lista_tamano(datos)
+    entero i = 0
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        suma = suma + val
+        i = i + 1
+    fin_mientras
+    
+    retornar suma / tamano
+fin_funcion
+
+// Calcula la mediana de los datos
+enviar funcion mediana(lista datos) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    lista ordenados = clonar_lista(datos)
+    entero tamano = lista_tamano(ordenados)
+    
+    // Ordenamiento simple (bubble sort)
+    entero i = 0
+    mientras i < tamano hacer
+        entero j = 0
+        mientras j < tamano - 1 hacer
+            flotante val1 = texto_a_numero(lista_obtener(ordenados, j))
+            flotante val2 = texto_a_numero(lista_obtener(ordenados, j + 1))
+            si val1 > val2 entonces
+                texto temp = lista_obtener(ordenados, j)
+                // Intercambiar (implementación simplificada)
+                lista nueva_lista = crear_lista()
+                entero k = 0
+                mientras k < lista_tamano(ordenados) hacer
+                    si k == j entonces
+                        mem_lista_agregar(nueva_lista, lista_obtener(ordenados, j + 1))
+                    si_no
+                        si k == j + 1 entonces
+                            mem_lista_agregar(nueva_lista, temp)
+                        si_no
+                            mem_lista_agregar(nueva_lista, lista_obtener(ordenados, k))
+                        fin_si
+                    fin_si
+                    k = k + 1
+                fin_mientras
+                ordenados = nueva_lista
+            fin_si
+            j = j + 1
+        fin_mientras
+        i = i + 1
+    fin_mientras
+    
+    // Calcular mediana
+    si tamano % 2 == 0 entonces
+        entero medio = tamano / 2
+        flotante val1 = texto_a_numero(lista_obtener(ordenados, medio - 1))
+        flotante val2 = texto_a_numero(lista_obtener(ordenados, medio))
+        retornar (val1 + val2) / 2.0
+    si_no
+        entero medio = tamano / 2
+        retornar texto_a_numero(lista_obtener(ordenados, medio))
+    fin_si
+fin_funcion
+
+// Calcula la desviación estándar
+enviar funcion desviacion_estandar(lista datos) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante media_valor = media(datos)
+    flotante suma_diferencias = 0.0
+    entero tamano = lista_tamano(datos)
+    entero i = 0
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        flotante diferencia = val - media_valor
+        suma_diferencias = suma_diferencias + (diferencia * diferencia)
+        i = i + 1
+    fin_mientras
+    
+    retornar raiz_cuadrada(suma_diferencias / tamano)
+fin_funcion
+
+// Calcula la varianza
+enviar funcion varianza(lista datos) retorna flotante
+    flotante desv = desviacion_estandar(datos)
+    retornar desv * desv
+fin_funcion
+
+// Encuentra el valor máximo
+enviar funcion maximo(lista datos) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante max_val = -999999.0
+    entero tamano = lista_tamano(datos)
+    entero i = 0
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        si val > max_val entonces
+            max_val = val
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar max_val
+fin_funcion
+
+// Encuentra el valor mínimo
+enviar funcion minimo(lista datos) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante min_val = 999999.0
+    entero tamano = lista_tamano(datos)
+    entero i = 0
+    
+    mientras i < tamano hacer
+        flotante val = texto_a_numero(lista_obtener(datos, i))
+        si val < min_val entonces
+            min_val = val
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar min_val
+fin_funcion
+
+// Calcula el rango (max - min)
+enviar funcion rango(lista datos) retorna flotante
+    retornar maximo(datos) - minimo(datos)
+fin_funcion
+
+// ==========================================================
+// ESTADÍSTICAS AVANZADAS
+// ==========================================================
+
+// Calcula percentiles (aproximación simple)
+enviar funcion percentil(lista datos, flotante p) retorna flotante
+    si lista_tamano(datos) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    si p < 0.0 entonces p = 0.0 fin_si
+    si p > 100.0 entonces p = 100.0 fin_si
+    
+    lista ordenados = clonar_lista(datos)
+    entero tamano = lista_tamano(ordenados)
+    
+    // Ordenamiento (reutilizar lógica de mediana)
+    entero i = 0
+    mientras i < tamano hacer
+        entero j = 0
+        mientras j < tamano - 1 hacer
+            flotante val1 = texto_a_numero(lista_obtener(ordenados, j))
+            flotante val2 = texto_a_numero(lista_obtener(ordenados, j + 1))
+            si val1 > val2 entonces
+                texto temp = lista_obtener(ordenados, j)
+                lista nueva_lista = crear_lista()
+                entero k = 0
+                mientras k < lista_tamano(ordenados) hacer
+                    si k == j entonces
+                        mem_lista_agregar(nueva_lista, lista_obtener(ordenados, j + 1))
+                    si_no
+                        si k == j + 1 entonces
+                            mem_lista_agregar(nueva_lista, temp)
+                        si_no
+                            mem_lista_agregar(nueva_lista, lista_obtener(ordenados, k))
+                        fin_si
+                    fin_si
+                    k = k + 1
+                fin_mientras
+                ordenados = nueva_lista
+            fin_si
+            j = j + 1
+        fin_mientras
+        i = i + 1
+    fin_mientras
+    
+    flotante indice = (p / 100.0) * (tamano - 1)
+    entero indice_bajo = indice
+    flotante fraccion = indice - indice_bajo
+    
+    si indice_bajo >= tamano - 1 entonces
+        retornar texto_a_numero(lista_obtener(ordenados, tamano - 1))
+    fin_si
+    
+    flotante val_bajo = texto_a_numero(lista_obtener(ordenados, indice_bajo))
+    flotante val_alto = texto_a_numero(lista_obtener(ordenados, indice_bajo + 1))
+    
+    retornar val_bajo + fraccion * (val_alto - val_bajo)
+fin_funcion
+
+// Calcula el cuartil 25%
+enviar funcion cuartil1(lista datos) retorna flotante
+    retornar percentil(datos, 25.0)
+fin_funcion
+
+// Calcula el cuartil 50% (mediana)
+enviar funcion cuartil2(lista datos) retorna flotante
+    retornar percentil(datos, 50.0)
+fin_funcion
+
+// Calcula el cuartil 75%
+enviar funcion cuartil3(lista datos) retorna flotante
+    retornar percentil(datos, 75.0)
+fin_funcion
+
+// Calcula el rango intercuartílico (IQR)
+enviar funcion rango_intercuartilico(lista datos) retorna flotante
+    retornar cuartil3(datos) - cuartil1(datos)
+fin_funcion
+
+// ==========================================================
+// RESUMEN ESTADÍSTICO
+// ==========================================================
+
+// Genera un resumen estadístico completo
+enviar funcion resumen_estadistico(lista datos) retorna lista
+    lista resumen = crear_lista()
+    
+    mem_lista_agregar(resumen, str_desde_numero(minimo(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(cuartil1(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(mediana(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(cuartil3(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(maximo(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(media(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(desviacion_estandar(datos)))
+    mem_lista_agregar(resumen, str_desde_numero(varianza(datos)))
+    
+    retornar resumen
+fin_funcion
+
+// Imprime el resumen estadístico de forma legible
+enviar funcion imprimir_resumen(lista datos)
+    lista resumen = resumen_estadistico(datos)
+    
+    imprimir "=== Resumen Estadístico ==="
+    imprimir "Mínimo: " + lista_obtener(resumen, 0)
+    imprimir "Q1 (25%): " + lista_obtener(resumen, 1)
+    imprimir "Mediana (Q2): " + lista_obtener(resumen, 2)
+    imprimir "Q3 (75%): " + lista_obtener(resumen, 3)
+    imprimir "Máximo: " + lista_obtener(resumen, 4)
+    imprimir "Media: " + lista_obtener(resumen, 5)
+    imprimir "Desv. Est.: " + lista_obtener(resumen, 6)
+    imprimir "Varianza: " + lista_obtener(resumen, 7)
+    imprimir "========================"
+fin_funcion

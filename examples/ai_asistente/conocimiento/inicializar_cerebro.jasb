@@ -1,0 +1,45 @@
+// =============================================================================
+// MOTOR DE INICIALIZACIÓN DE CEREBRO ESTRUCTURADO (NGF)
+// =============================================================================
+// Este archivo crea y puebla la base de conocimientos de grafos (.ngf)
+// para dotar a la IA de hechos precisos y relaciones semánticas.
+// =============================================================================
+
+enviar funcion inicializar_grafo_conocimiento() retorna entero
+    imprimir "\azul[Cerebro]\norm Generando grafo de conocimiento estructurado..."
+
+    // Abrimos el archivo de grafo (si no existe, Jasboot lo crea)
+    entero g = n_abrir_grafo("data/cerebro_asistente.ngf")
+
+    // --- Hechos sobre Jasboot ---
+    n_recordar(g, "jasboot", "tipo", "lenguaje de programacion")
+    n_recordar(g, "jasboot", "paradigma", "orientado a IA y memoria neuronal")
+    n_recordar(g, "jasboot", "extension", ".jasb")
+    n_recordar(g, "jbc", "rol", "compilador de jasboot escrito en C")
+    n_recordar(g, "jbo", "rol", "formato de representacion intermedia (IR)")
+
+    // --- Hechos sobre el Asistente ---
+    n_recordar(g, "jasbot", "creador", "Jefry Astacio")
+    n_recordar(g, "jasbot", "tecnologia", "JMN (Jasboot Memory Network)")
+    n_recordar(g, "jasbot", "idioma", "espanol")
+    n_recordar(g, "jasbot", "version", "2.0 Pro")
+
+    // --- Relaciones de Categoría (Heredar) ---
+    n_heredar(g, "perro", "animal")
+    n_heredar(g, "gato", "animal")
+    n_heredar(g, "manzana", "fruta")
+    n_heredar(g, "madrid", "ciudad")
+    n_heredar(g, "espana", "pais")
+
+    // --- Geografía y Datos ---
+    n_recordar(g, "espana", "capital", "madrid")
+    n_recordar(g, "francia", "capital", "paris")
+    n_recordar(g, "mexico", "capital", "ciudad de mexico")
+    n_recordar(g, "republica dominicana", "capital", "santo domingo")
+
+    // Guardamos y cerramos
+    n_cerrar_grafo(g)
+
+    imprimir "\verd[Cerebro]\norm Grafo persistido correctamente en data/cerebro_asistente.ngf"
+    retornar 1
+fin_funcion

@@ -1,0 +1,25 @@
+usar todas de "../../stdlib/windows/ui.jasb"
+
+principal
+    entero app = windows_app_crear("Jasboot — vista web (WebView2)", 1024, 720)
+    entero vista = 0
+
+    si app == 0 entonces
+        imprimir "No se pudo crear la ventana.\n"
+        imprimir "Compila la DLL: sdk-dependiente\\jasboot-win32-bridge\\build.bat\n"
+        imprimir "Necesitas WebView2 Runtime y WebView2Loader.dll en bin\\ .\n"
+    sino
+        windows_fondo_app(app, windows_rgb(241, 245, 249))
+        vista = windows_webview(app, "https://example.com")
+        si vista == 0 entonces
+            imprimir "No se pudo crear el WebView (revisa WebView2Loader.dll y el runtime WebView2).\n"
+        sino
+            windows_marco(vista, 8, 8, 1008, 676)
+            windows_responsivo(vista, 8, 8, 984, 940)
+            windows_limites(vista, 320, 240, 1600, 1200)
+        fin_si
+        windows_mostrar(app)
+        windows_ejecutar(app)
+        windows_destruir(app)
+    fin_si
+fin_principal

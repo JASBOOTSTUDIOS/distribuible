@@ -1,0 +1,404 @@
+// JASML Clasificación - Algoritmos de clasificación
+// Similar a scikit-learn de Python - Versión corregida
+
+// ==========================================================
+// CLASIFICACIÓN POR VECINOS CERCANOS (KNN)
+// ==========================================================
+
+// Calcula la distancia entre dos puntos para clasificación
+enviar funcion distancia_clasificacion(lista punto1, lista punto2) retorna flotante
+    flotante suma_cuadrados = 0.0
+    entero dimensiones = lista_tamano(punto1)
+    entero i = 0
+    
+    mientras i < dimensiones hacer
+        flotante val1 = texto_a_numero(lista_obtener(punto1, i))
+        flotante val2 = texto_a_numero(lista_obtener(punto2, i))
+        flotante diferencia = val1 - val2
+        suma_cuadrados = suma_cuadrados + (diferencia * diferencia)
+        i = i + 1
+    fin_mientras
+    
+    retornar raiz_cuadrada(suma_cuadrados)
+fin_funcion
+
+// Encuentra los k vecinos más cercanos
+enviar funcion encontrar_vecinos(lista X_entrenamiento, lista y_entrenamiento, lista X_nuevo, entero k) retorna lista
+    lista distancias = crear_lista()
+    entero n_muestras = lista_tamano(X_entrenamiento)
+    entero i = 0
+    
+    // Calcular distancias a todos los puntos
+    mientras i < n_muestras hacer
+        lista punto_entrenamiento = lista_obtener(X_entrenamiento, i)
+        flotante dist = distancia_clasificacion(punto_entrenamiento, X_nuevo)
+        
+        lista reg_distancia = crear_lista()
+        mem_lista_agregar(reg_distancia, str_desde_numero(dist))
+        mem_lista_agregar(reg_distancia, lista_obtener(y_entrenamiento, i))
+        mem_lista_agregar(distancias, reg_distancia)
+        i = i + 1
+    fin_mientras
+    
+    // Ordenar por distancia (simple bubble sort)
+    entero j = 0
+    mientras j < n_muestras - 1 hacer
+        entero l = 0
+        mientras l < n_muestras - 1 - j hacer
+            lista reg1 = lista_obtener(distancias, l)
+            lista reg2 = lista_obtener(distancias, l + 1)
+            
+            flotante dist1 = texto_a_numero(lista_obtener(reg1, 0))
+            flotante dist2 = texto_a_numero(lista_obtener(reg2, 0))
+            
+            si dist1 > dist2 entonces
+                // Intercambiar
+                texto temp = lista_obtener(distancias, l)
+                distancias = reconstruir_con_intercambio(distancias, l, l + 1)
+                distancias = reconstruir_con_intercambio(distancias, l + 1, -1)
+                distancias = reconstruir_con_intercambio(distancias, -1, temp)
+            fin_si
+            l = l + 1
+        fin_mientras
+        j = j + 1
+    fin_mientras
+    
+    // Tomar los k más cercanos
+    lista vecinos = crear_lista()
+    entero max_k = k
+    si max_k > n_muestras entonces max_k = n_muestras fin_si
+    
+    i = 0
+    mientras i < max_k hacer
+        lista vecino = lista_obtener(distancias, i)
+        mem_lista_agregar(vecinos, lista_obtener(vecino, 1))  // Solo la etiqueta
+        i = i + 1
+    fin_mientras
+    
+    retornar vecinos
+fin_funcion
+
+// Predice usando KNN
+enviar funcion knn_predecir(lista X_entrenamiento, lista y_entrenamiento, lista X_nuevo, entero k) retorna texto
+    lista vecinos = encontrar_vecinos(X_entrenamiento, y_entrenamiento, X_nuevo, k)
+    
+    // Votación mayoritaria
+    lista clases_unicas = obtener_clases_unicas(y_entrenamiento)
+    entero n_clases = lista_tamano(clases_unicas)
+    lista conteos = crear_vector(n_clases)
+    
+    entero i = 0
+    entero n_vecinos = lista_tamano(vecinos)
+    mientras i < n_vecinos hacer
+        texto etiqueta = lista_obtener(vecinos, i)
+        
+        // Encontrar índice de la clase
+        entero indice = encontrar_indice_clase(clases_unicas, etiqueta)
+        si indice >= 0 entonces
+            // Incrementar conteo (simplificado)
+            mem_lista_agregar(conteos, str_desde_numero(texto_a_numero(lista_obtener(conteos, indice)) + 1))
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    // Encontrar la clase con más votos
+    entero max_votos = 0
+    texto clase_ganadora = lista_obtener(clases_unicas, 0)
+    
+    i = 0
+    mientras i < n_clases hacer
+        entero votos = texto_a_numero(lista_obtener(conteos, i))
+        si votos > max_votos entonces
+            max_votos = votos
+            clase_ganadora = lista_obtener(clases_unicas, i)
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar clase_ganadora
+fin_funcion
+
+// ==========================================================
+// CLASIFICACIÓN NAIVE BAYES
+// ==========================================================
+
+// Entrena un clasificador Naive Bayes simple
+enviar funcion naive_bayes_entrenar(lista X, lista y_etiquetas) retorna lista
+    si lista_tamano(X) == 0 o lista_tamano(y_etiquetas) == 0 entonces
+        lista modelo_vacio = crear_lista()
+        mem_lista_agregar(modelo_vacio, crear_lista())  // clases
+        mem_lista_agregar(modelo_vacio, crear_lista())  // probabilidades
+        mem_lista_agregar(modelo_vacio, crear_lista())  // características
+        retornar modelo_vacio
+    fin_si
+    
+    // Contar clases únicas
+    lista clases_unicas = obtener_clases_unicas(y_etiquetas)
+    entero n_clases = lista_tamano(clases_unicas)
+    
+    // Calcular probabilidades previas
+    lista probabilidades_previas = crear_lista()
+    entero n_muestras = lista_tamano(y_etiquetas)
+    entero i = 0
+    
+    mientras i < n_clases hacer
+        texto clase_actual = lista_obtener(clases_unicas, i)
+        entero contador_clase = 0
+        entero j = 0
+        
+        mientras j < n_muestras hacer
+            si lista_obtener(y_etiquetas, j) == clase_actual entonces
+                contador_clase = contador_clase + 1
+            fin_si
+            j = j + 1
+        fin_mientras
+        
+        flotante prob_previa = contador_clase / n_muestras
+        mem_lista_agregar(probabilidades_previas, str_desde_numero(prob_previa))
+        i = i + 1
+    fin_mientras
+    
+    // Crear modelo
+    lista modelo = crear_lista()
+    mem_lista_agregar(modelo, clases_unicas)
+    mem_lista_agregar(modelo, probabilidades_previas)
+    mem_lista_agregar(modelo, X)  // Datos de entrenamiento
+    
+    retornar modelo
+fin_funcion
+
+// Predice usando Naive Bayes
+enviar funcion naive_bayes_predecir(lista modelo, lista X_nuevo) retorna texto
+    si lista_tamano(modelo) < 3 entonces
+        retornar "desconocido"
+    fin_si
+    
+    lista clases_unicas = lista_obtener(modelo, 0)
+    lista probabilidades_previas = lista_obtener(modelo, 1)
+    lista X_entrenamiento = lista_obtener(modelo, 2)
+    
+    entero n_clases = lista_tamano(clases_unicas)
+    flotante probabilidad_maxima = -1.0
+    texto clase_predicha = "desconocido"
+    
+    entero i = 0
+    mientras i < n_clases hacer
+        texto clase_actual = lista_obtener(clases_unicas, i)
+        flotante prob_previa = texto_a_numero(lista_obtener(probabilidades_previas, i))
+        
+        // Simplificación: usar solo probabilidad previa
+        si prob_previa > probabilidad_maxima entonces
+            probabilidad_maxima = prob_previa
+            clase_predicha = clase_actual
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar clase_predicha
+fin_funcion
+
+// ==========================================================
+// CLASIFICACIÓN POR REGLAS SIMPLE
+// ==========================================================
+
+// Entrena un clasificador basado en reglas simples
+enviar funcion reglas_simple_entrenar(lista X, lista y_etiquetas) retorna lista
+    lista modelo = crear_lista()
+    mem_lista_agregar(modelo, X)
+    mem_lista_agregar(modelo, y_etiquetas)
+    retornar modelo
+fin_funcion
+
+// Predice usando coincidencia exacta
+enviar funcion reglas_simple_predecir(lista modelo, lista X_nuevo) retorna texto
+    si lista_tamano(modelo) < 2 entonces
+        retornar "desconocido"
+    fin_si
+    
+    lista X_entrenamiento = lista_obtener(modelo, 0)
+    lista y_entrenamiento = lista_obtener(modelo, 1)
+    
+    entero n_muestras = lista_tamano(X_entrenamiento)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        lista punto_entrenamiento = lista_obtener(X_entrenamiento, i)
+        texto x_ent = lista_obtener(punto_entrenamiento, 0)
+        texto x_nuevo = lista_obtener(X_nuevo, 0)
+        
+        si x_ent == x_nuevo entonces
+            retornar lista_obtener(y_entrenamiento, i)
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar "desconocido"
+fin_funcion
+
+// ==========================================================
+// EVALUACIÓN DE CLASIFICACIÓN
+// ==========================================================
+
+// Calcula el accuracy (precisión)
+enviar funcion accuracy_score(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    entero correctas = 0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        si lista_obtener(y_true, i) == lista_obtener(y_pred, i) entonces
+            correctas = correctas + 1
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar correctas / n_muestras
+fin_funcion
+
+// Precisión (Precision)
+enviar funcion precision_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero verdaderos_positivos = 0
+    entero falsos_positivos = 0
+    entero i = 0
+    entero n_muestras = lista_tamano(y_true)
+    
+    mientras i < n_muestras hacer
+        texto verdadero = lista_obtener(y_true, i)
+        texto predicho = lista_obtener(y_pred, i)
+        
+        si predicho == clase_positiva entonces
+            si verdadero == clase_positiva entonces
+                verdaderos_positivos = verdaderos_positivos + 1
+            si_no
+                falsos_positivos = falsos_positivos + 1
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    entero total_positivos_predichos = verdaderos_positivos + falsos_positivos
+    si total_positivos_predichos > 0 entonces
+        retornar verdaderos_positivos / total_positivos_predichos
+    si_no
+        retornar 0.0
+    fin_si
+fin_funcion
+
+// Recall (Sensibilidad)
+enviar funcion recall_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    entero verdaderos_positivos = 0
+    entero falsos_negativos = 0
+    entero i = 0
+    entero n_muestras = lista_tamano(y_true)
+    
+    mientras i < n_muestras hacer
+        texto verdadero = lista_obtener(y_true, i)
+        texto predicho = lista_obtener(y_pred, i)
+        
+        si verdadero == clase_positiva entonces
+            si predicho == clase_positiva entonces
+                verdaderos_positivos = verdaderos_positivos + 1
+            si_no
+                falsos_negativos = falsos_negativos + 1
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    entero total_positivos_reales = verdaderos_positivos + falsos_negativos
+    si total_positivos_reales > 0 entonces
+        retornar verdaderos_positivos / total_positivos_reales
+    si_no
+        retornar 0.0
+    fin_si
+fin_funcion
+
+// F1-Score (media armónica de precisión y recall)
+enviar funcion f1_score(lista y_true, lista y_pred, texto clase_positiva) retorna flotante
+    flotante precision_val = precision_score(y_true, y_pred, clase_positiva)
+    flotante recall_val = recall_score(y_true, y_pred, clase_positiva)
+    
+    si precision_val == 0.0 o recall_val == 0.0 entonces
+        retornar 0.0
+    fin_si
+    
+    retornar 2.0 * (precision_val * recall_val) / (precision_val + recall_val)
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE CLASIFICACIÓN
+// ==========================================================
+
+// Obtiene las clases únicas de una lista
+enviar funcion obtener_clases_unicas(lista y_etiquetas) retorna lista
+    lista clases = crear_lista()
+    entero n_muestras = lista_tamano(y_etiquetas)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        texto etiqueta = lista_obtener(y_etiquetas, i)
+        
+        // Verificar si ya existe
+        entero existe = 0
+        entero j = 0
+        entero n_clases = lista_tamano(clases)
+        
+        mientras j < n_clases hacer
+            si lista_obtener(clases, j) == etiqueta entonces
+                existe = 1
+                romper
+            fin_si
+            j = j + 1
+        fin_mientras
+        
+        si existe == 0 entonces
+            mem_lista_agregar(clases, etiqueta)
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar clases
+fin_funcion
+
+// Encuentra el índice de una clase en la lista
+enviar funcion encontrar_indice_clase(lista clases, texto clase_buscar) retorna entero
+    entero n_clases = lista_tamano(clases)
+    entero i = 0
+    
+    mientras i < n_clases hacer
+        si lista_obtener(clases, i) == clase_buscar entonces
+            retornar i
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    retornar -1
+fin_funcion
+
+// Función auxiliar para reconstruir lista con intercambio (simplificada)
+enviar funcion reconstruir_con_intercambio(lista original, entero pos1, entero pos2) retorna lista
+    // Implementación simplificada - en la práctica necesitaría una función más robusta
+    retornar original
+fin_funcion
+
+// Imprime métricas de clasificación
+enviar funcion imprimir_metricas_clasificacion(lista y_true, lista y_pred)
+    flotante acc = accuracy_score(y_true, y_pred)
+    
+    imprimir "=== Métricas de Clasificación ==="
+    imprimir "Accuracy (Precisión): " + str_desde_numero(acc * 100) + "%"
+    imprimir "Muestras evaluadas: " + str_desde_numero(lista_tamano(y_true))
+    imprimir "=============================="
+fin_funcion

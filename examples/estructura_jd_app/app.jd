@@ -1,0 +1,115 @@
+usar estructa
+usar todas de "C:/src/jasboot/stdlib/Estructa/codigo-jasb/saas.jasb"
+
+tema Principal {
+    primario: "#2563eb"
+    secundario: "#0f172a"
+    fondo: "#f8fafc"
+    texto: "#0f172a"
+    radio: "16px"
+    espacio: "16px"
+}
+
+vista Inicio(texto solicitud) {
+    columna {
+        titulo "Cesar"
+        texto "Panel SaaS seguro construido con `.jd` y runtime Estructa."
+        tarjeta {
+            titulo: "Estado"
+            variante: "primaria"
+            texto "El sistema renderiza por SSR, escapa contenido y limita acciones del cliente."
+        }
+        divisor
+        jasb {
+            texto panel = estructura_seccion_titulo("Resumen ejecutivo", "Metrica, estado y actividad del producto.")
+            panel = concatenar(panel, estructura_saas_kpis())
+            panel = concatenar(panel, estructura_tarjeta("Actividad", concatenar(estructura_texto("3 despliegues correctos en las ultimas 24h."), estructura_badge("Seguro por defecto"))))
+            cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+        }
+    }
+}
+
+vista Clientes(texto solicitud) {
+    columna {
+        titulo "Clientes"
+        texto "Gestiona cuentas y observa el estado comercial actual."
+        tarjeta {
+            titulo: "Acciones"
+            texto "Usa las acciones declarativas para mostrar paneles sin DOM libre."
+        }
+        fila {
+            boton_alerta "Notificar", "Recordatorio enviado al equipo comercial"
+            boton_mostrar "panel-clientes", "Mostrar panel"
+            boton_ocultar "panel-clientes", "Ocultar panel"
+        }
+        panel_seguro {
+            titulo: "panel-clientes"
+            texto "Panel visible solo mediante acciones seguras."
+        }
+        jasb {
+            texto panel = estructura_seccion_titulo("Base de clientes", "Listado resumido y seguro.")
+            panel = concatenar(panel, estructura_saas_tabla_clientes())
+            cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+        }
+    }
+}
+
+vista Facturacion(texto solicitud) {
+    columna {
+        titulo "Facturacion"
+        texto "Simula una vista de cobros y estado financiero."
+        tarjeta {
+            titulo: "Cobros"
+            variante: "oscura"
+            texto "97.8% de facturas conciliadas este mes."
+        }
+        jasb {
+            texto panel = estructura_seccion_titulo("Facturacion", "Resumen de ingresos, alertas y seguimiento.")
+            texto fila_facturacion = estructura_kpi("Cobrado", "$18,200", "Cobros cerrados")
+            fila_facturacion = concatenar(fila_facturacion, estructura_kpi("Pendiente", "$2,400", "Cobros por confirmar"))
+            panel = concatenar(panel, estructura_fila(fila_facturacion))
+            cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+        }
+    }
+}
+
+vista Configuracion(texto solicitud) {
+    columna {
+        titulo "Configuracion"
+        texto "Preferencias operativas del panel."
+        campo {
+            titulo: "Nombre del equipo"
+            entrada "equipo", "jb Cloud", "Nombre visible"
+        }
+        campo {
+            titulo: "Correo de alertas"
+            entrada "correo", "ops@jb.local", "Correo de alertas"
+        }
+        fila {
+            boton_secundario "/configuracion", "Restablecer"
+            boton_alerta "Guardar", "Configuracion validada de forma segura"
+        }
+        panel_seguro_oculto {
+            titulo: "preferencias-avanzadas"
+            texto "Panel avanzado protegido."
+        }
+        fila {
+            boton_alternar "preferencias-avanzadas", "Alternar avanzado"
+        }
+        jasb {
+            texto panel = estructura_seccion_titulo("Preferencias", "Formulario base para ajustes operativos.")
+            cuerpo = estructura_saas_shell(solicitud, concatenar(cuerpo, panel))
+        }
+    }
+}
+
+app MiAppJD {
+    usar tema Principal
+    puerto: 18232
+    rutas {
+        "/" => Inicio
+        "/clientes" => Clientes
+        "/facturacion" => Facturacion
+        "/configuracion" => Configuracion
+    }
+}

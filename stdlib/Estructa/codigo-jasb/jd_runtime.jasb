@@ -1,0 +1,177 @@
+usar todas de ".\\estructura.jasb"
+
+enviar funcion jd_trim_izquierda(texto txt) retorna texto
+    entero i = 0
+    mientras i < longitud_texto(txt) hacer
+        texto c = extraer_subtexto(txt, i, 1)
+        si c == " " o c == "\t" o c == "\r" entonces
+            i = i + 1
+        sino
+            romper
+        fin_si
+    fin_mientras
+    retornar extraer_subtexto(txt, i, longitud_texto(txt) - i)
+fin_funcion
+
+enviar funcion jd_trim_derecha(texto txt) retorna texto
+    entero i = longitud_texto(txt) - 1
+    mientras i >= 0 hacer
+        texto c = extraer_subtexto(txt, i, 1)
+        si c == " " o c == "\t" o c == "\r" entonces
+            i = i - 1
+        sino
+            romper
+        fin_si
+    fin_mientras
+    si i < 0 entonces
+        retornar ""
+    fin_si
+    retornar extraer_subtexto(txt, 0, i + 1)
+fin_funcion
+
+enviar funcion jd_trim(texto txt) retorna texto
+    retornar jd_trim_derecha(jd_trim_izquierda(txt))
+fin_funcion
+
+enviar funcion jd_empieza_con(texto txt, texto prefijo) retorna entero
+    si longitud_texto(prefijo) > longitud_texto(txt) entonces
+        retornar 0
+    fin_si
+    si extraer_subtexto(txt, 0, longitud_texto(prefijo)) == prefijo entonces
+        retornar 1
+    fin_si
+    retornar 0
+fin_funcion
+
+enviar funcion jd_literal_1(texto linea) retorna texto
+    lista partes = dividir_texto(linea, "\"")
+    si mem_lista_tamano(partes) > 1 entonces
+        retornar mem_lista_obtener(partes, 1)
+    fin_si
+    retornar ""
+fin_funcion
+
+enviar funcion jd_literal_2(texto linea) retorna texto
+    lista partes = dividir_texto(linea, "\"")
+    si mem_lista_tamano(partes) > 3 entonces
+        retornar mem_lista_obtener(partes, 3)
+    fin_si
+    retornar ""
+fin_funcion
+
+enviar funcion jd_resultado(texto html, entero siguiente) retorna lista
+    lista r = mem_lista_crear()
+    mem_lista_agregar(r, html)
+    mem_lista_agregar(r, str_desde_numero(siguiente))
+    retornar r
+fin_funcion
+
+enviar funcion jd_renderizar_bloque_lineas(lista lineas, entero inicio, texto solicitud) retorna lista
+    texto cabecera = jd_trim(mem_lista_obtener(lineas, inicio))
+    texto tipo = extraer_antes_de(cabecera, " ")
+    si no contiene_texto(cabecera, " ") entonces
+        tipo = extraer_antes_de(cabecera, "{")
+    fin_si
+    tipo = jd_trim(tipo)
+
+    entero i = inicio + 1
+    texto hijos = ""
+    texto prop_titulo = ""
+    texto prop_variante = ""
+
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = jd_trim(mem_lista_obtener(lineas, i))
+        si longitud_texto(linea) == 0 entonces
+            i = i + 1
+        sino
+            si linea == "}" entonces
+                romper
+            fin_si
+
+            si termina_con(linea, "{") entonces
+                lista sub = jd_renderizar_bloque_lineas(lineas, i, solicitud)
+                hijos = concatenar(hijos, mem_lista_obtener(sub, 0))
+                i = str_a_entero(mem_lista_obtener(sub, 1))
+            sino
+                si jd_empieza_con(linea, "titulo:") entonces
+                    prop_titulo = jd_literal_1(linea)
+                    i = i + 1
+                sino
+                    si jd_empieza_con(linea, "variante:") entonces
+                        prop_variante = jd_literal_1(linea)
+                        i = i + 1
+                    sino
+                        si jd_empieza_con(linea, "texto ") entonces
+                            hijos = concatenar(hijos, estructura_texto(jd_literal_1(linea)))
+                            i = i + 1
+                        sino
+                            si jd_empieza_con(linea, "titulo ") entonces
+                                hijos = concatenar(hijos, estructura_titulo(jd_literal_1(linea)))
+                                i = i + 1
+                            sino
+                                si jd_empieza_con(linea, "subtitulo ") entonces
+                                    hijos = concatenar(hijos, estructura_subtitulo(jd_literal_1(linea)))
+                                    i = i + 1
+                                sino
+                                    si jd_empieza_con(linea, "boton_ruta ") entonces
+                                        hijos = concatenar(hijos, estructura_boton_ruta(jd_literal_1(linea), jd_literal_2(linea)))
+                                        i = i + 1
+                                    sino
+                                        si jd_empieza_con(linea, "boton_alerta ") entonces
+                                            hijos = concatenar(hijos, estructura_boton_alerta(jd_literal_1(linea), jd_literal_2(linea)))
+                                            i = i + 1
+                                        sino
+                                            si jd_empieza_con(linea, "boton_secundario ") entonces
+                                                hijos = concatenar(hijos, estructura_boton_secundario(jd_literal_1(linea), jd_literal_2(linea)))
+                                                i = i + 1
+                                            sino
+                                                si jd_empieza_con(linea, "divisor") entonces
+                                                    hijos = concatenar(hijos, estructura_divisor())
+                                                    i = i + 1
+                                                sino
+                                                    i = i + 1
+                                                fin_si
+                                            fin_si
+                                        fin_si
+                                    fin_si
+                                fin_si
+                            fin_si
+                        fin_si
+                    fin_si
+                fin_si
+            fin_si
+        fin_si
+    fin_mientras
+
+    texto html = hijos
+    si tipo == "columna" entonces
+        html = estructura_columna(hijos)
+    fin_si
+    si tipo == "fila" entonces
+        html = estructura_fila(hijos)
+    fin_si
+    si tipo == "tarjeta" entonces
+        si longitud_texto(prop_variante) > 0 entonces
+            html = estructura_tarjeta_visual(prop_titulo, prop_variante, hijos)
+        sino
+            html = estructura_tarjeta(prop_titulo, hijos)
+        fin_si
+    fin_si
+
+    retornar jd_resultado(html, i + 1)
+fin_funcion
+
+enviar funcion jd_renderizar_vista(texto bloque, texto solicitud) retorna texto
+    lista lineas = dividir_texto(bloque, "\n")
+    entero i = 0
+    mientras i < mem_lista_tamano(lineas) hacer
+        texto linea = jd_trim(mem_lista_obtener(lineas, i))
+        si longitud_texto(linea) == 0 entonces
+            i = i + 1
+        sino
+            lista r = jd_renderizar_bloque_lineas(lineas, i, solicitud)
+            retornar mem_lista_obtener(r, 0)
+        fin_si
+    fin_mientras
+    retornar ""
+fin_funcion

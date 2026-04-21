@@ -1,0 +1,240 @@
+// JASML Regresión - Algoritmos de regresión
+// Similar a scikit-learn de Python - Versión corregida
+
+// ==========================================================
+// REGRESIÓN LINEAL SIMPLE
+// ==========================================================
+
+// Entrena un modelo de regresión lineal simple (y = mx + b)
+enviar funcion regresion_lineal_entrenar(lista X, lista y_objetivo) retorna lista
+    si lista_tamano(X) == 0 o lista_tamano(y_objetivo) == 0 entonces
+        lista modelo_vacio = crear_lista()
+        mem_lista_agregar(modelo_vacio, "0.0")
+        mem_lista_agregar(modelo_vacio, "0.0")
+        retornar modelo_vacio
+    fin_si
+    
+    entero n_muestras = lista_tamano(X)
+    
+    // Calcular medias
+    flotante media_X = 0.0
+    flotante media_y = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        lista fila_X = lista_obtener(X, i)
+        flotante val_X = texto_a_numero(lista_obtener(fila_X, 0))
+        flotante val_y = texto_a_numero(lista_obtener(y_objetivo, i))
+        media_X = media_X + val_X
+        media_y = media_y + val_y
+        i = i + 1
+    fin_mientras
+    
+    media_X = media_X / n_muestras
+    media_y = media_y / n_muestras
+    
+    // Calcular pendiente (m) y intercepto (b)
+    flotante numerador = 0.0
+    flotante denominador = 0.0
+    i = 0
+    
+    mientras i < n_muestras hacer
+        lista fila_X = lista_obtener(X, i)
+        flotante val_X = texto_a_numero(lista_obtener(fila_X, 0))
+        flotante val_y = texto_a_numero(lista_obtener(y_objetivo, i))
+        
+        numerador = numerador + ((val_X - media_X) * (val_y - media_y))
+        denominador = denominador + ((val_X - media_X) * (val_X - media_X))
+        i = i + 1
+    fin_mientras
+    
+    flotante pendiente = 0.0
+    si denominador != 0.0 entonces
+        pendiente = numerador / denominador
+    fin_si
+    
+    flotante intercepto = media_y - (pendiente * media_X)
+    
+    lista resultado = crear_lista()
+    mem_lista_agregar(resultado, str_desde_numero(pendiente))
+    mem_lista_agregar(resultado, str_desde_numero(intercepto))
+    
+    retornar resultado
+fin_funcion
+
+// Realiza una predicción usando el modelo entrenado
+enviar funcion regresion_lineal_predecir(lista modelo, lista X_nuevo) retorna flotante
+    si lista_tamano(modelo) < 2 o lista_tamano(X_nuevo) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante pendiente = texto_a_numero(lista_obtener(modelo, 0))
+    flotante intercepto = texto_a_numero(lista_obtener(modelo, 1))
+    flotante x = texto_a_numero(lista_obtener(X_nuevo, 0))
+    
+    retornar (pendiente * x) + intercepto
+fin_funcion
+
+// ==========================================================
+// REGRESIÓN POLINOMIAL (versión simplificada)
+// ==========================================================
+
+// Transforma datos para regresión polinomial de grado 2
+enviar funcion polinomial_transformar_grado2(lista X) retorna lista
+    lista X_transformado = crear_lista()
+    entero n_muestras = lista_tamano(X)
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        lista fila_original = lista_obtener(X, i)
+        lista fila_transformada = crear_lista()
+        
+        // x, x^2
+        flotante x = texto_a_numero(lista_obtener(fila_original, 0))
+        mem_lista_agregar(fila_transformada, str_desde_numero(x))
+        mem_lista_agregar(fila_transformada, str_desde_numero(x * x))
+        
+        mem_lista_agregar(X_transformado, fila_transformada)
+        i = i + 1
+    fin_mientras
+    
+    retornar X_transformado
+fin_funcion
+
+// ==========================================================
+// EVALUACIÓN DE REGRESIÓN
+// ==========================================================
+
+// Calcula el error cuadrático medio (MSE)
+enviar funcion mean_squared_error(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 999999.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    flotante suma_errores = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        flotante val_true = texto_a_numero(lista_obtener(y_true, i))
+        flotante val_pred = texto_a_numero(lista_obtener(y_pred, i))
+        flotante error = val_true - val_pred
+        suma_errores = suma_errores + (error * error)
+        i = i + 1
+    fin_mientras
+    
+    retornar suma_errores / n_muestras
+fin_funcion
+
+// Calcula el error absoluto medio (MAE)
+enviar funcion mean_absolute_error(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 999999.0
+    fin_si
+    
+    entero n_muestras = lista_tamano(y_true)
+    flotante suma_errores = 0.0
+    entero i = 0
+    
+    mientras i < n_muestras hacer
+        flotante val_true = texto_a_numero(lista_obtener(y_true, i))
+        flotante val_pred = texto_a_numero(lista_obtener(y_pred, i))
+        flotante error = val_true - val_pred
+        si error < 0.0 entonces
+            error = error * -1.0
+        fin_si
+        suma_errores = suma_errores + error
+        i = i + 1
+    fin_mientras
+    
+    retornar suma_errores / n_muestras
+fin_funcion
+
+// Calcula el coeficiente de determinación R²
+enviar funcion r2_score(lista y_true, lista y_pred) retorna flotante
+    si lista_tamano(y_true) == 0 o lista_tamano(y_pred) == 0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante mse = mean_squared_error(y_true, y_pred)
+    flotante varianza_y = varianza(y_true)
+    
+    si varianza_y == 0.0 entonces
+        retornar 1.0  // Predicción perfecta si no hay varianza
+    fin_si
+    
+    si mse == 999999.0 entonces
+        retornar 0.0
+    fin_si
+    
+    flotante r2 = 1.0 - (mse / varianza_y)
+    si r2 < 0.0 entonces r2 = 0.0 fin_si  // R² no puede ser negativo
+    
+    retornar r2
+fin_funcion
+
+// ==========================================================
+// UTILIDADES DE REGRESIÓN
+// ==========================================================
+
+// Divide los datos en conjuntos de entrenamiento y prueba
+enviar funcion train_test_split(lista X, lista y_objetivo, flotante test_size) retorna lista
+    entero n_muestras = lista_tamano(X)
+    entero n_test = n_muestras * test_size
+    entero n_train = n_muestras - n_test
+    
+    lista X_train = crear_lista()
+    lista X_test = crear_lista()
+    lista y_train = crear_lista()
+    lista y_test = crear_lista()
+    
+    entero i = 0
+    mientras i < n_train hacer
+        mem_lista_agregar(X_train, lista_obtener(X, i))
+        mem_lista_agregar(y_train, lista_obtener(y_objetivo, i))
+        i = i + 1
+    fin_mientras
+    
+    mientras i < n_muestras hacer
+        mem_lista_agregar(X_test, lista_obtener(X, i))
+        mem_lista_agregar(y_test, lista_obtener(y_objetivo, i))
+        i = i + 1
+    fin_mientras
+    
+    lista resultado = crear_lista()
+    mem_lista_agregar(resultado, X_train)
+    mem_lista_agregar(resultado, X_test)
+    mem_lista_agregar(resultado, y_train)
+    mem_lista_agregar(resultado, y_test)
+    
+    retornar resultado
+fin_funcion
+
+// Evalúa un modelo de regresión
+enviar funcion evaluar_regresion(lista modelo, lista X_test, lista y_test) retorna lista
+    lista y_pred = crear_lista()
+    entero n_test = lista_tamano(X_test)
+    entero i = 0
+    
+    mientras i < n_test hacer
+        flotante prediccion = regresion_lineal_predecir(modelo, lista_obtener(X_test, i))
+        mem_lista_agregar(y_pred, str_desde_numero(prediccion))
+        i = i + 1
+    fin_mientras
+    
+    lista metricas = crear_lista()
+    mem_lista_agregar(metricas, str_desde_numero(mean_squared_error(y_test, y_pred)))
+    mem_lista_agregar(metricas, str_desde_numero(mean_absolute_error(y_test, y_pred)))
+    mem_lista_agregar(metricas, str_desde_numero(r2_score(y_test, y_pred)))
+    
+    retornar metricas
+fin_funcion
+
+// Imprime las métricas de evaluación
+enviar funcion imprimir_metricas_regresion(lista metricas)
+    imprimir "=== Métricas de Regresión ==="
+    imprimir "MSE (Error Cuadrático Medio): " + lista_obtener(metricas, 0)
+    imprimir "MAE (Error Absoluto Medio): " + lista_obtener(metricas, 1)
+    imprimir "R² (Coeficiente de Determinación): " + lista_obtener(metricas, 2)
+    imprimir "============================="
+fin_funcion

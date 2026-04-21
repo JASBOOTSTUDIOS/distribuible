@@ -1,0 +1,35 @@
+usar todas de "..\\..\\stdlib\\http\\http_basico.jasb"
+
+principal
+    socket srv = tcp_escuchar("127.0.0.1", 18082)
+    entero i = 0
+    imprimir "srv"
+    imprimir srv
+    si srv == 0 entonces
+        imprimir "sin_srv"
+    sino
+        mientras i < 3 hacer
+            imprimir "esperando"
+            imprimir i
+            socket cli = tcp_aceptar(srv)
+            imprimir "cli"
+            imprimir cli
+            si cli == 0 entonces
+            sino
+                bytes bruto = tcp_recibir(cli, 8192)
+                imprimir "tam"
+                imprimir bytes_tamano(bruto)
+                texto solicitud = bytes_a_texto(bruto)
+                texto ruta = http_extraer_ruta(solicitud)
+                texto cuerpo = concatenar("ruta=", ruta)
+                bytes respuesta = bytes_desde_texto(http_crear_respuesta_texto(cuerpo))
+                tcp_enviar(cli, respuesta)
+                tcp_cerrar(cli)
+                imprimir "ok"
+                i = i + 1
+            fin_si
+        fin_mientras
+        tcp_cerrar(srv)
+    fin_si
+    imprimir "fin"
+fin_principal

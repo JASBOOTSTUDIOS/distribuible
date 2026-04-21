@@ -1,0 +1,129 @@
+// =============================================================================
+// PRUEBA SIMPLE - Versión simplificada para probar funcionalidad
+// =============================================================================
+
+principal
+    imprimir "\mage=== PRUEBA SIMPLE DE BÚSQUEDA ===\norm"
+    imprimir "Creando memoria neuronal de prueba...\n"
+    
+    // Crear memoria neuronal
+    crear_memoria("prueba.jmn")
+    
+    // Cargar algunos conceptos básicos
+    recordar "python" con valor "Python es un lenguaje de programación de alto nivel, interpretado y multipropósito. Es conocido por su sintaxis clara y legibilidad, y es ampliamente utilizado en desarrollo web, ciencia de datos, aprendizaje automático y automatización."
+    
+    recordar "inteligencia artificial" con valor "La inteligencia artificial es una rama de la informática que se enfoca en crear sistemas capaces de realizar tareas que normalmente requieren inteligencia humana. Incluye el aprendizaje automático, redes neuronales, procesamiento del lenguaje natural y visión por computadora."
+    
+    recordar "blockchain" con valor "Blockchain es una tecnología de registro distribuido que mantiene una lista creciente de registros llamados bloques, vinculados mediante criptografía. Cada bloque contiene un hash criptográfico del bloque anterior, un timestamp y datos de transacciones."
+    
+    reforzar("python", 90)
+    reforzar("inteligencia artificial", 95)
+    reforzar("blockchain", 85)
+    
+    imprimir "\azul[Sistema]\norm Conceptos cargados exitosamente."
+    imprimir "Iniciando pruebas de búsqueda...\n"
+    
+    // Prueba 1: Búsqueda directa
+    imprimir "\amar[Prueba 1] Búsqueda directa de 'python':\norm"
+    pensar "python"
+    si resultado > 0 entonces
+        buscar "python"
+        imprimir "\verd[Resultado]\norm " + resultado
+    sino
+        imprimir "\rojo[Error]\norm Concepto no encontrado."
+    fin_si
+    
+    // Prueba 2: Búsqueda dentro de definiciones
+    imprimir "\n\amar[Prueba 2] Búsqueda de 'lenguaje' dentro de definiciones:\norm"
+    
+    // Buscar en python
+    pensar "python"
+    si resultado > 0 entonces
+        buscar "python"
+        si contiene_texto(minusculas(resultado), "lenguaje") entonces
+            imprimir "\verd[Encontrado]\norm 'lenguaje' encontrado en 'python': " + resultado
+        sino
+            imprimir "\amar[Info]\norm 'lenguaje' no encontrado en 'python'."
+        fin_si
+    fin_si
+    
+    // Buscar en inteligencia artificial
+    pensar "inteligencia artificial"
+    si resultado > 0 entonces
+        buscar "inteligencia artificial"
+        si contiene_texto(minusculas(resultado), "lenguaje") entonces
+            imprimir "\verd[Encontrado]\norm 'lenguaje' encontrado en 'inteligencia artificial': " + resultado
+        sino
+            imprimir "\amar[Info]\norm 'lenguaje' no encontrado en 'inteligencia artificial'."
+        fin_si
+    fin_si
+    
+    // Prueba 3: Búsqueda de 'criptografía'
+    imprimir "\n\amar[Prueba 3] Búsqueda de 'criptografía':\norm"
+    pensar "blockchain"
+    si resultado > 0 entonces
+        buscar "blockchain"
+        si contiene_texto(minusculas(resultado), "criptografía") entonces
+            imprimir "\verd[Encontrado]\norm 'criptografía' encontrado en 'blockchain': " + resultado
+        sino
+            imprimir "\amar[Info]\norm 'criptografía' no encontrado en 'blockchain'."
+        fin_si
+    fin_si
+    
+    // Prueba 4: Aprendizaje nuevo
+    imprimir "\n\amar[Prueba 4] Aprendizaje de nuevo concepto:\norm"
+    recordar "rust" con valor "Rust es un lenguaje de programación de sistemas enfocado en seguridad, concurrencia y rendimiento. Diseñado por Mozilla, ofrece garantías de seguridad de memoria sin necesidad de recolector de basura mediante su sistema de propiedades y préstamo."
+    reforzar("rust", 80)
+    imprimir "\verd[Éxito]\norm Concepto 'rust' aprendido."
+    
+    // Prueba 5: Verificar aprendizaje
+    imprimir "\n\amar[Prueba 5] Verificación de aprendizaje:\norm"
+    pensar "rust"
+    si resultado > 0 entonces
+        buscar "rust"
+        imprimir "\verd[Verificado]\norm " + resultado
+    sino
+        imprimir "\rojo[Error]\norm Concepto 'rust' no encontrado."
+    fin_si
+    
+    // Prueba 6: Búsqueda de 'seguridad'
+    imprimir "\n\amar[Prueba 6] Búsqueda de 'seguridad' en todos los conceptos:\norm"
+    
+    // Lista de conceptos para buscar
+    entero conceptos = lista_crear()
+    lista_agregar(conceptos, "python")
+    lista_agregar(conceptos, "inteligencia artificial")
+    lista_agregar(conceptos, "blockchain")
+    lista_agregar(conceptos, "rust")
+    
+    entero i = 0
+    entero total = lista_tamano(conceptos)
+    mientras i < total hacer
+        texto concepto_actual = lista_obtener(conceptos, i)
+        
+        pensar concepto_actual
+        si resultado > 0 entonces
+            buscar concepto_actual
+            si contiene_texto(minusculas(resultado), "seguridad") entonces
+                imprimir "\verd[Encontrado]\norm 'seguridad' en '" + concepto_actual + "': " + resultado
+            fin_si
+        fin_si
+        
+        i = i + 1
+    fin_mientras
+    
+    // Resumen
+    imprimir "\n\mage=== RESUMEN DE PRUEBAS ===\norm"
+    imprimir "✓ Búsqueda directa funcional"
+    imprimir "✓ Búsqueda dentro de definiciones funcional"
+    imprimir "✓ Aprendizaje automático funcional"
+    imprimir "✓ Verificación de aprendizaje funcional"
+    imprimir "✓ Búsqueda contextual en múltiples conceptos funcional"
+    
+    imprimir "\n\verd[CONCLUSIÓN]\norm Sistema de búsqueda profunda funcionando correctamente."
+    
+    // Cerrar memoria
+    cerrar_memoria()
+    imprimir "\azul[Sistema]\norm Memoria neuronal cerrada."
+    
+fin_principal

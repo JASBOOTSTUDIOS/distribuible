@@ -1,0 +1,190 @@
+// =============================================================================
+// ASISTENTE VIRTUAL COGNITIVO 4.4 - ASOCIACIÓN SEMÁNTICA
+// =============================================================================
+// Mejoras:
+// 1. Manejo de Ambigüedad: Si hay varios temas conocidos, pregunta al usuario.
+// 2. Asociación de Significados: Vincula consultas nuevas a conceptos explicados.
+// 3. Resumen de Sesión: Recupera los temas tratados recientemente.
+// 4. Estabilidad: Uso de 'pensar' y validación de IDs para evitar fallos de VM.
+// =============================================================================
+
+usar todas de "conocimiento/base_espanol.jasb"
+
+// Función para recuperar el contenido de un nodo de memoria de forma segura
+funcion leer_valor_seguro(entero id_n) retorna texto
+    si id_n <= 0 entonces
+        retornar ""
+    fin_si
+    buscar id_n
+    retornar resultado
+fin_funcion
+
+// Función para integrar conocimiento desglosado
+funcion integrar_conocimiento(texto s, texto c) retorna entero
+    texto suj = s
+    entero p_fuerza = 95
+
+    si contiene_texto(suj, "no, ") entonces
+        suj = extraer_despues_de(suj, "no, ")
+        p_fuerza = 100
+    fin_si
+
+    si contiene_texto(suj, "el ") entonces suj = extraer_despues_de(suj, "el ") fin_si
+    si contiene_texto(suj, "la ") entonces suj = extraer_despues_de(suj, "la ") fin_si
+    si contiene_texto(suj, "un ") entonces suj = extraer_despues_de(suj, "un ") fin_si
+    si contiene_texto(suj, "una ") entonces suj = extraer_despues_de(suj, "una ") fin_si
+
+    recordar suj con valor c
+    reforzar(suj, p_fuerza)
+
+    entero tokens = dividir_texto(c, " ")
+    entero total = lista_tamano(tokens)
+    entero i = 0
+    mientras i < total hacer
+        texto t = lista_obtener(tokens, i)
+        si longitud_texto(t) > 5 entonces
+            recordar t con valor c
+            reforzar(t, 40)
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar 1
+fin_funcion
+
+principal
+    imprimir "\azul[Sistema]\norm Iniciando núcleos de introspección v4.4..."
+    crear_memoria("data/asistente.jmn")
+    cargar_conocimiento_base()
+
+    integrar_conocimiento("jefry", "Jefry Astacio es el arquitecto principal de mi sistema neuronal.")
+    integrar_conocimiento("jasboot", "Jasboot es un ecosistema de desarrollo con inteligencia nativa.")
+
+    imprimir "\verd[Jasbot]\norm Red neuronal sincronizada. Mi capacidad de asociación es total."
+    imprimir "Puedes enseñarme con 'X es Y' o preguntarme sobre lo que hemos hablado."
+
+    texto consulta_pendiente = ""
+    bool activo = verdadero
+
+    mientras activo == verdadero hacer
+        imprimir_sin_salto "\cian> \norm"
+        texto t_usr = ""
+        ingresar_texto t_usr
+        texto cmd = minusculas(t_usr)
+
+        si cmd == "" entonces
+            // Omitir entrada vacía
+        sino
+            si cmd == "salir" entonces
+                activo = falso
+            sino
+                si cmd == "adios" entonces
+                    activo = falso
+                fin_si
+            fin_si
+
+            si activo == verdadero entonces
+                percepcion(cmd)
+
+                si consulta_pendiente != "" entonces
+                    imprimir_sin_salto "\azul[IA]\norm Entendido. Ahora asocio '"
+                    imprimir_sin_salto consulta_pendiente
+                    imprimir_sin_salto "' con: "
+                    imprimir t_usr
+                    recordar consulta_pendiente con valor t_usr
+                    reforzar(consulta_pendiente, 80)
+                    consulta_pendiente = ""
+                sino
+                    si contiene_texto(cmd, "hablado") entonces
+                        imprimir "\azul[Jasbot]\norm Recuperando temas de nuestra charla..."
+                        entero temas = percepcion_recientes()
+                        entero n_temas = lista_tamano(temas)
+                        entero it = 0
+                        mientras it < n_temas hacer
+                            texto tema = lista_obtener(temas, it)
+                            si longitud_texto(tema) > 3 entonces
+                                si tema != "salir" entonces
+                                    si tema != "hablado" entonces
+                                        imprimir_sin_salto " • "
+                                        imprimir tema
+                                    fin_si
+                                fin_si
+                            fin_si
+                            it = it + 1
+                        fin_mientras
+                        imprimir "\verd[IA]\norm ¿Deseas que profundice en alguno de estos puntos?"
+                    sino
+                        si contiene_texto(cmd, " es ") entonces
+                            texto s_input = extraer_antes_de(cmd, " es ")
+                            texto c_input = extraer_despues_de(t_usr, " es ")
+                            integrar_conocimiento(s_input, c_input)
+                            imprimir "\azul[IA]\norm Conocimiento integrado y atomizado en mi red."
+                        sino
+                            pensar cmd
+                            texto r_directa = leer_valor_seguro(resultado)
+
+                            si r_directa != "" entonces
+                                si r_directa != cmd entonces
+                                    imprimir_sin_salto "\verd[Jasbot]\norm "
+                                    imprimir r_directa
+                                sino
+                                    imprimir "\rojo[IA]\norm No reconozco esos términos. ¿Podrías definirlos con 'X es Y'?"
+                                fin_si
+                            sino
+                                entero palabras = dividir_texto(cmd, " ")
+                                entero n_p = lista_tamano(palabras)
+                                entero coincidencias = lista_crear()
+                                entero idx = 0
+
+                                mientras idx < n_p hacer
+                                    texto p_act = lista_obtener(palabras, idx)
+                                    si longitud_texto(p_act) > 4 entonces
+                                        pensar p_act
+                                        si resultado > 0 entonces
+                                            lista_agregar(coincidencias, p_act)
+                                        fin_si
+                                    fin_si
+                                    idx = idx + 1
+                                fin_mientras
+
+                                entero total_c = lista_tamano(coincidencias)
+                                si total_c > 1 entonces
+                                    imprimir "\amar[Pensando]\norm He encontrado varias palabras conocidas:"
+                                    entero i_c = 0
+                                    mientras i_c < total_c hacer
+                                        texto p_ref = lista_obtener(coincidencias, i_c)
+                                        imprimir_sin_salto " ["
+                                        imprimir_sin_salto str_desde_numero(i_c + 1)
+                                        imprimir_sin_salto "] "
+                                        imprimir p_ref
+                                        i_c = i_c + 1
+                                    fin_mientras
+                                    imprimir "¿Con cuál de ellas se relaciona específicamente lo que buscas?"
+                                    consulta_pendiente = cmd
+                                sino
+                                    si total_c == 1 entonces
+                                        texto p_unica = lista_obtener(coincidencias, 0)
+                                        pensar p_unica
+                                        imprimir_sin_salto "\verd[Jasbot]\norm Relacionado con '"
+                                        imprimir_sin_salto p_unica
+                                        imprimir_sin_salto "': "
+                                        imprimir leer_valor_seguro(resultado)
+                                    sino
+                                        imprimir "\rojo[IA]\norm No reconozco esos términos. ¿Podrías definirlos con 'X es Y'?"
+                                    fin_si
+                                fin_si
+                            fin_si
+                        fin_si
+                    fin_si
+                fin_si
+            fin_si
+        fin_si
+
+        si percepcion_tamano() > 10 entonces
+            percepcion_limpiar()
+        fin_si
+    fin_mientras
+
+    imprimir "\azul[Sistema]\norm Guardando red cognitiva..."
+    cerrar_memoria()
+    imprimir "\azul[Sistema]\norm ¡Sesión finalizada con éxito!"
+fin_principal

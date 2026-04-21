@@ -1,0 +1,393 @@
+// =============================================================================
+// BUSCADOR FUNCIONAL - Sistema de Búsqueda Profunda Sin Clases
+// =============================================================================
+// Versión funcional que demuestra todas las capacidades de búsqueda
+// =============================================================================
+
+usar todas de "base_conocimientos_extensa.jasb"
+
+// Función auxiliar para limpiar puntuación (simplificada)
+funcion limpiar_puntuacion_simple(texto _texto) retorna texto
+    // Por ahora, solo retornamos el texto sin cambios
+    // En una implementación completa se usaría extraer_subtexto o similar
+    retornar _texto
+fin_funcion
+
+// Función para buscar término en todos los conceptos
+funcion buscar_profundo_funcional(texto termino_busqueda) retorna texto
+    entero resultados = lista_crear()
+    texto termino_limpio = limpiar_puntuacion_simple(minusculas(termino_busqueda))
+    
+    // Lista de conceptos base (simplificada)
+    entero conceptos_base = lista_crear()
+    lista_agregar(conceptos_base, "python")
+    lista_agregar(conceptos_base, "javascript")
+    lista_agregar(conceptos_base, "inteligencia artificial")
+    lista_agregar(conceptos_base, "aprendizaje automático")
+    lista_agregar(conceptos_base, "blockchain")
+    lista_agregar(conceptos_base, "energía renovable")
+    lista_agregar(conceptos_base, "ciberseguridad")
+    lista_agregar(conceptos_base, "robótica")
+    lista_agregar(conceptos_base, "biotecnología")
+    lista_agregar(conceptos_base, "realidad virtual")
+    lista_agregar(conceptos_base, "nanotecnología")
+    lista_agregar(conceptos_base, "telemedicina")
+    lista_agregar(conceptos_base, "impresión 3d")
+    lista_agregar(conceptos_base, "economía")
+    lista_agregar(conceptos_base, "psicología")
+    lista_agregar(conceptos_base, "arquitectura")
+    lista_agregar(conceptos_base, "fútbol")
+    
+    // Buscar en cada concepto
+    entero i = 0
+    entero total_conceptos = lista_tamano(conceptos_base)
+    mientras i < total_conceptos hacer
+        texto concepto_actual = lista_obtener(conceptos_base, i)
+        
+        // Verificar si el concepto existe
+        pensar concepto_actual
+        si resultado > 0 entonces
+            // Buscar su valor completo
+            intentar
+                buscar concepto_actual
+                si resultado != "" entonces
+                    // Verificar si el término está en el valor
+                    si contiene_texto(minusculas(resultado), termino_limpio) entonces
+                        lista_agregar(resultados, concepto_actual)
+                    fin_si
+                fin_si
+            atrapar error
+                // Continuar con el siguiente si falla
+            fin_intentar
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    // Formatear y retornar resultados
+    entero total_resultados = lista_tamano(resultados)
+    
+    si total_resultados == 0 entonces
+        retornar "No he encontrado '" + termino_busqueda + "' en ninguno de mis conocimientos."
+    sino si total_resultados == 1 entonces
+        texto encontrado = lista_obtener(resultados, 0)
+        pensar encontrado
+        texto valor_completo = ""
+        intentar
+            buscar encontrado
+            valor_completo = resultado
+        atrapar error
+            valor_completo = "No puedo acceder al valor completo."
+        fin_intentar
+        retornar "He encontrado '" + termino_busqueda + "' en mi concepto '" + encontrado + "': " + valor_completo
+    sino
+        texto respuesta = "He encontrado '" + termino_busqueda + "' en varios conceptos: "
+        entero j = 0
+        mientras j < total_resultados hacer
+            texto concepto_resultado = lista_obtener(resultados, j)
+            respuesta = respuesta + "'" + concepto_resultado + "'"
+            si j < total_resultados - 1 entonces
+                respuesta = respuesta + ", "
+            fin_si
+            j = j + 1
+        fin_mientras
+        respuesta = respuesta + ". ¿Sobre cuál quieres saber más?"
+        retornar respuesta
+    fin_si
+fin_funcion
+
+// Función para búsqueda por palabras clave
+funcion buscar_por_palabras_funcional(texto consulta) retorna texto
+    entero palabras = dividir_texto(consulta, " ")
+    entero total_palabras = lista_tamano(palabras)
+    entero sugerencias = lista_crear()
+    entero i = 0
+    
+    // Buscar cada palabra en la memoria
+    mientras i < total_palabras hacer
+        texto palabra_actual = lista_obtener(palabras, i)
+        palabra_actual = limpiar_puntuacion_simple(palabra_actual)
+        
+        // Solo buscar palabras con longitud significativa
+        si longitud_texto(palabra_actual) > 2 entonces
+            pensar palabra_actual
+            si resultado > 0 entonces
+                lista_agregar(sugerencias, palabra_actual)
+            fin_si
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    // Formatear sugerencias
+    entero total_sugerencias = lista_tamano(sugerencias)
+    
+    si total_sugerencias == 0 entonces
+        retornar "No encuentro palabras relacionadas. ¿Me enseñas con 'X es Y'?"
+    sino si total_sugerencias == 1 entonces
+        texto sugerencia = lista_obtener(sugerencias, 0)
+        pensar sugerencia
+        retornar "He encontrado la palabra '" + sugerencia + "' en mi memoria. ¿Te refieres a eso?"
+    sino
+        // Múltiples sugerencias
+        texto respuesta = "He encontrado varias palabras relacionadas: "
+        entero j = 0
+        mientras j < total_sugerencias hacer
+            texto sug = lista_obtener(sugerencias, j)
+            respuesta = respuesta + "'" + sug + "'"
+            si j < total_sugerencias - 1 entonces
+                respuesta = respuesta + ", "
+            fin_si
+            j = j + 1
+        fin_mientras
+        respuesta = respuesta + ". ¿Con cuál te refieres?"
+        retornar respuesta
+    fin_si
+fin_funcion
+
+// Función para análisis semántico
+funcion analizar_consulta_funcional(texto consulta) retorna texto
+    // Extraer palabras clave
+    entero palabras = dividir_texto(consulta, " ")
+    entero conceptos_relacionados = lista_crear()
+    
+    entero i = 0
+    entero total_palabras = lista_tamano(palabras)
+    mientras i < total_palabras hacer
+        texto palabra = lista_obtener(palabras, i)
+        palabra = limpiar_puntuacion_simple(palabra)
+        
+        // Solo palabras significativas
+        si longitud_texto(palabra) > 3 entonces
+            // Buscar conceptos que contengan esta palabra
+            pensar palabra
+            si resultado > 0 y no lista_contiene(conceptos_relacionados, palabra) entonces
+                lista_agregar(conceptos_relacionados, palabra)
+            fin_si
+        fin_si
+        
+        i = i + 1
+    fin_mientras
+    
+    // Retornar análisis formateado
+    entero total = lista_tamano(conceptos_relacionados)
+    
+    si total == 0 entonces
+        retornar "No he encontrado conceptos relacionados con '" + consulta + "'."
+    sino si total == 1 entonces
+        texto concepto_rel = lista_obtener(conceptos_relacionados, 0)
+        retornar "He analizado tu consulta '" + consulta + "' y está relacionada con: '" + concepto_rel + "'"
+    sino
+        texto respuesta = "He analizado tu consulta '" + consulta + "' y encontré " + str_desde_numero(total) + " conceptos relacionados: "
+        entero j = 0
+        mientras j < total hacer
+            texto concepto_rel = lista_obtener(conceptos_relacionados, j)
+            respuesta = respuesta + "'" + concepto_rel + "'"
+            si j < total - 1 entonces
+                respuesta = respuesta + ", "
+            fin_si
+            j = j + 1
+        fin_mientras
+        respuesta = respuesta + "."
+        retornar respuesta
+    fin_si
+fin_funcion
+
+// Función auxiliar para verificar si lista contiene elemento
+funcion lista_contiene(entero _lista, texto elemento) retorna bool
+    entero i = 0
+    entero total = lista_tamano(_lista)
+    mientras i < total hacer
+        texto item = lista_obtener(_lista, i)
+        si item == elemento entonces
+            retornar verdadero
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar falso
+fin_funcion
+
+// Función para mostrar menú
+funcion mostrar_menu_funcional() retorna entero
+    imprimir "\n\mage=== MENÚ PRINCIPAL - BUSCADOR COGNITIVO ===\norm"
+    imprimir "1. Búsqueda profunda en conceptos"
+    imprimir "2. Análisis semántico de consulta"
+    imprimir "3. Búsqueda por palabras clave"
+    imprimir "4. Aprendizaje de nuevo concepto"
+    imprimir "5. Pruebas automáticas"
+    imprimir "6. Salir"
+    imprimir_sin_salto "\cian> Seleccione una opción (1-6): \norm"
+    
+    texto opcion_str = ""
+    ingresar_texto opcion_str
+    entero opcion = str_a_entero(opcion_str)
+    
+    retornar opcion
+fin_funcion
+
+// Función principal
+principal
+    imprimir "\mage=== SISTEMA INTERACTIVO DE BÚSQUEDA COGNITIVA ===\norm"
+    imprimir "Bienvenido al buscador avanzado de conceptos en memoria neuronal."
+    imprimir "Este sistema puede buscar términos DENTRO de definiciones completas.\n"
+    
+    // Inicializar el sistema
+    imprimir "\azul[Sistema]\norm Inicializando memoria neuronal..."
+    crear_memoria("buscador_funcional.jmn")
+    cargar_base_extensa()
+    imprimir "\verd[Sistema]\norm Sistema cognitivo activado exitosamente."
+    imprimir "Listo para procesar consultas y búsquedas profundas."
+    
+    // Bucle principal del menú
+    bool ejecutando = verdadero
+    mientras ejecutando == verdadero hacer
+        entero opcion = mostrar_menu_funcional()
+        
+        si opcion == 1 entonces
+            // Búsqueda profunda
+            imprimir "\n\amar=== BÚSQUEDA PROFUNDA ===\norm"
+            imprimir "Busca un término en TODOS los conceptos almacenados."
+            imprimir "Ejemplos: 'python', 'seguridad', 'aprendizaje', 'energía'"
+            imprimir_sin_salto "\cian> Ingrese término a buscar: \norm"
+            
+            texto termino = ""
+            ingresar_texto termino
+            
+            si longitud_texto(termino) > 0 entonces
+                imprimir "\azul[Buscando]\norm Analizando conceptos..."
+                texto resultado = buscar_profundo_funcional(termino)
+                imprimir "\verd[Resultado]\norm " + resultado
+            sino
+                imprimir "\rojo[Error]\norm Debe ingresar un término válido."
+            fin_si
+            
+        sino si opcion == 2 entonces
+            // Análisis semántico
+            imprimir "\n\amar=== ANÁLISIS SEMÁNTICO ===\norm"
+            imprimir "Analiza tu consulta y encuentra conceptos relacionados."
+            imprimir "Ejemplos: 'lenguajes de programación', 'tecnologías emergentes'"
+            imprimir_sin_salto "\cian> Ingrese consulta a analizar: \norm"
+            
+            texto consulta = ""
+            ingresar_texto consulta
+            
+            si longitud_texto(consulta) > 0 entonces
+                imprimir "\azul[Analizando]\norm Extrayendo palabras clave..."
+                texto resultado = analizar_consulta_funcional(consulta)
+                imprimir "\verd[Resultado]\norm " + resultado
+            sino
+                imprimir "\rojo[Error]\norm Debe ingresar una consulta válida."
+            fin_si
+            
+        sino si opcion == 3 entonces
+            // Búsqueda por palabras clave
+            imprimir "\n\amar=== BÚSQUEDA POR PALABRAS CLAVE ===\norm"
+            imprimir "Extrae palabras de tu texto y busca conceptos que las contengan."
+            imprimir "Ejemplos: 'python javascript', 'inteligencia aprendizaje'"
+            imprimir_sin_salto "\cian> Ingrese texto con palabras clave: \norm"
+            
+            texto texto_palabras = ""
+            ingresar_texto texto_palabras
+            
+            si longitud_texto(texto_palabras) > 0 entonces
+                imprimir "\azul[Buscando]\norm Analizando palabras clave..."
+                texto resultado = buscar_por_palabras_funcional(texto_palabras)
+                imprimir "\verd[Resultado]\norm " + resultado
+            sino
+                imprimir "\rojo[Error]\norm Debe ingresar un texto válido."
+            fin_si
+            
+        sino si opcion == 4 entonces
+            // Aprendizaje
+            imprimir "\n\amar=== APRENDIZAJE COGNITIVO ===\norm"
+            imprimir "Enseña un nuevo concepto al sistema."
+            imprimir "Formato: 'concepto es definición'"
+            imprimir "Ejemplo: 'quantum computing es computación cuántica'"
+            imprimir_sin_salto "\cian> Ingrese nueva asociación: \norm"
+            
+            texto nueva_asociacion = ""
+            ingresar_texto nueva_asociacion
+            
+            si contiene_texto(nueva_asociacion, " es ") entonces
+                texto nuevo_concepto = extraer_antes_de(nueva_asociacion, " es ")
+                texto definicion = extraer_despues_de(nueva_asociacion, " es ")
+                
+                si longitud_texto(nuevo_concepto) > 0 y longitud_texto(definicion) > 0 entonces
+                    imprimir "\azul[Aprendiendo]\norm Integrando nuevo conocimiento..."
+                    recordar nuevo_concepto con valor definicion
+                    reforzar(nuevo_concepto, 90)
+                    imprimir "\verd[Éxito]\norm Concepto '" + nuevo_concepto + "' aprendido exitosamente."
+                    imprimir "Definición: " + definicion
+                sino
+                    imprimir "\rojo[Error]\norm Concepto y definición no pueden estar vacíos."
+                fin_si
+            sino
+                imprimir "\rojo[Error]\norm Formato incorrecto. Use: 'concepto es definición'"
+            fin_si
+            
+        sino si opcion == 5 entonces
+            // Pruebas automáticas
+            imprimir "\n\amar=== PRUEBAS AUTOMÁTICAS ===\norm"
+            imprimir "Ejecutando suite de pruebas predefinidas..."
+            
+            // Lista de términos de prueba
+            entero terminos_prueba = lista_crear()
+            lista_agregar(terminos_prueba, "python")
+            lista_agregar(terminos_prueba, "seguridad")
+            lista_agregar(terminos_prueba, "aprendizaje")
+            lista_agregar(terminos_prueba, "energía")
+            lista_agregar(terminos_prueba, "tecnología")
+            
+            entero exitos = 0
+            entero total = lista_tamano(terminos_prueba)
+            
+            entero i = 0
+            mientras i < total hacer
+                texto termino_test = lista_obtener(terminos_prueba, i)
+                imprimir "\n[Caso " + str_desde_numero(i + 1) + "/" + str_desde_numero(total) + "] Buscando: '" + termino_test + "'"
+                
+                texto resultado_test = buscar_profundo_funcional(termino_test)
+                
+                si contiene_texto(resultado_test, "He encontrado") entonces
+                    imprimir "\verd[EXITO]\norm " + resultado_test
+                    exitos = exitos + 1
+                sino
+                    imprimir "\rojo[FALLO]\norm " + resultado_test
+                fin_si
+                
+                i = i + 1
+            fin_mientras
+            
+            // Resumen de pruebas
+            imprimir "\n\mage=== RESUMEN DE PRUEBAS ===\norm"
+            imprimir "Pruebas exitosas: " + str_desde_numero(exitos) + "/" + str_desde_numero(total)
+            imprimir "Tasa de éxito: " + str_desde_numero((exitos * 100) / total) + "%"
+            
+            si exitos == total entonces
+                imprimir "\verd[¡TODAS LAS PRUEBAS PASARON!]\norm"
+            sino
+                imprimir "\amar[Algunas pruebas fallaron]\norm"
+            fin_si
+            
+        sino si opcion == 6 entonces
+            ejecutando = falso
+            imprimir "\azul[Sistema]\norm Finalizando sesión..."
+        sino
+            imprimir "\rojo[Error]\norm Opción no válida. Seleccione 1-6."
+        fin_si
+        
+        si ejecutando entonces
+            imprimir "\n--- Presione Enter para continuar ---"
+            texto pausa = ""
+            ingresar_texto pausa
+        fin_si
+    fin_mientras
+    
+    // Cierre del sistema
+    imprimir "\azul[Sistema]\norm Apagando sistema cognitivo..."
+    cerrar_memoria()
+    
+    imprimir "\verd[Sistema]\norm Sesión finalizada exitosamente."
+    imprimir "\mage=== ¡Gracias por usar el Buscador Cognitivo! ===\norm"
+    imprimir "Has explorado una base de conocimientos extensa utilizando búsqueda profunda."
+    imprimir "El sistema ha demostrado capacidades de búsqueda dentro de definiciones completas."
+    
+fin_principal
