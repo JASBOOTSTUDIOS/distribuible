@@ -81,12 +81,13 @@ sdk-dependiente\jasboot-ir\bin\jasboot-ir-vm.exe archivo.jbo
 - ✅ Ejecuta IR binario estable
 - ✅ JMN integrada
 - ✅ Opcodes de IA (OP_MEM_*, etc.)
-- ⚠️ Persistencia de cerebro.jmn parcial
+- ✅ Persistencia de `cerebro.jmn` (formato JMN v1/v2: nodos, conexiones, textos; v2 incluye listas y mapas del mismo archivo). La consolidación ocurre en `cerrar_memoria` / `consolidar_memoria` y al destruir la VM. Las colecciones solo RAM internas de la VM no se escriben en el `.jmn` del programa.
 
 ### Compilador C (sdk-dependiente/jas-compiler-c)
 - ✅ Implementación de referencia estable
 - ✅ Cubre sintaxis amplia (vars, funciones, control de flujo)
 - ✅ No requiere Python
+- ✅ Soporte completo para llamadas cognitivas (`pensar_respuesta`, `asociar_relacion`, `corregir_secuencia`, `comparar_patrones`) antes ausentes o parciales en codegen.
 
 ---
 
@@ -135,4 +136,4 @@ sdk-dependiente\jasboot-ir\bin\jasboot-ir-vm.exe archivo.jbo
 
 ---
 
-**Última actualización:** 2026-03-27
+**Última actualización:** 2026-04-14

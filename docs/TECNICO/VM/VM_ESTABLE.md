@@ -6,13 +6,13 @@
 
 ## Identificación
 
-| Concepto | Valor |
-|----------|--------|
-| **Nombre** | jasboot-ir-vm |
-| **Binario Windows** | `jasboot-ir-vm.exe` |
-| **Binario Unix** | `jasboot-ir-vm` |
-| **Ruta preferida** | `sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe` (o `jasboot-ir-vm` en Linux/macOS) |
-| **Respaldo** | `bin/jasboot-ir-vm.exe`, luego `bin/jasboot.exe` |
+| Concepto            | Valor                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| **Nombre**          | jasboot-ir-vm                                                                         |
+| **Binario Windows** | `jasboot-ir-vm.exe`                                                                   |
+| **Binario Unix**    | `jasboot-ir-vm`                                                                       |
+| **Ruta preferida**  | `sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe` (o `jasboot-ir-vm` en Linux/macOS) |
+| **Respaldo**        | `bin/jasboot-ir-vm.exe`, luego `bin/jasboot.exe`                                      |
 
 ---
 
@@ -39,3 +39,9 @@ Pila estable: **`.jasb` → compilador Python → `.jbo` → jasboot-ir-vm**.
 
 - **`bin/jb.cmd archivo.jasb [args]`** — Compila y ejecuta un programa Jasboot. Usa jbc (compilador C) + jasboot-ir-vm.
 - Pila estable: **`.jasb` → jbc (compilador C) → `.jbo` → jasboot-ir-vm**.
+
+---
+
+## Estabilidad
+
+- Para el plan de endurecimiento, pruebas de runtime, stress, soak y gate de release de la VM, ver `docs/TECNICO/VM/CHECKLIST_ESTABILIDAD_VM.md`.

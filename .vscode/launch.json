@@ -2,15 +2,40 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Jasboot: ejecutar .jasb (jbc)",
-      "type": "pwa-node",
+      "name": "Depurar Jasboot",
+      "type": "node",
       "request": "launch",
-      "program": "${fileWorkspaceFolder}/.vscode/run-jasb.cjs",
-      "args": ["${file}"],
-      "cwd": "${fileWorkspaceFolder}",
+      "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+      "args": [
+        "${file}",
+        "--debug"
+      ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "preLaunchTask": "Compilar Jasboot",
+      "sourceMaps": false,
+      "outFiles": [
+        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+      ]
+    },
+    {
+      "name": "Ejecutar Jasboot (sin depuración)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
+      "args": [
+        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "preLaunchTask": "Compilar Jasboot",
+      "sourceMaps": false
     }
   ]
 }

@@ -50,9 +50,9 @@ Según la arquitectura del proyecto, este es el orden recomendado para implement
 | Tarea | Descripción | Estado |
 |-------|-------------|--------|
 | 2.1 | VM estable que ejecute todo el IR definido | ✅ Existe (vm.c) |
-| 2.2 | Memoria neuronal (JMN) integrada y persistente | ⚠️ Parcial |
+| 2.2 | Memoria neuronal (JMN) integrada y persistente | ✅ JMN v1/v2 (`docs/TECNICO/FORMATO_JMN.md`) |
 | 2.3 | Opcodes de IA (OP_MEM_*, etc.) funcionales | ✅ |
-| 2.4 | Persistencia real de cerebro.jmn | ❌ Crítico para OS-IA |
+| 2.4 | Persistencia real de cerebro.jmn | ✅ v2: listas/mapas en archivo; RAM auxiliar VM sin `.jmn` |
 | 2.5 | Portabilidad (build para x86, ARM) | ⚠️ Parcial |
 
 **Salida:** VM que ejecuta .jbo de forma estable, con JMN persistente.
@@ -112,7 +112,7 @@ Según la arquitectura del proyecto, este es el orden recomendado para implement
 
 | Tarea | Descripción | Estado |
 |-------|-------------|--------|
-| 6.1 | Persistencia real de cerebro.jmn | ❌ |
+| 6.1 | Persistencia real de cerebro.jmn | ✅ (mismo criterio que 2.4) |
 | 6.2 | Aprendizaje por corrección y refuerzo | ❌ |
 | 6.3 | Bucle de eventos (entrada, timers, sensores) | ❌ |
 | 6.4 | Interfaz de usuario (texto o gráfica) | ❌ |
