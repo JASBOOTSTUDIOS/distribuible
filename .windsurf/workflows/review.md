@@ -8,11 +8,11 @@ LEE COMPLETAMENTE Y USA (obligatorio):
 - jasboot-rules.md
 - ai-workflow.md
 - working-context.md
-- docs/dev/contexto-inteligente.md
+- .windsurf/workflows/contexto-inteligente.md
 
 recuerda:
 - LEE COMPLETAMENTE todos los archivos relevantes ANTES de empezar a trabajar
-- USAR SISTEMA DE CONTEXTO INTELIGENTE (docs/dev/contexto-inteligente.md)
+- USAR SISTEMA DE CONTEXTO INTELIGENTE (.windsurf/workflows/contexto-inteligente.md)
 - analizar archivos relevantes primero
 - **REALIZAR PRUEBAS DE DIAGNÓSTICO** para identificar el problema puntual exacto
 - ACTUALIZAR working-context.md con MAPA ESTRUCTURADO (no texto completo)
