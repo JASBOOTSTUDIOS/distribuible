@@ -4,7 +4,7 @@
 # Propósito: Probar todas las funcionalidades de la clase MetricasClustering
 # =============================================================================
 
-usar todas de "metricas_clustering.jasb"
+usar { MetricasClustering } de "./metricas_clustering.jasb"
 
 principal
     imprimir "=========================================="

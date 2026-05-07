@@ -1,16 +1,16 @@
 # =============================================================================
 # MÓDULO DE INFERENCIA ESTADÍSTICA (VERSIÓN CLASES)
 # =============================================================================
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 usar { EstadisticaDescriptiva } de "../estadistica/estadistica_descriptiva.jasb"
-usar todas de "../math_lib.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 clase InferenciaEstadistica extiende AnalizadorBase
     EstadisticaDescriptiva _stats
 
     # Constructor
     funcion inicializar()
-        padre.inicializar("Inferencia Estadística", "V1.0")
+        padre.inicializar("Inferencia Estadística", "V0.0.1")
         este._stats = EstadisticaDescriptiva()
     fin_funcion
 

@@ -1,0 +1,47 @@
+# =============================================================================
+# LIBRERIA DE ANALITICA NEURONAL - FACHADA ESTABLE (FASE 1)
+# =============================================================================
+# Objetivo: punto de entrada compatible con el compilador actual para smoke tests.
+# =============================================================================
+
+usar { EstadisticaDescriptiva } de "./estadistica/estadistica_descriptiva.jasb"
+usar { MetricasRegresion } de "./metricas/metricas_regresion.jasb"
+usar { MetricasClasificacion } de "./metricas/metricas_clasificacion.jasb"
+usar { MachineLearning } de "./machine_learning/algoritmos_ml.jasb"
+usar { PrediccionEstable } de "./prediccion/prediccion_estable.jasb"
+usar { Normalizacion } de "./preprocesamiento/normalizacion.jasb"
+
+enviar registro AnaliticaFachadaEstable
+    EstadisticaDescriptiva estadistica
+    MetricasRegresion metricas_reg
+    MetricasClasificacion metricas_clf
+    MachineLearning ml
+    PrediccionEstable prediccion
+    Normalizacion normalizacion
+fin_registro
+
+enviar AnaliticaFachadaEstable g_analitica
+
+enviar funcion inicializar_fachada() retorna entero
+    si g_analitica != nulo entonces
+        retornar 1
+    fin_si
+
+    g_analitica = AnaliticaFachadaEstable()
+
+    g_analitica.estadistica = EstadisticaDescriptiva()
+    g_analitica.metricas_reg = MetricasRegresion()
+    g_analitica.metricas_clf = MetricasClasificacion()
+    g_analitica.ml = MachineLearning()
+    g_analitica.prediccion = PrediccionEstable()
+    g_analitica.normalizacion = Normalizacion()
+
+    g_analitica.estadistica.inicializar()
+    g_analitica.metricas_reg.inicializar()
+    g_analitica.metricas_clf.inicializar()
+    g_analitica.ml.inicializar()
+    g_analitica.prediccion.inicializar()
+    g_analitica.normalizacion.inicializar()
+
+    retornar 1
+fin_funcion

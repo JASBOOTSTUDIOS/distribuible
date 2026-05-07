@@ -3,7 +3,7 @@
 # Clase para dividir datos en conjuntos de entrenamiento, validación y prueba
 # =============================================================================
 
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 clase SplitDatos extiende AnalizadorBase
 
@@ -20,32 +20,32 @@ clase SplitDatos extiende AnalizadorBase
     funcion generar_random(entero seed, entero min, entero max) retorna entero
         # Linear Congruential Generator
         # X(n+1) = (a * X(n) + c) mod m
-        entero a = 1664525
+        entero _a = 1664525
         entero c = 1013904223
         entero m = 2147483647
 
-        entero valor = (a * seed + c) % m
-        si valor < 0 entonces
-            valor = -valor
+        entero _valor = (_a * seed + c) % m
+        si _valor < 0 entonces
+            _valor = -_valor
         fin_si
 
         entero rango = max - min + 1
-        retornar min + (valor % rango)
+        retornar min + (_valor % rango)
     fin_funcion
 
     # =============================================================================
     # SHUFFLE DE DATOS CON ALGORITMO FISHER-YATES
     # =============================================================================
 
-    funcion shuffle_datos(lista X, lista y, entero seed) retorna mapa
+    funcion shuffle_datos(lista X, lista _y, entero seed) retorna mapa
         # Validar entradas
-        si X == nulo o y == nulo entonces
+        si X == nulo o _y == nulo entonces
             imprimir "[ERROR] Listas X o y son nulas"
             retornar nulo
         fin_si
 
         entero n = lista_tamano(X)
-        entero m = lista_tamano(y)
+        entero m = lista_tamano(_y)
 
         si n == 0 o m == 0 entonces
             imprimir "[ERROR] Listas vacías"
@@ -64,7 +64,7 @@ clase SplitDatos extiende AnalizadorBase
         entero i = 0
         mientras i < n hacer
             lista_agregar(X_shuffle, lista_obtener(X, i))
-            lista_agregar(y_shuffle, lista_obtener(y, i))
+            lista_agregar(y_shuffle, lista_obtener(_y, i))
             i = i + 1
         fin_mientras
 
@@ -104,15 +104,15 @@ clase SplitDatos extiende AnalizadorBase
     # TRAIN-TEST SPLIT BÁSICO
     # =============================================================================
 
-    funcion train_test_split(lista X, lista y, flotante test_size, entero random_seed) retorna mapa
+    funcion train_test_split(lista X, lista _y, flotante test_size, entero random_seed) retorna mapa
         # Validar entradas
-        si X == nulo o y == nulo entonces
+        si X == nulo o _y == nulo entonces
             imprimir "[ERROR] Listas X o y son nulas"
             retornar nulo
         fin_si
 
         entero n = lista_tamano(X)
-        entero m = lista_tamano(y)
+        entero m = lista_tamano(_y)
 
         si n == 0 o m == 0 entonces
             imprimir "[ERROR] Listas vacías"
@@ -131,7 +131,7 @@ clase SplitDatos extiende AnalizadorBase
         fin_si
 
         # Mezclar datos
-        mapa shuffled = este.shuffle_datos(X, y, random_seed)
+        mapa shuffled = este.shuffle_datos(X, _y, random_seed)
         si shuffled == nulo entonces
             retornar nulo
         fin_si
@@ -254,15 +254,15 @@ clase SplitDatos extiende AnalizadorBase
     # TRAIN-VALIDATION-TEST SPLIT (3 CONJUNTOS)
     # =============================================================================
 
-    funcion train_validation_test_split(lista X, lista y, flotante val_size, flotante test_size, entero seed) retorna mapa
+    funcion train_validation_test_split(lista X, lista _y, flotante val_size, flotante test_size, entero seed) retorna mapa
         # Validar entradas
-        si X == nulo o y == nulo entonces
+        si X == nulo o _y == nulo entonces
             imprimir "[ERROR] Listas X o y son nulas"
             retornar nulo
         fin_si
 
         entero n = lista_tamano(X)
-        entero m = lista_tamano(y)
+        entero m = lista_tamano(_y)
 
         si n == 0 o m == 0 entonces
             imprimir "[ERROR] Listas vacías"
@@ -292,7 +292,7 @@ clase SplitDatos extiende AnalizadorBase
         fin_si
 
         # Mezclar datos
-        mapa shuffled = este.shuffle_datos(X, y, seed)
+        mapa shuffled = este.shuffle_datos(X, _y, seed)
         si shuffled == nulo entonces
             retornar nulo
         fin_si

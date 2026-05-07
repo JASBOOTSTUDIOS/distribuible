@@ -5,8 +5,8 @@
 # y machine learning.
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { raiz_cuadrada } de "../math_lib.jasb"
 
 enviar clase Normalizacion extiende AnalizadorBase
 
@@ -305,7 +305,6 @@ enviar clase Normalizacion extiende AnalizadorBase
 
     funcion calcular_iqr(lista datos) retorna flotante
         lista datos_ordenados = este.ordenar_lista(datos)
-        entero n = lista_tamano(datos_ordenados)
 
         flotante q1 = este.calcular_percentil(datos_ordenados, 25.0)
         flotante q3 = este.calcular_percentil(datos_ordenados, 75.0)

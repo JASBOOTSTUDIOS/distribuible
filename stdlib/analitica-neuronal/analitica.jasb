@@ -1,62 +1,52 @@
 # =============================================================================
-# LIBRERÍA DE ANALÍTICA NEURONAL (PUNTO DE ENTRADA V1.0 - REGISTRO COMPLETO)
+# FACHADA PRINCIPAL - ANALÍTICA NEURONAL V1.0
 # =============================================================================
-# Versión: 1.0.0
-# Fecha: 2024-04-20
-# Estado: COMPLETO - Incluye todos los módulos de ML avanzado
+# Propósito: Punto de entrada único para todas las capacidades analíticas
+#            y de machine learning en Jasboot.
+#
+# Inicializacion: inicializar_fachada() crea el nucleo (estadistica, metricas, ML
+# basico, etc.). Los modulos pesados (arboles, ensemble, redes, SVM, NLP gen.,
+# ARIMA) quedan en nulo hasta que llames:
+#   inicializar_ml_avanzado()  -> arboles, RandomForest, GradientBoosting
+#   inicializar_redes_svm_clustering()  -> RedesNeuronales, SVM, clustering avanzado
+#   inicializar_nlp_generativo_y_series()  -> embeddings, ModeloLenguaje, ARIMA
+# La capa RNN (CapaRecurrente) usa inicializar_capa_rnn() aparte; funciona aislada
+# pero puede colgar la VM si se crea justo tras toda la fachada en el mismo proceso.
 # =============================================================================
 
-usar todas de "./base.jasb"
-usar todas de "./math_lib.jasb"
-
-# =============================================================================
-# IMPORTACIÓN DE MÓDULOS EXISTENTES
-# =============================================================================
+# 1. IMPORTACIONES DE MÓDULOS
 usar { EstadisticaDescriptiva } de "./estadistica/estadistica_descriptiva.jasb"
 usar { Probabilidad } de "./probabilidad/probabilidad_basica.jasb"
 usar { InferenciaEstadistica } de "./inferencia/inferencia_estadistica.jasb"
 usar { SeriesTemporales } de "./series_temporales/analisis_series_temporales.jasb"
 usar { MachineLearning } de "./machine_learning/algoritmos_ml.jasb"
 usar { ProcesadorLenguajeNatural } de "./machine_learning/nlp_basico.jasb"
-usar { VisualizadorAnalitico } de "./visualizacion/graficos_analiticos.jasb"
 usar { ModelosPrediccion } de "./prediccion/modelos_prediccion.jasb"
+usar { VisualizadorAnalitico } de "./visualizacion/graficos_analiticos.jasb"
 
-# =============================================================================
-# IMPORTACIÓN DE NUEVOS MÓDULOS - FASE 1: FUNDAMENTOS
-# =============================================================================
+# Importaciones de nuevos módulos V1.0
 usar { MetricasRegresion } de "./metricas/metricas_regresion.jasb"
 usar { MetricasClasificacion } de "./metricas/metricas_clasificacion.jasb"
 usar { MetricasClustering } de "./metricas/metricas_clustering.jasb"
 usar { SplitDatos } de "./validacion/split_datos.jasb"
 usar { CrossValidation } de "./validacion/cross_validation.jasb"
 usar { Normalizacion } de "./preprocesamiento/normalizacion.jasb"
-
-# =============================================================================
-# IMPORTACIÓN DE NUEVOS MÓDULOS - FASE 2: MODELOS AVANZADOS
-# =============================================================================
+usar { SeleccionFeatures } de "./preprocesamiento/seleccion_features.jasb"
 usar { ArbolesDecision } de "./machine_learning/arboles_decision.jasb"
 usar { RandomForest } de "./machine_learning/random_forest.jasb"
-usar { ARIMA } de "./series_temporales/arima.jasb"
-
-# =============================================================================
-# IMPORTACIÓN DE NUEVOS MÓDULOS - FASE 3: TÉCNICAS AVANZADAS
-# =============================================================================
 usar { GradientBoosting } de "./machine_learning/gradient_boosting.jasb"
-usar { RedesNeuronales } de "./machine_learning/redes_neuronales.jasb"
-usar { SeleccionFeatures } de "./preprocesamiento/seleccion_features.jasb"
-
-# =============================================================================
-# IMPORTACIÓN DE NUEVOS MÓDULOS - FASE 4: COMPLEMENTOS
-# =============================================================================
 usar { ClusteringAvanzado } de "./machine_learning/clustering_avanzado.jasb"
 usar { ReduccionDimensionalidad } de "./preprocesamiento/reduccion_dim.jasb"
 usar { SVM } de "./machine_learning/svm.jasb"
+usar { RedesNeuronales } de "./machine_learning/redes_neuronales.jasb"
+usar { ARIMA } de "./series_temporales/arima.jasb"
+usar { ModeloLenguaje } de "./machine_learning/nlp_generativo.jasb"
+usar { CapaRecurrente } de "./machine_learning/rnn.jasb"
+usar { ManejadorEmbeddings } de "./machine_learning/embeddings.jasb"
 
-# =============================================================================
-# REGISTRO DE FACHADA COMPLETA V1.0
-# =============================================================================
-registro AnaliticaFachada
-    # Módulos Core (existentes)
+# 2. DEFINICIÓN DE LA FACHADA (CLASE)
+enviar clase AnaliticaFachada
+    # Módulos Core
     EstadisticaDescriptiva estadistica
     Probabilidad probabilidad
     InferenciaEstadistica inferencia
@@ -66,45 +56,53 @@ registro AnaliticaFachada
     ModelosPrediccion prediccion
     VisualizadorAnalitico visualizacion
 
-    # NUEVOS MÓDULOS - Métricas
+    # Módulos de Métricas y Validación
     MetricasRegresion metricas_reg
     MetricasClasificacion metricas_clf
     MetricasClustering metricas_cluster
-
-    # NUEVOS MÓDULOS - Validación
     SplitDatos split
     CrossValidation cv
 
-    # NUEVOS MÓDULOS - Preprocesamiento
+    # Módulos de Preprocesamiento
     Normalizacion normalizacion
     SeleccionFeatures seleccion_features
     ReduccionDimensionalidad pca
 
-    # NUEVOS MÓDULOS - ML Avanzado
+    # Módulos de ML Avanzado
     ArbolesDecision arboles
     RandomForest random_forest
     GradientBoosting gradient_boosting
     RedesNeuronales redes_neuronales
     SVM svm
     ClusteringAvanzado clustering_avanzado
+    ModeloLenguaje nlp_gen
+    CapaRecurrente rnn
+    ManejadorEmbeddings embeddings
 
-    # NUEVOS MÓDULOS - Series Temporales Avanzadas
+    # Módulos de Series Temporales Avanzadas
     ARIMA arima
-fin_registro
+fin_clase
 
 # Instancia Global
-AnaliticaFachada g_analitica
+enviar AnaliticaFachada g_analitica = nulo
 
 # =============================================================================
 # FUNCIÓN DE INICIALIZACIÓN V1.0
 # =============================================================================
-funcion inicializar_fachada() retorna entero
-    # Crear instancia de la fachada primero
-    g_analitica = AnaliticaFachada()
+enviar funcion inicializar_fachada() retorna entero
+    # Si ya está instanciada y al menos un módulo core está listo, asumimos éxito
+    si g_analitica != nulo entonces
+        si g_analitica.estadistica != nulo entonces
+            retornar 1
+        fin_si
+    fin_si
 
-    # =========================================================================
-    # MÓDULOS CORE (Existentes)
-    # =========================================================================
+    # Asegurar instancia de la fachada
+    si g_analitica == nulo entonces
+        g_analitica = AnaliticaFachada()
+    fin_si
+
+    # 1. Instanciar módulos
     g_analitica.estadistica = EstadisticaDescriptiva()
     g_analitica.probabilidad = Probabilidad()
     g_analitica.inferencia = InferenciaEstadistica()
@@ -113,8 +111,27 @@ funcion inicializar_fachada() retorna entero
     g_analitica.nlp = ProcesadorLenguajeNatural()
     g_analitica.prediccion = ModelosPrediccion()
     g_analitica.visualizacion = VisualizadorAnalitico()
+    g_analitica.metricas_reg = MetricasRegresion()
+    g_analitica.metricas_clf = MetricasClasificacion()
+    g_analitica.metricas_cluster = MetricasClustering()
+    g_analitica.split = SplitDatos()
+    g_analitica.cv = CrossValidation()
+    g_analitica.normalizacion = Normalizacion()
+    g_analitica.seleccion_features = SeleccionFeatures()
+    g_analitica.pca = ReduccionDimensionalidad()
+    # Objetos pesados: construccion diferida (nulo hasta inicializar_ml_avanzado)
+    g_analitica.arboles = nulo
+    g_analitica.random_forest = nulo
+    g_analitica.gradient_boosting = nulo
+    g_analitica.redes_neuronales = nulo
+    g_analitica.svm = nulo
+    g_analitica.clustering_avanzado = nulo
+    g_analitica.nlp_gen = nulo
+    g_analitica.rnn = nulo
+    g_analitica.embeddings = nulo
+    g_analitica.arima = nulo
 
-    # Inicializar módulos core
+    # 2. Inicializar módulos (nucleo + metricas + preprocesamiento; ML pesado va en inicializar_ml_avanzado)
     g_analitica.estadistica.inicializar()
     g_analitica.probabilidad.inicializar()
     g_analitica.inferencia.inicializar()
@@ -123,235 +140,133 @@ funcion inicializar_fachada() retorna entero
     g_analitica.nlp.inicializar()
     g_analitica.prediccion.inicializar()
     g_analitica.visualizacion.inicializar()
-
-    # =========================================================================
-    # NUEVOS MÓDULOS - MÉTRICAS
-    # =========================================================================
-    g_analitica.metricas_reg = MetricasRegresion()
-    g_analitica.metricas_clf = MetricasClasificacion()
-    g_analitica.metricas_cluster = MetricasClustering()
-
     g_analitica.metricas_reg.inicializar()
     g_analitica.metricas_clf.inicializar()
     g_analitica.metricas_cluster.inicializar()
-
-    # =========================================================================
-    # NUEVOS MÓDULOS - VALIDACIÓN
-    # =========================================================================
-    g_analitica.split = SplitDatos()
-    g_analitica.cv = CrossValidation()
-
     g_analitica.split.inicializar()
     g_analitica.cv.inicializar()
-
-    # =========================================================================
-    # NUEVOS MÓDULOS - PREPROCESAMIENTO
-    # =========================================================================
-    g_analitica.normalizacion = Normalizacion()
-    g_analitica.seleccion_features = SeleccionFeatures()
-    g_analitica.pca = ReduccionDimensionalidad()
-
     g_analitica.normalizacion.inicializar()
     g_analitica.seleccion_features.inicializar()
     g_analitica.pca.inicializar()
 
-    # =========================================================================
-    # NUEVOS MÓDULOS - ML AVANZADO
-    # =========================================================================
-    g_analitica.arboles = ArbolesDecision()
-    g_analitica.random_forest = RandomForest()
-    g_analitica.gradient_boosting = GradientBoosting()
-    g_analitica.redes_neuronales = RedesNeuronales()
-    g_analitica.svm = SVM()
-    g_analitica.clustering_avanzado = ClusteringAvanzado()
+    retornar 1
+fin_funcion
 
+# Construye e inicializa arboles, ensemble, redes, NLP generativo, RNN, embeddings y ARIMA.
+# Sin esta llamada esos campos de la fachada siguen en nulo (evita cuelgue al cargar toda la grafica de objetos).
+enviar funcion inicializar_ml_avanzado() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    si g_analitica.arboles == nulo entonces
+        g_analitica.arboles = ArbolesDecision()
+    fin_si
+    si g_analitica.random_forest == nulo entonces
+        g_analitica.random_forest = RandomForest()
+    fin_si
+    si g_analitica.gradient_boosting == nulo entonces
+        g_analitica.gradient_boosting = GradientBoosting()
+    fin_si
     g_analitica.arboles.inicializar()
-    # g_analitica.random_forest.inicializar() # Esta clase usa constructor por defecto
+    g_analitica.random_forest.inicializar()
     g_analitica.gradient_boosting.inicializar()
+    retornar 1
+fin_funcion
+
+# Redes, SVM, clustering avanzado (llamar tras inicializar_ml_avanzado si los necesitas)
+enviar funcion inicializar_redes_svm_clustering() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    si g_analitica.redes_neuronales == nulo entonces
+        g_analitica.redes_neuronales = RedesNeuronales()
+    fin_si
+    si g_analitica.svm == nulo entonces
+        g_analitica.svm = SVM()
+    fin_si
+    si g_analitica.clustering_avanzado == nulo entonces
+        g_analitica.clustering_avanzado = ClusteringAvanzado()
+    fin_si
     g_analitica.redes_neuronales.inicializar()
     g_analitica.svm.inicializar()
     g_analitica.clustering_avanzado.inicializar()
-
-    # =========================================================================
-    # NUEVOS MÓDULOS - SERIES TEMPORALES AVANZADAS
-    # =========================================================================
-    g_analitica.arima = ARIMA()
-    g_analitica.arima.inicializar()
-
-    imprimir "=== ANALÍTICA NEURONAL V1.0 INICIALIZADA ==="
-    imprimir "✅ Módulos Core: 8"
-    imprimir "✅ Módulos de Métricas: 3"
-    imprimir "✅ Módulos de Validación: 2"
-    imprimir "✅ Módulos de Preprocesamiento: 3"
-    imprimir "✅ Módulos de ML Avanzado: 6"
-    imprimir "✅ Módulos de Series Temporales: 2"
-    imprimir "📊 Total: 24 módulos cargados"
-    imprimir "=========================================="
-
     retornar 1
 fin_funcion
 
-# =============================================================================
-# WRAPPERS DE COMPATIBILIDAD V1.0
-# =============================================================================
+# Modelo de lenguaje (Markov); ligero
+enviar funcion inicializar_nlp_generativo() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    si g_analitica.nlp_gen == nulo entonces
+        g_analitica.nlp_gen = ModeloLenguaje()
+    fin_si
+    g_analitica.nlp_gen.inicializar(3)
+    retornar 1
+fin_funcion
 
-funcion inicializar_analitica_neuronal() retorna bool
-    imprimir "Sistema de Analítica Neuronal V2.1 (Capa Compatibilidad) Inicializado."
+# Embeddings densos
+enviar funcion inicializar_embeddings() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    si g_analitica.embeddings == nulo entonces
+        g_analitica.embeddings = ManejadorEmbeddings()
+    fin_si
+    g_analitica.embeddings.inicializar(4)
+    retornar 1
+fin_funcion
 
-    # Asegurar instancia de la fachada
-    g_analitica = AnaliticaFachada()
+# Capa RNN (costosa en esta VM si se crea junto a muchos otros objetos)
+enviar funcion inicializar_capa_rnn() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    CapaRecurrente rnn_local
+    si g_analitica.rnn == nulo entonces
+        rnn_local = CapaRecurrente()
+    sino
+        rnn_local = g_analitica.rnn
+    fin_si
+    rnn_local.inicializar(2, 4, 2)
+    g_analitica.rnn = rnn_local
+    retornar 1
+fin_funcion
 
-    entero dummy = 0
-    dummy = inicializar_fachada()
+# ARIMA
+enviar funcion inicializar_arima_modulo() retorna entero
+    si g_analitica == nulo entonces
+        retornar 0
+    fin_si
+    si g_analitica.arima == nulo entonces
+        g_analitica.arima = ARIMA()
+    fin_si
+    g_analitica.arima.inicializar()
+    retornar 1
+fin_funcion
+
+# NLP generativo + embeddings + ARIMA (sin RNN: en algunas cargas grandes la VM se cuelga al enlazar RNN tras la fachada)
+enviar funcion inicializar_nlp_generativo_y_series() retorna entero
+    inicializar_embeddings()
+    inicializar_nlp_generativo()
+    inicializar_arima_modulo()
+    retornar 1
+fin_funcion
+
+enviar funcion inicializar_analitica_neuronal() retorna bool
+    inicializar_fachada()
     retornar verdadero
 fin_funcion
 
-funcion analisis_completo_dataset(lista datos) retorna mapa
+enviar funcion analisis_completo_dataset(lista datos) retorna mapa
     mapa res = mapa_crear()
     mapa stats = g_analitica.estadistica.resumen_estadistico_completo(datos)
     mapa_poner(res, "estadisticas", stats)
-
     lista atipicos = g_analitica.estadistica.detectar_valores_atipicos(datos, 1.5)
     mapa_poner(res, "atipicos", atipicos)
-
-    retornar res
-fin_funcion
-
-# funcion prediccion_modelo_completo(lista x, lista datos_y, lista x_nuevo) retorna mapa
-#     # Usa el nuevo sistema de regresión múltiple si X es multidimensional
-#     mapa res = mapa_crear()
-#
-#     # Determinar si es simple o múltiple
-#     si lista_tamano(x) > 0 entonces
-#         elemento primer_elemento = lista_obtener(x, 0)
-#
-#         # Si el primer elemento es una lista, es multidimensional
-#         intentar
-#             lista test_lista = primer_elemento
-#             # Es multidimensional, usar regresión múltiple
-# # #             mapa modelo = g_analitica.prediccion.regresion_lineal_multiple(x, datos_y)
-#             lista predicciones = crear_lista()
-#
-#             entero i = 0
-#             mientras i < lista_tamano(x_nuevo) hacer
-#                 lista punto = lista_obtener(x_nuevo, i)
-# # #                 flotante pred = g_analitica.prediccion.predecir_regresion_multiple(punto, modelo)
-#                 lista_agregar(predicciones, pred)
-#                 i = i + 1
-#             fin_mientras
-#
-#             mapa_poner(res, "predicciones", predicciones)
-#             mapa_poner(res, "modelo", modelo)
-#         capturar
-#             # Es unidimensional, usar regresión simple
-# # #             mapa modelo = g_analitica.prediccion.regresion_lineal_simple(x, datos_y)
-#             lista predicciones_alt = crear_lista()
-#
-#             flotante m = mapa_obtener(modelo, "pendiente")
-#             flotante b = mapa_obtener(modelo, "intercepto")
-#
-#             entero j = 0
-#             mientras j < lista_tamano(x_nuevo) hacer
-#                 flotante xi = lista_obtener(x_nuevo, i)
-#                 flotante pred = (m * xi) + b
-#                 lista_agregar(predicciones, pred)
-#                 i = i + 1
-#             fin_mientras
-#
-#             mapa_poner(res, "predicciones", predicciones)
-#             mapa_poner(res, "modelo", modelo)
-#         fin_intentar
-#     fin_si
-#
-#     retornar res
-# fin_funcion
-
-funcion aprender_patrones_estadisticos(texto clave, mapa resultados) retorna entero
-    retornar 1
-fin_funcion
-
-funcion mejorar_predicciones_con_memoria(texto clave, flotante valor_entrada) retorna flotante
-    retornar valor_entrada + 1.0 # JMN simulation
-fin_funcion
-
-# =============================================================================
-# FUNCIONES DE UTILIDAD NUEVAS
-# =============================================================================
-
-# Función helper para pipeline completo de ML
-# funcion pipeline_ml_completo(lista X, lista datos_y, texto modelo_tipo, flotante test_size) retorna mapa
-#     # 1. Split de datos
-# #     mapa split = g_analitica.split.train_test_split(X, datos_y, test_size, 42)
-#     lista X_train = mapa_obtener(split, "X_train")
-#     lista X_test = mapa_obtener(split, "X_test")
-#     lista y_train = mapa_obtener(split, "y_train")
-#     lista y_test = mapa_obtener(split, "y_test")
-#
-#     # 2. Entrenar modelo según tipo
-#     mapa modelo = mapa_crear()
-#     lista predicciones = crear_lista()
-#
-#     si modelo_tipo == "arbol" entonces
-# #         modelo = g_analitica.arboles.arbol_decision_clasificacion_fit(X_train, y_train, 5)
-# #         predicciones = g_analitica.arboles.arbol_decision_predecir_batch(modelo, X_test)
-#     sino si modelo_tipo == "random_forest" entonces
-# #         modelo = g_analitica.random_forest.random_forest_fit(X_train, y_train, 10, 5, 42)
-# #         predicciones = g_analitica.random_forest.random_forest_predecir_batch(modelo, X_test)
-#     sino si modelo_tipo == "svm" entonces
-# # #         modelo = g_analitica.svm.svm_lineal_fit(X_train, y_train, 1.0, 0.01, 100)
-# # #         predicciones = g_analitica.svm.svm_predecir_batch(modelo, X_test)
-#     fin_si
-#
-#     # 3. Evaluar
-# #     mapa metricas = g_analitica.metricas_clf.informe_clasificacion_binaria(y_test, predicciones, 1)
-#
-#     # 4. Retornar resultado completo
-#     mapa res = mapa_crear()
-#     mapa_poner(res, "modelo", modelo)
-#     mapa_poner(res, "predicciones", predicciones)
-#     mapa_poner(res, "metricas", metricas)
-#     mapa_poner(res, "X_test", X_test)
-#     mapa_poner(res, "y_test", y_test)
-#
-#     retornar res
-# fin_funcion
-
-# Funcion helper para normalizacion automatica
-funcion normalizar_datos_auto(lista X, texto metodo) retorna mapa
-    mapa res = mapa_crear()
-
-    si metodo == "minmax" entonces
-        mapa scaler = g_analitica.normalizacion.min_max_scaler_fit(X)
-        lista X_norm = g_analitica.normalizacion.min_max_scaler_transform(X, scaler)
-        mapa_poner(res, "scaler", scaler)
-        mapa_poner(res, "datos_normalizados", X_norm)
-    sino si metodo == "standard" entonces
-        mapa scaler = g_analitica.normalizacion.standard_scaler_fit(X)
-        lista X_norm = g_analitica.normalizacion.standard_scaler_transform(X, scaler)
-        mapa_poner(res, "scaler", scaler)
-        mapa_poner(res, "datos_normalizados", X_norm)
-    sino si metodo == "robust" entonces
-        mapa scaler = g_analitica.normalizacion.robust_scaler_fit(X)
-        lista X_norm = g_analitica.normalizacion.robust_scaler_transform(X, scaler)
-        mapa_poner(res, "scaler", scaler)
-        mapa_poner(res, "datos_normalizados", X_norm)
-    fin_si
-
     retornar res
 fin_funcion
 
 # =============================================================================
-# EXPORTACIÓN DE MÓDULO V1.0
+# FIN DE ARCHIVO
 # =============================================================================
-enviar {
-    g_analitica,
-    AnaliticaFachada,
-    inicializar_fachada,
-    inicializar_analitica_neuronal,
-    analisis_completo_dataset,
-    prediccion_modelo_completo,
-    aprender_patrones_estadisticos,
-    mejorar_predicciones_con_memoria,
-    pipeline_ml_completo,
-    normalizar_datos_auto
-}

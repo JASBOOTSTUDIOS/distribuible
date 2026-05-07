@@ -1,8 +1,8 @@
 # =============================================================================
 # MÓDULO DE ALGORITMOS DE MACHINE LEARNING (VERSIÓN CLASES)
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia, exponencial, valor_a_texto } de "../math_lib.jasb"
 
 clase MachineLearning extiende AnalizadorBase
 
@@ -134,40 +134,40 @@ clase MachineLearning extiende AnalizadorBase
         lista distancias = crear_lista()
         entero i = 0
         mientras i < n hacer
-            flotante dist = valor_absoluto(lista_obtener(x_entrenamiento, i) - x_nuevo)
+            flotante xi = convertir_flotante(lista_obtener(x_entrenamiento, i))
+            flotante dist = valor_absoluto(xi - x_nuevo)
             lista_agregar(distancias, dist)
             i = i + 1
         fin_mientras
 
         flotante suma_y = 0.0
-        entero extraidos = 0
+        entero vecinos_usados = 0
 
-        mientras extraidos < k y extraidos < n hacer
+        mientras vecinos_usados < k y vecinos_usados < n hacer
             flotante min_d = 9999999.0
             entero min_idx = -1
 
             entero j = 0
             mientras j < n hacer
-                flotante d_actual = lista_obtener(distancias, j)
-                si d_actual != -1.0 y d_actual < min_d entonces
+                flotante d_actual = convertir_flotante(lista_obtener(distancias, j))
+                si d_actual < 99999998.0 y d_actual < min_d entonces
                     min_d = d_actual
                     min_idx = j
                 fin_si
                 j = j + 1
             fin_mientras
 
-            si min_idx != -1 entonces
-                suma_y = suma_y + convertir_flotante(lista_obtener(y_entrenamiento, min_idx))
-                # Marcar con un valor que garantice que no se vuelva a usar
-                lista_poner(distancias, min_idx, 99999999.0)
+            si min_idx == -1 entonces
+                romper
             fin_si
 
-            extraidos = extraidos + 1
+            suma_y = suma_y + convertir_flotante(lista_obtener(y_entrenamiento, min_idx))
+            distancias = este.establecer_en_lista(distancias, min_idx, 99999999.0)
+            vecinos_usados = vecinos_usados + 1
         fin_mientras
 
-        si extraidos == 0 entonces retornar 0.0 fin_si
-        flotante divis = convertir_flotante(extraidos)
-        retornar suma_y / divis
+        si vecinos_usados == 0 entonces retornar 0.0 fin_si
+        retornar suma_y / convertir_flotante(vecinos_usados)
     fin_funcion
 
     # =============================================================================
@@ -228,11 +228,11 @@ clase MachineLearning extiende AnalizadorBase
 
             si min_idx != -1 entonces
                 lista_agregar(indices_vecinos, min_idx)
-                # Marcar como usado (distancia negativa)
                 distancias = este.establecer_en_lista(distancias, min_idx, -1.0)
+                extraidos = extraidos + 1
+            sino
+                romper
             fin_si
-
-            extraidos = extraidos + 1
         fin_mientras
 
         retornar indices_vecinos

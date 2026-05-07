@@ -1,0 +1,62 @@
+usar { AnalizadorBase } de "../base.jasb"
+
+enviar clase PrediccionEstable extiende AnalizadorBase
+    funcion inicializar()
+        padre.inicializar("Prediccion Estable", "V1.0")
+    fin_funcion
+
+    funcion regresion_lineal_simple(lista X, lista datos_y) retorna mapa
+        mapa modelo = mapa_crear()
+        si X == nulo o datos_y == nulo entonces retornar modelo fin_si
+        entero n = lista_tamano(X)
+        si n == 0 o lista_tamano(datos_y) != n entonces retornar modelo fin_si
+
+        flotante suma_x = 0.0
+        flotante suma_y = 0.0
+        flotante suma_xy = 0.0
+        flotante suma_xx = 0.0
+
+        entero i = 0
+        mientras i < n hacer
+            flotante xi = lista_obtener(X, i)
+            flotante yi = lista_obtener(datos_y, i)
+            suma_x = suma_x + xi
+            suma_y = suma_y + yi
+            suma_xy = suma_xy + (xi * yi)
+            suma_xx = suma_xx + (xi * xi)
+            i = i + 1
+        fin_mientras
+
+        flotante n_f = n + 0.0
+        flotante den = (n_f * suma_xx) - (suma_x * suma_x)
+        flotante m = 0.0
+        si den != 0.0 entonces
+            m = ((n_f * suma_xy) - (suma_x * suma_y)) / den
+        fin_si
+        flotante b = (suma_y - (m * suma_x)) / n_f
+
+        # R2
+        flotante media_y = suma_y / n_f
+        flotante ss_tot = 0.0
+        flotante ss_res = 0.0
+        i = 0
+        mientras i < n hacer
+            flotante xi2 = lista_obtener(X, i)
+            flotante yi2 = lista_obtener(datos_y, i)
+            flotante yp = (m * xi2) + b
+            ss_tot = ss_tot + ((yi2 - media_y) * (yi2 - media_y))
+            ss_res = ss_res + ((yi2 - yp) * (yi2 - yp))
+            i = i + 1
+        fin_mientras
+
+        flotante r2 = 1.0
+        si ss_tot != 0.0 entonces
+            r2 = 1.0 - (ss_res / ss_tot)
+        fin_si
+
+        mapa_poner(modelo, "pendiente", m)
+        mapa_poner(modelo, "intercepto", b)
+        mapa_poner(modelo, "r2", r2)
+        retornar modelo
+    fin_funcion
+fin_clase

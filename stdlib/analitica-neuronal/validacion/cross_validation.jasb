@@ -3,7 +3,7 @@
 # Módulo de validación cruzada para evaluación de modelos
 # =============================================================================
 
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 enviar clase CrossValidation extiende AnalizadorBase
 
@@ -129,15 +129,15 @@ enviar clase CrossValidation extiende AnalizadorBase
     # =============================================================================
 
     # Crea k conjuntos de índices para validación cruzada a partir de datos
-    funcion crear_k_folds(lista X, lista y, entero k, entero seed) retorna lista
-        si X == nulo o y == nulo entonces
-            imprimir "[ERROR] X o y son nulos"
+    funcion crear_k_folds(lista X, lista _y, entero k, entero seed) retorna lista
+        si X == nulo o _y == nulo entonces
+            imprimir "[ERROR] X o _y son nulos"
             retornar crear_lista()
         fin_si
 
         entero n_samples = lista_tamano(X)
-        si n_samples != lista_tamano(y) entonces
-            imprimir "[ERROR] X e y deben tener el mismo tamaño"
+        si n_samples != lista_tamano(_y) entonces
+            imprimir "[ERROR] X e _y deben tener el mismo tamaño"
             retornar crear_lista()
         fin_si
 
@@ -170,19 +170,19 @@ enviar clase CrossValidation extiende AnalizadorBase
     # =============================================================================
 
     # Extrae un fold específico con datos de entrenamiento y prueba
-    funcion obtener_fold(lista X, lista y, lista indices_train, lista indices_test) retorna mapa
-        si X == nulo o y == nulo o indices_train == nulo o indices_test == nulo entonces
+    funcion obtener_fold(lista X, lista _y, lista indices_train, lista indices_test) retorna mapa
+        si X == nulo o _y == nulo o indices_train == nulo o indices_test == nulo entonces
             imprimir "[ERROR] Parámetros nulos en obtener_fold"
             retornar mapa_crear()
         fin_si
 
         # Extraer datos de entrenamiento
         lista X_train = este._extraer_por_indices(X, indices_train)
-        lista y_train = este._extraer_por_indices(y, indices_train)
+        lista y_train = este._extraer_por_indices(_y, indices_train)
 
         # Extraer datos de prueba
         lista X_test = este._extraer_por_indices(X, indices_test)
-        lista y_test = este._extraer_por_indices(y, indices_test)
+        lista y_test = este._extraer_por_indices(_y, indices_test)
 
         # Crear mapa con los conjuntos
         mapa fold_data = mapa_crear()

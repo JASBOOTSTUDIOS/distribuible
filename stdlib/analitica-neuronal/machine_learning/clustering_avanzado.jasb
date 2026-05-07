@@ -2,8 +2,8 @@
 # MÓDULO DE CLUSTERING AVANZADO
 # Implementa DBSCAN, clustering jerárquico y métricas de calidad
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { raiz_cuadrada } de "../math_lib.jasb"
 
 enviar clase ClusteringAvanzado extiende AnalizadorBase
 

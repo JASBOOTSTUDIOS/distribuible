@@ -24,10 +24,10 @@ funcion potencia(flotante base_val, flotante exp_val) retorna flotante
     si exp_val == 0 entonces retornar 1.0 fin_si
     si exp_val == 1 entonces retornar base_val fin_si
     flotante res = 1.0
-    flotante e = exp_val
-    si exp_val < 0 entonces e = -exp_val fin_si
+    flotante exp_abs = exp_val
+    si exp_val < 0 entonces exp_abs = -exp_val fin_si
     flotante i = 0.0
-    mientras i < e hacer
+    mientras i < exp_abs hacer
         res = res * base_val
         i = i + 1.0
     fin_mientras

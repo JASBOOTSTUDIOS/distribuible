@@ -3,8 +3,8 @@
 # Implementación de SVM con kernel lineal usando gradient descent
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 enviar clase SVM extiende AnalizadorBase
 
@@ -19,8 +19,8 @@ enviar clase SVM extiende AnalizadorBase
     # =============================================================================
 
     # Producto punto entre dos vectores
-    funcion producto_punto(lista a, lista b) retorna flotante
-        entero n_a = lista_tamano(a)
+    funcion producto_punto(lista _a, lista b) retorna flotante
+        entero n_a = lista_tamano(_a)
         entero n_b = lista_tamano(b)
 
         si n_a != n_b o n_a == 0 entonces
@@ -30,7 +30,7 @@ enviar clase SVM extiende AnalizadorBase
         flotante suma = 0.0
         entero i = 0
         mientras i < n_a hacer
-            flotante val_a = lista_obtener(a, i)
+            flotante val_a = lista_obtener(_a, i)
             flotante val_b = lista_obtener(b, i)
             suma = suma + (val_a * val_b)
             i = i + 1
@@ -51,44 +51,44 @@ enviar clase SVM extiende AnalizadorBase
 
     # Actualiza pesos usando gradient descent
     # Retorna lista [pesos_actualizados, sesgo_actualizado]
-    funcion actualizar_pesos_svm(lista pesos, flotante sesgo, lista x, flotante y, flotante C, flotante lr) retorna lista
+    funcion actualizar_pesos_svm(lista pesos, flotante sesgo, lista x, flotante _y, flotante C, flotante lr) retorna lista
         entero n = lista_tamano(pesos)
 
         # Calcular predicción: w·x + b
         flotante y_pred = este.producto_punto(pesos, x) + sesgo
 
         # Calcular condición del hinge loss
-        flotante condicion = y * y_pred
+        flotante condicion = _y * y_pred
 
         lista nuevos_pesos = crear_lista()
         flotante nuevo_sesgo = sesgo
 
         # Si está mal clasificado o dentro del margen (y * y_pred < 1)
         si condicion < 1.0 entonces
-            # Gradiente con regularización: dL/dw = -y*x + (1/C)*w
+            # Gradiente con regularización: dL/dw = -_y*x + (1/C)*w
             entero i = 0
             mientras i < n hacer
                 flotante w_i = lista_obtener(pesos, i)
                 flotante x_i = lista_obtener(x, i)
 
-                # Update: w = w - lr * (w/C - y*x)
-                flotante gradiente = (w_i / C) - (y * x_i)
+                # Update: w = w - lr * (w/C - _y*x)
+                flotante gradiente = (w_i / C) - (_y * x_i)
                 flotante w_nuevo = w_i - (lr * gradiente)
 
                 lista_agregar(nuevos_pesos, w_nuevo)
                 i = i + 1
             fin_mientras
 
-            # Update sesgo: b = b + lr * y
-            nuevo_sesgo = sesgo + (lr * y)
+            # Update sesgo: b = b + lr * _y
+            nuevo_sesgo = sesgo + (lr * _y)
         sino
             # Solo regularización: dL/dw = (1/C)*w
             i = 0
             mientras i < n hacer
                 flotante w_i = lista_obtener(pesos, i)
                 flotante gradiente = w_i / C
-                flotante w_nuevo = w_i - (lr * gradiente)
-                lista_agregar(nuevos_pesos, w_i)
+                flotante w_act = w_i - (lr * gradiente)
+                lista_agregar(nuevos_pesos, w_act)
                 i = i + 1
             fin_mientras
 
@@ -112,14 +112,13 @@ enviar clase SVM extiende AnalizadorBase
     # C: parámetro de regularización (mayor C = menos regularización)
     # learning_rate: tasa de aprendizaje
     # epochs: número de iteraciones
-    funcion svm_lineal_fit(lista X_matriz, lista y, flotante C, flotante learning_rate, entero epochs) retorna mapa
-        entero n_muestras = lista_tamano(X_matriz)
-
-        si n_muestras == 0 entonces
+    funcion svm_lineal_fit(lista X_matriz, lista _y, flotante C, flotante learning_rate, entero epochs) retorna mapa
+        si lista_tamano(X_matriz) == 0 entonces
             imprimir "[SVM ERROR] Matriz de entrenamiento vacía"
             retornar mapa_crear()
         fin_si
 
+        entero n_muestras = lista_tamano(X_matriz)
         # Obtener número de características
         lista primera_muestra = lista_obtener(X_matriz, 0)
         entero n_features = lista_tamano(primera_muestra)
@@ -130,7 +129,7 @@ enviar clase SVM extiende AnalizadorBase
         fin_si
 
         # Validar etiquetas
-        si lista_tamano(y) != n_muestras entonces
+        si lista_tamano(_y) != n_muestras entonces
             imprimir "[SVM ERROR] Número de etiquetas no coincide con muestras"
             retornar mapa_crear()
         fin_si
@@ -158,7 +157,7 @@ enviar clase SVM extiende AnalizadorBase
             entero idx = 0
             mientras idx < n_muestras hacer
                 lista x_i = lista_obtener(X_matriz, idx)
-                flotante y_i = lista_obtener(y, idx)
+                flotante y_i = lista_obtener(_y, idx)
 
                 # Calcular predicción actual
                 flotante y_pred = este.producto_punto(pesos, x_i) + sesgo

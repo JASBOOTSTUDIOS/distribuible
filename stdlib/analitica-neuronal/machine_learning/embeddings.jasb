@@ -1,0 +1,64 @@
+# =============================================================================
+# MÓDULO DE EMBEDDINGS DENSOS
+# =============================================================================
+# Propósito: Manejar representaciones vectoriales densas para palabras
+#            y calcular similitudes semánticas.
+# =============================================================================
+
+usar { AnalizadorBase } de "../base.jasb"
+usar { raiz_cuadrada } de "../math_lib.jasb"
+
+enviar clase ManejadorEmbeddings extiende AnalizadorBase
+    mapa tabla_embeddings # palabra -> lista de flotantes
+    entero dimension
+
+    funcion inicializar(entero dim)
+        padre.inicializar("ManejadorEmbeddings", "1.0.0")
+        este.tabla_embeddings = mapa_crear()
+        este.dimension = dim
+    fin_funcion
+
+    # Registra una palabra con su vector
+    funcion registrar_palabra(texto palabra, lista vector)
+        si lista_tamano(vector) == este.dimension entonces
+            mapa_poner(este.tabla_embeddings, palabra, vector)
+        fin_si
+    fin_funcion
+
+    # Obtiene el vector de una palabra (o nulo si no existe)
+    funcion obtener_vector(texto palabra) retorna lista
+        si mapa_contiene(este.tabla_embeddings, palabra) entonces
+            retornar mapa_obtener(este.tabla_embeddings, palabra)
+        fin_si
+        retornar nulo
+    fin_funcion
+
+    # Calcula la similitud de coseno entre dos palabras
+    funcion similitud_semantica(texto p1, texto p2) retorna flotante
+        lista v1 = este.obtener_vector(p1)
+        lista v2 = este.obtener_vector(p2)
+        
+        si v1 == nulo o v2 == nulo entonces retornar 0.0 fin_si
+        
+        # Similitud de coseno: (A . B) / (||A|| * ||B||)
+        flotante dot = 0.0
+        flotante norm_a = 0.0
+        flotante norm_b = 0.0
+        
+        entero i = 0
+        mientras i < este.dimension hacer
+            flotante a = lista_obtener(v1, i)
+            flotante b = lista_obtener(v2, i)
+            dot = dot + (a * b)
+            norm_a = norm_a + (a * a)
+            norm_b = norm_b + (b * b)
+            i = i + 1
+        fin_mientras
+        
+        flotante divisor = raiz_cuadrada(norm_a) * raiz_cuadrada(norm_b)
+        si divisor == 0.0 entonces retornar 0.0 fin_si
+        
+        retornar dot / divisor
+    fin_funcion
+
+fin_clase

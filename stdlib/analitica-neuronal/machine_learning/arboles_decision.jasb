@@ -1,8 +1,7 @@
 # =============================================================================
 # MÓDULO DE ÁRBOLES DE DECISIÓN (DECISION TREES)
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 clase ArbolesDecision extiende AnalizadorBase
 
@@ -16,8 +15,8 @@ clase ArbolesDecision extiende AnalizadorBase
     # =============================================================================
 
     # Calcula la impureza Gini de un conjunto de etiquetas
-    funcion calcular_gini(lista y) retorna flotante
-        entero n = lista_tamano(y)
+    funcion calcular_gini(lista _y) retorna flotante
+        entero n = lista_tamano(_y)
         si n == 0 entonces retornar 0.0 fin_si
 
         # Contar frecuencias de cada clase
@@ -25,14 +24,14 @@ clase ArbolesDecision extiende AnalizadorBase
         lista clases_unicas = lista_crear()
         entero i = 0
         mientras i < n hacer
-            elemento clase = lista_obtener(y, i)
-            elemento contador_actual = mapa_obtener(conteos, clase)
+            elemento _clase = lista_obtener(_y, i)
+            elemento contador_actual = mapa_obtener(conteos, _clase)
 
             si contador_actual == nulo entonces
-                mapa_poner(conteos, clase, 1)
-                lista_agregar(clases_unicas, clase)
+                mapa_poner(conteos, _clase, 1)
+                lista_agregar(clases_unicas, _clase)
             sino
-                mapa_poner(conteos, clase, contador_actual + 1)
+                mapa_poner(conteos, _clase, contador_actual + 1)
             fin_si
             i = i + 1
         fin_mientras
@@ -52,31 +51,31 @@ clase ArbolesDecision extiende AnalizadorBase
     fin_funcion
 
     # Encuentra la clase más común en una lista
-    funcion clase_mayoritaria(lista y) retorna elemento
-        entero n = lista_tamano(y)
+    funcion clase_mayoritaria(lista _y) retorna elemento
+        entero n = lista_tamano(_y)
         si n == 0 entonces retornar nulo fin_si
 
         mapa conteos = mapa_crear()
-        elemento mejor_clase = lista_obtener(y, 0)
+        elemento mejor_clase = lista_obtener(_y, 0)
         entero max_conteo = 0
 
         entero i = 0
         mientras i < n hacer
-            elemento clase = lista_obtener(y, i)
-            elemento contador_actual = mapa_obtener(conteos, clase)
+            elemento _clase = lista_obtener(_y, i)
+            elemento contador_actual = mapa_obtener(conteos, _clase)
 
             entero nuevo_conteo = 0
             si contador_actual == nulo entonces
                 nuevo_conteo = 1
-                mapa_poner(conteos, clase, 1)
+                mapa_poner(conteos, _clase, 1)
             sino
                 nuevo_conteo = convertir_entero(contador_actual) + 1
-                mapa_poner(conteos, clase, nuevo_conteo)
+                mapa_poner(conteos, _clase, nuevo_conteo)
             fin_si
 
             si nuevo_conteo > max_conteo entonces
                 max_conteo = nuevo_conteo
-                mejor_clase = clase
+                mejor_clase = _clase
             fin_si
 
             i = i + 1
@@ -90,7 +89,7 @@ clase ArbolesDecision extiende AnalizadorBase
     # =============================================================================
 
     # Encuentra la mejor división para una característica específica
-    funcion mejor_division(lista X, lista y, entero feature_idx) retorna mapa
+    funcion mejor_division(lista X, lista _y, entero feature_idx) retorna mapa
         entero n = lista_tamano(X)
         si n == 0 entonces retornar nulo fin_si
 
@@ -103,16 +102,16 @@ clase ArbolesDecision extiende AnalizadorBase
         entero i = 0
         mientras i < n hacer
             elemento fila = lista_obtener(X, i)
-            elemento valor = nulo
+            elemento _valor = nulo
 
             # Verificar si X es multidimensional (lista de listas)
             si es_lista(fila) entonces
-                valor = lista_obtener(fila, feature_idx)
+                _valor = lista_obtener(fila, feature_idx)
             sino
                 # X es unidimensional, solo hay una feature
-                valor = fila
+                _valor = fila
             fin_si
-            lista_agregar(valores, valor)
+            lista_agregar(valores, _valor)
             i = i + 1
         fin_mientras
 
@@ -128,7 +127,7 @@ clase ArbolesDecision extiende AnalizadorBase
             entero k = 0
             mientras k < n hacer
                 flotante val_k = lista_obtener(valores, k)
-                elemento etiqueta = lista_obtener(y, k)
+                elemento etiqueta = lista_obtener(_y, k)
 
                 si val_k <= umbral entonces
                     lista_agregar(y_izq, etiqueta)
@@ -165,7 +164,7 @@ clase ArbolesDecision extiende AnalizadorBase
     fin_funcion
 
     # Encuentra la mejor característica y umbral para dividir
-    funcion mejor_division_completa(lista X, lista y, entero num_features) retorna mapa
+    funcion mejor_division_completa(lista X, lista _y, entero num_features) retorna mapa
         flotante mejor_gini = 999999.0
         entero mejor_feature = 0
         flotante mejor_umbral = 0.0
@@ -174,7 +173,7 @@ clase ArbolesDecision extiende AnalizadorBase
         # Probar cada característica
         entero feature = 0
         mientras feature < num_features hacer
-            mapa division = este.mejor_division(X, y, feature)
+            mapa division = este.mejor_division(X, _y, feature)
 
             si division != nulo entonces
                 elemento enc = mapa_obtener(division, "encontrado")
@@ -201,7 +200,7 @@ clase ArbolesDecision extiende AnalizadorBase
     fin_funcion
 
     # Divide X e y según un criterio
-    funcion dividir_datos(lista X, lista y, entero feature_idx, flotante umbral) retorna mapa
+    funcion dividir_datos(lista X, lista _y, entero feature_idx, flotante umbral) retorna mapa
         lista X_izq = crear_lista()
         lista y_izq = crear_lista()
         lista X_der = crear_lista()
@@ -211,16 +210,16 @@ clase ArbolesDecision extiende AnalizadorBase
         entero i = 0
         mientras i < n hacer
             elemento fila = lista_obtener(X, i)
-            elemento etiqueta = lista_obtener(y, i)
+            elemento etiqueta = lista_obtener(_y, i)
 
-            flotante valor = 0.0
+            flotante _valor = 0.0
             si es_lista(fila) entonces
-                valor = lista_obtener(fila, feature_idx)
+                _valor = lista_obtener(fila, feature_idx)
             sino
-                valor = fila
+                _valor = fila
             fin_si
 
-            si valor <= umbral entonces
+            si _valor <= umbral entonces
                 lista_agregar(X_izq, fila)
                 lista_agregar(y_izq, etiqueta)
             sino
@@ -242,8 +241,8 @@ clase ArbolesDecision extiende AnalizadorBase
     # CONSTRUCCIÓN RECURSIVA DEL ÁRBOL
     # =============================================================================
 
-    funcion construir_arbol(lista X, lista y, entero profundidad, entero max_prof, entero num_features) retorna mapa
-        entero n = lista_tamano(y)
+    funcion construir_arbol(lista X, lista _y, entero profundidad, entero max_prof, entero num_features) retorna mapa
+        entero n = lista_tamano(_y)
 
         # Casos base: crear nodo hoja
         # 1. Alcanzamos profundidad máxima
@@ -252,29 +251,29 @@ clase ArbolesDecision extiende AnalizadorBase
         si profundidad >= max_prof o n <= 1 entonces
             mapa nodo_hoja = mapa_crear()
             mapa_poner(nodo_hoja, "tipo", "hoja")
-            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(_y))
             mapa_poner(nodo_hoja, "muestras", n)
             retornar nodo_hoja
         fin_si
 
         # Verificar si todas las muestras son de la misma clase
-        flotante gini_actual = este.calcular_gini(y)
+        flotante gini_actual = este.calcular_gini(_y)
         si gini_actual < 0.001 entonces
             mapa nodo_hoja = mapa_crear()
             mapa_poner(nodo_hoja, "tipo", "hoja")
-            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(_y))
             mapa_poner(nodo_hoja, "muestras", n)
             retornar nodo_hoja
         fin_si
 
         # Encontrar mejor división
-        mapa mejor_split = este.mejor_division_completa(X, y, num_features)
+        mapa mejor_split = este.mejor_division_completa(X, _y, num_features)
         elemento encontrado = mapa_obtener(mejor_split, "encontrado")
 
         si encontrado == falso entonces
             mapa nodo_hoja = mapa_crear()
             mapa_poner(nodo_hoja, "tipo", "hoja")
-            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(_y))
             mapa_poner(nodo_hoja, "muestras", n)
             retornar nodo_hoja
         fin_si
@@ -283,7 +282,7 @@ clase ArbolesDecision extiende AnalizadorBase
         entero feature_idx = mapa_obtener(mejor_split, "feature")
         flotante umbral = mapa_obtener(mejor_split, "umbral")
 
-        mapa datos_divididos = este.dividir_datos(X, y, feature_idx, umbral)
+        mapa datos_divididos = este.dividir_datos(X, _y, feature_idx, umbral)
         lista X_izq = mapa_obtener(datos_divididos, "X_izq")
         lista y_izq = mapa_obtener(datos_divididos, "y_izq")
         lista X_der = mapa_obtener(datos_divididos, "X_der")
@@ -293,7 +292,7 @@ clase ArbolesDecision extiende AnalizadorBase
         si lista_tamano(y_izq) == 0 o lista_tamano(y_der) == 0 entonces
             mapa nodo_hoja = mapa_crear()
             mapa_poner(nodo_hoja, "tipo", "hoja")
-            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(y))
+            mapa_poner(nodo_hoja, "clase", este.clase_mayoritaria(_y))
             mapa_poner(nodo_hoja, "muestras", n)
             retornar nodo_hoja
         fin_si
@@ -319,15 +318,15 @@ clase ArbolesDecision extiende AnalizadorBase
     # FUNCIÓN PRINCIPAL DE ENTRENAMIENTO
     # =============================================================================
 
-    funcion arbol_decision_clasificacion_fit(lista X, lista y, entero max_profundidad) retorna mapa
-        si no este.validar_lista_numerica(y) entonces
-            imprimir "[ERROR] Lista y no es valida"
+    funcion arbol_decision_clasificacion_fit(lista X, lista _y, entero max_profundidad) retorna mapa
+        si no este.validar_lista_numerica(_y) entonces
+            imprimir "[ERROR] Lista _y no es valida"
             retornar nulo
         fin_si
 
         entero n = lista_tamano(X)
-        si n == 0 o lista_tamano(y) == 0 o n != lista_tamano(y) entonces
-            imprimir "[ERROR] Dimensiones de X e y no coinciden"
+        si n == 0 o lista_tamano(_y) == 0 o n != lista_tamano(_y) entonces
+            imprimir "[ERROR] Dimensiones de X e _y no coinciden"
             retornar nulo
         fin_si
 
@@ -343,7 +342,7 @@ clase ArbolesDecision extiende AnalizadorBase
         fin_si
 
         # Construir el árbol
-        mapa arbol = este.construir_arbol(X, y, 0, max_profundidad, num_features)
+        mapa arbol = este.construir_arbol(X, _y, 0, max_profundidad, num_features)
 
         # Agregar metadatos
         mapa modelo = mapa_crear()
@@ -372,14 +371,14 @@ clase ArbolesDecision extiende AnalizadorBase
         entero feature_idx = mapa_obtener(nodo, "feature")
         flotante umbral = mapa_obtener(nodo, "umbral")
 
-        flotante valor = 0.0
+        flotante _valor = 0.0
         si es_lista(x_nuevo) entonces
-            valor = lista_obtener(x_nuevo, feature_idx)
+            _valor = lista_obtener(x_nuevo, feature_idx)
         sino
-            valor = convertir_flotante(x_nuevo)
+            _valor = convertir_flotante(x_nuevo)
         fin_si
 
-        si valor <= umbral entonces
+        si _valor <= umbral entonces
             mapa hijo_izq = mapa_obtener(nodo, "izquierda")
             retornar este.predecir_muestra(hijo_izq, x_nuevo)
         sino

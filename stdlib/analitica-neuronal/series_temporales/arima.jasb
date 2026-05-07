@@ -3,8 +3,8 @@
 # Implementación de AutoRegressive Integrated Moving Average (p,d,q)
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { raiz_cuadrada } de "../math_lib.jasb"
 
 clase ARIMA extiende AnalizadorBase
 
@@ -86,7 +86,6 @@ clase ARIMA extiende AnalizadorBase
         entero d = mapa_obtener(modelo, "d")
         entero q = mapa_obtener(modelo, "q")
         lista serie_diferenciada = mapa_obtener(modelo, "serie_diferenciada")
-        lista valores_iniciales = mapa_obtener(modelo, "valores_iniciales")
         lista residuos = mapa_obtener(modelo, "residuos")
 
         # Crear ventana con últimos valores de la serie diferenciada
@@ -189,9 +188,9 @@ clase ARIMA extiende AnalizadorBase
         mientras i < p hacer
             si i < n_ventana entonces
                 entero idx = n_ventana - 1 - i
-                flotante valor = lista_obtener(ventana, idx)
+                flotante _valor = lista_obtener(ventana, idx)
                 flotante coef = lista_obtener(parametros_ar, i)
-                prediccion = prediccion + (coef * valor)
+                prediccion = prediccion + (coef * _valor)
             fin_si
             i = i + 1
         fin_mientras
@@ -416,8 +415,6 @@ clase ARIMA extiende AnalizadorBase
         # Construir matriz X y vector y
         # y[t] = phi1*y[t-1] + phi2*y[t-2] + ... + phip*y[t-p]
 
-        entero n_obs = n - p
-
         # Calcular autocorrelaciones
         lista autocorr = crear_lista()
         entero lag = 1
@@ -540,8 +537,8 @@ clase ARIMA extiende AnalizadorBase
             entero j = 0
             mientras j < p hacer
                 flotante coef = lista_obtener(parametros_ar, j)
-                flotante valor = lista_obtener(serie, i - j - 1)
-                pred = pred + (coef * valor)
+                flotante _valor = lista_obtener(serie, i - j - 1)
+                pred = pred + (coef * _valor)
                 j = j + 1
             fin_mientras
             lista_agregar(predicciones, pred)

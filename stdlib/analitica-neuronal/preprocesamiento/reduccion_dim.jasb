@@ -5,8 +5,8 @@
 # de dimensionalidad para análisis de datos multivariados.
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada } de "../math_lib.jasb"
 
 clase ReduccionDimensionalidad extiende AnalizadorBase
 
@@ -27,7 +27,6 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
         fin_si
 
         # Obtener dimensiones de la matriz
-        entero n_muestras = lista_tamano(X_matriz)
         lista primera_fila = lista_obtener(X_matriz, 0)
         entero n_features = lista_tamano(primera_fila)
 
@@ -264,8 +263,8 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
             entero i = 0
             mientras i < n_muestras hacer
                 lista fila = lista_obtener(X_matriz, i)
-                flotante valor = lista_obtener(fila, j)
-                suma = suma + valor
+                flotante _valor = lista_obtener(fila, j)
+                suma = suma + _valor
                 i = i + 1
             fin_mientras
             flotante media_col = suma / n_muestras
@@ -282,9 +281,9 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
 
             entero k = 0
             mientras k < n_features hacer
-                flotante valor = lista_obtener(fila_original, k)
+                flotante _valor = lista_obtener(fila_original, k)
                 flotante media_val = lista_obtener(media, k)
-                flotante valor_centrado = valor - media_val
+                flotante valor_centrado = _valor - media_val
                 lista_agregar(fila_centrada, valor_centrado)
                 k = k + 1
             fin_mientras
@@ -314,9 +313,9 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
 
             entero j = 0
             mientras j < n_features hacer
-                flotante valor = lista_obtener(fila_original, j)
+                flotante _valor = lista_obtener(fila_original, j)
                 flotante media_val = lista_obtener(media, j)
-                flotante valor_centrado = valor - media_val
+                flotante valor_centrado = _valor - media_val
                 lista_agregar(fila_centrada, valor_centrado)
                 j = j + 1
             fin_mientras
@@ -379,15 +378,14 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
         lista fila0 = lista_obtener(matriz_cov, 0)
         lista fila1 = lista_obtener(matriz_cov, 1)
 
-        flotante a = lista_obtener(fila0, 0)
+        flotante _a = lista_obtener(fila0, 0)
         flotante b = lista_obtener(fila0, 1)
         flotante c = lista_obtener(fila1, 0)
         flotante d = lista_obtener(fila1, 1)
 
-        # Autovalores: λ = (a+d)/2 ± sqrt((a+d)²/4 - (ad-bc))
-        flotante traza = a + d
-        flotante determinante = (a * d) - (b * c)
-
+        # Autovalores: λ = (_a+d)/2 ± sqrt((_a+d)²/4 - (ad-bc))
+        flotante traza = _a + d
+        flotante determinante = (_a * d) - (b * c)
         flotante parte1 = traza / 2.0
         flotante discriminante = ((traza * traza) / 4.0) - determinante
         flotante parte2 = raiz_cuadrada(valor_absoluto(discriminante))
@@ -412,7 +410,7 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
         lista fila0 = lista_obtener(matriz_cov, 0)
         lista fila1 = lista_obtener(matriz_cov, 1)
 
-        flotante a = lista_obtener(fila0, 0)
+        flotante _a = lista_obtener(fila0, 0)
         flotante b = lista_obtener(fila0, 1)
         flotante c = lista_obtener(fila1, 0)
         flotante d = lista_obtener(fila1, 1)
@@ -437,7 +435,7 @@ clase ReduccionDimensionalidad extiende AnalizadorBase
             si usar_metodo_b entonces
                 # v = [b, λ-a]
                 v1 = b
-                v2 = lambda - a
+                v2 = lambda - _a
             fin_si
 
             si no usar_metodo_b y usar_metodo_c entonces

@@ -13,8 +13,8 @@
 # 6. Métodos auxiliares para cálculo de centroides y distancias
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { raiz_cuadrada } de "../math_lib.jasb"
 
 clase MetricasClustering extiende AnalizadorBase
 

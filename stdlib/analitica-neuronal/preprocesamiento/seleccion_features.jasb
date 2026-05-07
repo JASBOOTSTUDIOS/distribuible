@@ -4,7 +4,7 @@
 # ARCHIVO TEMPORALMENTE DESHABILITADO
 # Requiere reescritura completa de sintaxis
 
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 clase SeleccionFeatures extiende AnalizadorBase
     funcion inicializar()

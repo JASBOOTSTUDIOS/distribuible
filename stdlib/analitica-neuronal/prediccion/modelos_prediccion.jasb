@@ -13,7 +13,7 @@
 # =============================================================================
 # =============================================================================
 
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 clase ModelosPrediccion extiende AnalizadorBase
 
@@ -222,7 +222,7 @@ fin_funcion
         lista _resultado = crear_lista()
 
         si A == nulo o B == nulo o lista_tamano(A) == 0 o lista_tamano(B) == 0 entonces
-            retornar resultado
+            retornar _resultado
         fin_si
 
         entero m = lista_tamano(A)
@@ -233,7 +233,7 @@ fin_funcion
 
         # Verificar dimensiones compatibles
         si lista_tamano(B) != n entonces
-            retornar resultado
+            retornar _resultado
         fin_si
 
         # Multiplicación A * B
@@ -255,11 +255,11 @@ fin_funcion
                 lista_agregar(fila_resultado, suma)
                 j = j + 1
             fin_mientras
-            lista_agregar(resultado, fila_resultado)
+            lista_agregar(_resultado, fila_resultado)
             i = i + 1
         fin_mientras
 
-        retornar resultado
+        retornar _resultado
     fin_funcion
 
     # Función: invertir_matriz_2x2
@@ -515,10 +515,10 @@ fin_funcion
     # Propósito: Entrenar un modelo de regresión polinomial
     # Parámetros: X (lista de valores), y (lista de valores), grado del polinomio
     # Retorna: mapa con coeficientes, grado y R²
-    funcion regresion_polinomial(lista X, lista y, entero grado) retorna mapa
+    funcion regresion_polinomial(lista X, lista _y, entero grado) retorna mapa
         mapa modelo = mapa_crear()
 
-        si X == nulo o y == nulo o lista_tamano(X) == 0 o lista_tamano(y) == 0 entonces
+        si X == nulo o _y == nulo o lista_tamano(X) == 0 o lista_tamano(_y) == 0 entonces
             retornar modelo
         fin_si
 
@@ -555,7 +555,7 @@ fin_funcion
         fin_mientras
 
         # Entrenar regresión lineal múltiple con features polinómicos
-        mapa modelo_multiple = este.regresion_lineal_multiple(X_poly, y)
+        mapa modelo_multiple = este.regresion_lineal_multiple(X_poly, _y)
 
         si modelo_multiple == nulo entonces
             retornar modelo

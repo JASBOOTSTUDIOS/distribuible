@@ -3,8 +3,8 @@
 # Implementación de redes neuronales con backpropagation
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia, exponencial } de "../math_lib.jasb"
 
 # =============================================================================
 # FUNCIONES DE ACTIVACIÓN
@@ -67,13 +67,8 @@ enviar clase RedesNeuronales extiende AnalizadorBase
     entero seed_global
 
     funcion inicializar()
-        este.inicializar_base("RedesNeuronales", "1.0.0")
+        padre.inicializar("RedesNeuronales", "1.0.0")
         este.seed_global = 42
-    fin_funcion
-
-    funcion inicializar_base(texto nombre, texto version)
-        este.nombre_analizador = nombre
-        este.version_analizador = version
     fin_funcion
 
     # =========================================================================
@@ -117,8 +112,8 @@ enviar clase RedesNeuronales extiende AnalizadorBase
             lista fila = crear_lista()
             entero j = 0
             mientras j < n_salida hacer
-                flotante peso = este.aleatorio_rango(-limite, limite)
-                lista_agregar(fila, peso)
+                flotante _peso = este.aleatorio_rango(-limite, limite)
+                lista_agregar(fila, _peso)
                 j = j + 1
             fin_mientras
             lista_agregar(matriz, fila)
@@ -210,9 +205,9 @@ enviar clase RedesNeuronales extiende AnalizadorBase
             flotante suma = 0.0
             entero j = 0
             mientras j < n_cols hacer
-                flotante peso = lista_obtener(fila, j)
-                flotante entrada = lista_obtener(vector, j)
-                suma = suma + (peso * entrada)
+                flotante _peso = lista_obtener(fila, j)
+                flotante _entrada = lista_obtener(vector, j)
+                suma = suma + (_peso * _entrada)
                 j = j + 1
             fin_mientras
 
@@ -223,13 +218,13 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         retornar _resultado
     fin_funcion
 
-    funcion sumar_vectores(lista a, lista b) retorna lista
+    funcion sumar_vectores(lista _a, lista b) retorna lista
         lista _resultado = crear_lista()
-        entero n = lista_tamano(a)
+        entero n = lista_tamano(_a)
         entero i = 0
 
         mientras i < n hacer
-            flotante val_a = lista_obtener(a, i)
+            flotante val_a = lista_obtener(_a, i)
             flotante val_b = lista_obtener(b, i)
             lista_agregar(_resultado, val_a + val_b)
             i = i + 1
@@ -270,16 +265,16 @@ enviar clase RedesNeuronales extiende AnalizadorBase
             lista_agregar(todos_z, z)
 
             # Aplicar activación (excepto última capa que es lineal)
-            lista a = z
+            lista activacion_resultado = z
             si i < (n_capas - 1) entonces
-                a = este.aplicar_activacion_capa(z, activacion)
+                activacion_resultado = este.aplicar_activacion_capa(z, activacion)
             sino
                 # Última capa: activación lineal o sigmoid para clasificación
-                a = este.aplicar_activacion_capa(z, "sigmoid")
+                activacion_resultado = este.aplicar_activacion_capa(z, "sigmoid")
             fin_si
 
-            lista_agregar(todas_activaciones, a)
-            entrada_actual = a
+            lista_agregar(todas_activaciones, activacion_resultado)
+            entrada_actual = activacion_resultado
             i = i + 1
         fin_mientras
 
@@ -300,12 +295,12 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         texto activacion = mapa_obtener(modelo, "activacion")
 
         lista todos_z = mapa_obtener(activaciones, "z")
-        lista todas_a = mapa_obtener(activaciones, "a")
+        lista activaciones_todas = mapa_obtener(activaciones, "a")
 
         entero n_capas = lista_tamano(pesos_capas)
 
         # Calcular error en la salida
-        lista salida = lista_obtener(todas_a, n_capas)
+        lista salida = lista_obtener(activaciones_todas, n_capas)
         flotante y_pred = lista_obtener(salida, 0)
         flotante error_salida = y_pred - flot_y
 
@@ -316,8 +311,7 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         # Backpropagation hacia atrás
         entero capa = n_capas - 1
         mientras capa >= 0 hacer
-            lista z_capa = lista_obtener(todos_z, capa)
-            lista a_prev = lista_obtener(todas_a, capa)
+            lista a_prev = lista_obtener(activaciones_todas, capa)
             lista pesos = lista_obtener(pesos_capas, capa)
             lista sesgos = lista_obtener(sesgos_capas, capa)
 
@@ -344,10 +338,10 @@ enviar clase RedesNeuronales extiende AnalizadorBase
 
                 entero j = 0
                 mientras j < n_neuronas hacer
-                    flotante peso = lista_obtener(fila, j)
+                    flotante _peso = lista_obtener(fila, j)
                     flotante a_val = lista_obtener(a_prev, i)
                     flotante d = lista_obtener(delta, j)
-                    flotante nuevo_peso = peso - (lr * d * a_val)
+                    flotante nuevo_peso = _peso - (lr * d * a_val)
                     lista_agregar(nueva_fila, nuevo_peso)
                     j = j + 1
                 fin_mientras
@@ -371,9 +365,9 @@ enviar clase RedesNeuronales extiende AnalizadorBase
                     entero j = 0
                     mientras j < n_neuronas hacer
                         lista fila = lista_obtener(pesos, i)
-                        flotante peso = lista_obtener(fila, j)
+                        flotante _peso = lista_obtener(fila, j)
                         flotante d = lista_obtener(delta, j)
-                        suma = suma + (peso * d)
+                        suma = suma + (_peso * d)
                         j = j + 1
                     fin_mientras
 

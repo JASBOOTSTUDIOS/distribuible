@@ -1,8 +1,8 @@
 # =============================================================================
 # MÓDULO DE PROBABILIDAD (VERSIÓN CLASES)
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 clase Probabilidad extiende AnalizadorBase
 

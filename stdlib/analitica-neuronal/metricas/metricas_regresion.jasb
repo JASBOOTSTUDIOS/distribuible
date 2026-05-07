@@ -15,8 +15,8 @@
 # 8. Informe completo de métricas
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada } de "../math_lib.jasb"
 
 clase MetricasRegresion extiende AnalizadorBase
 

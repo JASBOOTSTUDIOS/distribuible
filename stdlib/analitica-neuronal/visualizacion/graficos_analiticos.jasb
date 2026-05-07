@@ -1,7 +1,7 @@
 # =============================================================================
 # MÓDULO de VISUALIZACIÓN ANALÍTICA (VERSIÓN CLASES)
 # =============================================================================
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 usar { EstadisticaDescriptiva } de "../estadistica/estadistica_descriptiva.jasb"
 
 clase VisualizadorAnalitico extiende AnalizadorBase

@@ -2,6 +2,8 @@
 # Implementación de Random Forest (Bosque Aleatorio)
 # Ensemble learning con árboles de decisión y votación
 
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 usar { ArbolesDecision } de "./arboles_decision.jasb"
 
 # ==============================================================================
@@ -9,7 +11,7 @@ usar { ArbolesDecision } de "./arboles_decision.jasb"
 # Ensemble de árboles de decisión con bootstrap sampling
 # ==============================================================================
 
-clase RandomForest
+enviar clase RandomForest extiende AnalizadorBase
     texto nombre
     texto tipo_modelo
     bool entrenado
@@ -17,7 +19,8 @@ clase RandomForest
     bool es_clasificacion
 
     # Constructor
-    funcion constructor()
+    funcion inicializar()
+        padre.inicializar("RandomForest", "V1.0")
         este.nombre = "RandomForest"
         este.tipo_modelo = "ensemble"
         este.entrenado = falso
@@ -29,15 +32,15 @@ clase RandomForest
     # MÉTODO: random_forest_fit
     # Entrena un ensemble de árboles de decisión con bootstrap sampling
     # ==========================================================================
-    funcion random_forest_fit(lista X, lista y, entero n_arboles, entero max_prof, entero seed) retorna mapa
-        si (lista_tamano(X) == 0 o lista_tamano(y) == 0) entonces
+    funcion random_forest_fit(lista X, lista _y, entero n_arboles, entero max_prof, entero seed) retorna mapa
+        si (lista_tamano(X) == 0 o lista_tamano(_y) == 0) entonces
             imprimir "[RandomForest] ERROR: Datos vacíos"
             retornar nulo
         fin_si
 
         entero n_muestras = lista_tamano(X)
-        si (n_muestras != lista_tamano(y)) entonces
-            imprimir "[RandomForest] ERROR: Tamaños de X e y no coinciden"
+        si (n_muestras != lista_tamano(_y)) entonces
+            imprimir "[RandomForest] ERROR: Tamaños de X e _y no coinciden"
             retornar nulo
         fin_si
 
@@ -60,7 +63,7 @@ clase RandomForest
         entero i = 0
         mientras (i < n_arboles) hacer
             # Bootstrap sampling
-            mapa muestra = este.bootstrap_sample(X, y, semilla_actual)
+            mapa muestra = este.bootstrap_sample(X, _y, semilla_actual)
             lista X_boot = mapa_obtener(muestra, "X")
             lista y_boot = mapa_obtener(muestra, "y")
 
@@ -232,7 +235,7 @@ clase RandomForest
     # MÉTODO AUXILIAR: bootstrap_sample
     # Muestreo con reemplazo para crear conjunto de entrenamiento
     # ==========================================================================
-    funcion bootstrap_sample(lista X, lista y, entero seed) retorna mapa
+    funcion bootstrap_sample(lista X, lista _y, entero seed) retorna mapa
         entero n_muestras = lista_tamano(X)
 
         lista X_boot = lista_crear()
@@ -245,7 +248,7 @@ clase RandomForest
             entero idx = este.random_index(seed + i, n_muestras)
 
             lista x_muestra = lista_obtener(X, idx)
-            elemento y_muestra = lista_obtener(y, idx)
+            elemento y_muestra = lista_obtener(_y, idx)
 
             lista_agregar(X_boot, x_muestra)
             lista_agregar(y_boot, y_muestra)
@@ -349,8 +352,8 @@ clase RandomForest
     funcion random_index(entero seed, entero max) retorna entero
         # LCG: X(n+1) = (a * X(n) + c) mod m
         # a = 1664525, c = 1013904223, m = 2147483647
-        entero valor = (1664525 * seed + 1013904223) % 2147483647
-        entero idx = valor % max
+        entero _valor = (1664525 * seed + 1013904223) % 2147483647
+        entero idx = _valor % max
 
         si (idx < 0) entonces
             idx = -idx

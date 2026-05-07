@@ -1,0 +1,84 @@
+# =============================================================================
+# REDES NEURONALES RECURRENTES (RNN)
+# =============================================================================
+# Propósito: Implementar una capa recurrente básica (Vanilla RNN)
+#            para procesar secuencias de datos.
+# =============================================================================
+
+usar { AnalizadorBase } de "../base.jasb"
+usar { RedesNeuronales, activacion_tanh, derivada_tanh } de "./redes_neuronales.jasb"
+
+enviar clase CapaRecurrente extiende AnalizadorBase
+    # Pesos de la RNN
+    lista Wxh  # Entrada a Oculta
+    lista Whh  # Oculta a Oculta (Recurrencia)
+    lista Why  # Oculta a Salida
+    lista bh   # Sesgo Oculta
+    lista by   # Sesgo Salida
+    
+    entero n_entrada
+    entero n_ocultas
+    entero n_salida
+    
+    RedesNeuronales nn_base
+
+    funcion inicializar(entero in_dim, entero hidden_dim, entero out_dim)
+        padre.inicializar("CapaRecurrente", "1.0.0")
+        este.n_entrada = in_dim
+        este.n_ocultas = hidden_dim
+        este.n_salida = out_dim
+        
+        este.nn_base = RedesNeuronales()
+        este.nn_base.inicializar()
+        
+        # Inicializar pesos aleatorios
+        este.Wxh = este.nn_base.inicializar_pesos(hidden_dim, in_dim, 1)
+        este.Whh = este.nn_base.inicializar_pesos(hidden_dim, hidden_dim, 2)
+        este.Why = este.nn_base.inicializar_pesos(out_dim, hidden_dim, 3)
+        este.bh = este.nn_base.inicializar_sesgos(hidden_dim)
+        este.by = este.nn_base.inicializar_sesgos(out_dim)
+    fin_funcion
+
+    # Forward pass para un paso de tiempo
+    # x: vector de entrada (lista)
+    # h_prev: estado oculto anterior (lista)
+    # retorna mapa con nuevo h y salida y
+    funcion paso_forward(lista x, lista h_prev) retorna mapa
+        # h = tanh(Wxh * x + Whh * h_prev + bh)
+        lista term_in = este.nn_base.multiplicar_matriz_vector(este.Wxh, x)
+        lista term_rec = este.nn_base.multiplicar_matriz_vector(este.Whh, h_prev)
+        
+        lista suma_h = este.nn_base.sumar_vectores(term_in, term_rec)
+        suma_h = este.nn_base.sumar_vectores(suma_h, este.bh)
+        
+        lista h_nuevo = este.nn_base.aplicar_activacion_capa(suma_h, "tanh")
+        
+        # y = Why * h + by
+        lista term_out = este.nn_base.multiplicar_matriz_vector(este.Why, h_nuevo)
+        lista y_salida = este.nn_base.sumar_vectores(term_out, este.by)
+        
+        mapa res = mapa_crear()
+        mapa_poner(res, "h", h_nuevo)
+        mapa_poner(res, "y", y_salida)
+        retornar res
+    fin_funcion
+
+    # Procesa una secuencia completa
+    funcion procesar_secuencia(lista secuencia) retorna lista
+        entero n = lista_tamano(secuencia)
+        lista h = este.nn_base.inicializar_sesgos(este.n_ocultas) # Iniciar en ceros
+        lista salidas = crear_lista()
+        
+        entero t = 0
+        mientras t < n hacer
+            lista x_t = lista_obtener(secuencia, t)
+            mapa paso = este.paso_forward(x_t, h)
+            h = mapa_obtener(paso, "h")
+            lista_agregar(salidas, mapa_obtener(paso, "y"))
+            t = t + 1
+        fin_mientras
+        
+        retornar salidas
+    fin_funcion
+
+fin_clase

@@ -1,8 +1,8 @@
 # =============================================================================
 # MÓDULO DE GRADIENT BOOSTING
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia, exponencial } de "../math_lib.jasb"
 usar { ArbolesDecision } de "./arboles_decision.jasb"
 
 clase GradientBoosting extiende AnalizadorBase
@@ -23,9 +23,9 @@ clase GradientBoosting extiende AnalizadorBase
         entero i = 0
 
         mientras i < n hacer
-            elemento y_r = lista_obtener(y_real, i)
-            elemento y_p = lista_obtener(y_pred, i)
-            flotante residuo = y_r - y_p
+            flotante real = lista_obtener(y_real, i)
+            flotante pred = lista_obtener(y_pred, i)
+            flotante residuo = real - pred
             lista_agregar(residuos, residuo)
             i = i + 1
         fin_mientras
@@ -37,49 +37,56 @@ clase GradientBoosting extiende AnalizadorBase
     funcion predecir_con_arbol(mapa arbol, lista x) retorna flotante
         # Si es un nodo hoja, retorna el valor
         si mapa_contiene(arbol, "es_hoja") entonces
-            elemento es_hoja = mapa_obtener(arbol, "es_hoja")
+            elemento es_hoja = nulo
+            es_hoja = mapa_obtener(arbol, "es_hoja")
             si es_hoja == verdadero entonces
-                elemento valor = mapa_obtener(arbol, "valor")
+                flotante valor = 0.0
+                valor = mapa_obtener(arbol, "valor")
                 retornar valor
             fin_si
         fin_si
 
         # Si no es hoja, navegar el árbol
-        elemento idx_feature = mapa_obtener(arbol, "idx_feature")
-        elemento umbral = mapa_obtener(arbol, "umbral")
-        elemento valor_x = lista_obtener(x, idx_feature)
+        entero idx_feature = 0
+        idx_feature = mapa_obtener(arbol, "idx_feature")
+        flotante umbral = 0.0
+        umbral = mapa_obtener(arbol, "umbral")
+        flotante valor_x = 0.0
+        valor_x = lista_obtener(x, idx_feature)
 
         si valor_x < umbral entonces
-            mapa hijo_izq = mapa_obtener(arbol, "izquierda")
+            mapa hijo_izq = nulo
+            hijo_izq = mapa_obtener(arbol, "izquierda")
             retornar este.predecir_con_arbol(hijo_izq, x)
         sino
-            mapa hijo_der = mapa_obtener(arbol, "derecha")
+            mapa hijo_der = nulo
+            hijo_der = mapa_obtener(arbol, "derecha")
             retornar este.predecir_con_arbol(hijo_der, x)
         fin_si
     fin_funcion
 
     # Calcula predicciones iniciales (media de y)
-    funcion calcular_prediccion_inicial(lista y) retorna flotante
-        flotante suma = 0.0
-        entero n = lista_tamano(y)
-        entero i = 0
+    funcion calcular_prediccion_inicial(lista _y) retorna flotante
+        flotante suma_ini = 0.0
+        entero n_ini = lista_tamano(_y)
+        entero i_ini = 0
 
-        mientras i < n hacer
-            elemento val = lista_obtener(y, i)
-            suma = suma + val
-            i = i + 1
+        mientras i_ini < n_ini hacer
+            flotante val_ini = lista_obtener(_y, i_ini)
+            suma_ini = suma_ini + val_ini
+            i_ini = i_ini + 1
         fin_mientras
 
-        retornar suma / n
+        retornar suma_ini / n_ini
     fin_funcion
 
     # Inicializa predicciones con valor constante
-    funcion inicializar_predicciones(entero n, flotante valor) retorna lista
+    funcion inicializar_predicciones(entero n, flotante _valor) retorna lista
         lista pred = crear_lista()
         entero i = 0
 
         mientras i < n hacer
-            lista_agregar(pred, valor)
+            lista_agregar(pred, _valor)
             i = i + 1
         fin_mientras
 
@@ -93,7 +100,7 @@ clase GradientBoosting extiende AnalizadorBase
         entero i = 0
 
         mientras i < n hacer
-            lista x_i = lista_obtener(X, i)
+            elemento x_i = lista_obtener(X, i)
             flotante pred_actual_i = lista_obtener(pred_actual, i)
             flotante pred_arbol = este.predecir_con_arbol(arbol, x_i)
             flotante nueva_pred = pred_actual_i + (lr * pred_arbol)
@@ -104,8 +111,8 @@ clase GradientBoosting extiende AnalizadorBase
         retornar pred_nueva
     fin_funcion
 
-    # Construye árbol de decisión para regresión
-    funcion construir_arbol_regresion(lista X, lista y_target, entero max_prof, entero profundidad_actual) retorna mapa
+    # Construir subárboles recursivamente
+    funcion construir_arbol_regresion_sub(lista X, lista y_target, entero max_prof, entero profundidad_actual) retorna mapa
         entero n = lista_tamano(y_target)
 
         # Condición de parada: profundidad máxima o muy pocas muestras
@@ -114,7 +121,7 @@ clase GradientBoosting extiende AnalizadorBase
             flotante suma = 0.0
             entero i = 0
             mientras i < n hacer
-                elemento val = lista_obtener(y_target, i)
+                flotante val = lista_obtener(y_target, i)
                 suma = suma + val
                 i = i + 1
             fin_mientras
@@ -128,21 +135,19 @@ clase GradientBoosting extiende AnalizadorBase
 
         # Encontrar mejor división
         mapa mejor_division = este.encontrar_mejor_division_regresion(X, y_target)
-
         si mejor_division == nulo entonces
-            # No se pudo dividir, crear hoja
+            # Crear nodo hoja con promedio
             flotante suma = 0.0
             entero i = 0
             mientras i < n hacer
-                elemento val = lista_obtener(y_target, i)
+                flotante val = lista_obtener(y_target, i)
                 suma = suma + val
                 i = i + 1
             fin_mientras
-            flotante promedio = suma / n
 
             mapa hoja = mapa_crear()
             mapa_poner(hoja, "es_hoja", verdadero)
-            mapa_poner(hoja, "valor", promedio)
+            mapa_poner(hoja, "valor", suma / n)
             retornar hoja
         fin_si
 
@@ -157,7 +162,7 @@ clase GradientBoosting extiende AnalizadorBase
 
         entero i = 0
         mientras i < n hacer
-            lista x_i = lista_obtener(X, i)
+            elemento x_i = lista_obtener(X, i)
             elemento y_i = lista_obtener(y_target, i)
             elemento valor_feature = lista_obtener(x_i, idx_feature)
 
@@ -177,8 +182,8 @@ clase GradientBoosting extiende AnalizadorBase
         mapa_poner(arbol, "idx_feature", idx_feature)
         mapa_poner(arbol, "umbral", umbral)
 
-        mapa hijo_izq = este.construir_arbol_regresion(X_izq, y_izq, max_prof, profundidad_actual + 1)
-        mapa hijo_der = este.construir_arbol_regresion(X_der, y_der, max_prof, profundidad_actual + 1)
+        mapa hijo_izq = este.construir_arbol_regresion_sub(X_izq, y_izq, max_prof, profundidad_actual + 1)
+        mapa hijo_der = este.construir_arbol_regresion_sub(X_der, y_der, max_prof, profundidad_actual + 1)
 
         mapa_poner(arbol, "izquierda", hijo_izq)
         mapa_poner(arbol, "derecha", hijo_der)
@@ -187,7 +192,7 @@ clase GradientBoosting extiende AnalizadorBase
     fin_funcion
 
     # Encuentra la mejor división para regresión (minimiza MSE)
-    funcion encontrar_mejor_division_regresion(lista X, lista y) retorna mapa
+    funcion encontrar_mejor_division_regresion(lista X, lista _y) retorna mapa
         entero n = lista_tamano(X)
         si n == 0 entonces retornar nulo fin_si
 
@@ -200,15 +205,15 @@ clase GradientBoosting extiende AnalizadorBase
         bool encontrado = falso
 
         # Probar cada feature
-        entero f = 0
-        mientras f < n_features hacer
+        entero f_idx = 0
+        mientras f_idx < n_features hacer
             # Obtener valores únicos del feature
             lista valores = crear_lista()
             entero i = 0
             mientras i < n hacer
-                lista x_i = lista_obtener(X, i)
-                elemento val = lista_obtener(x_i, f)
-                lista_agregar(valores, val)
+                elemento x_i = lista_obtener(X, i)
+                elemento val_u = lista_obtener(x_i, f_idx)
+                lista_agregar(valores, val_u)
                 i = i + 1
             fin_mientras
 
@@ -255,9 +260,9 @@ clase GradientBoosting extiende AnalizadorBase
 
                 entero i = 0
                 mientras i < n hacer
-                    lista x_i = lista_obtener(X, i)
-                    elemento y_i = lista_obtener(y, i)
-                    elemento valor_feature = lista_obtener(x_i, f)
+                    elemento x_i = lista_obtener(X, i)
+                    elemento y_i = lista_obtener(_y, i)
+                    elemento valor_feature = lista_obtener(x_i, f_idx)
 
                     si valor_feature < umbral entonces
                         lista_agregar(y_izq, y_i)
@@ -277,7 +282,7 @@ clase GradientBoosting extiende AnalizadorBase
 
                     si mse_total < mejor_mse entonces
                         mejor_mse = mse_total
-                        mejor_idx = f
+                        mejor_idx = f_idx
                         mejor_umbral = umbral
                         encontrado = verdadero
                     fin_si
@@ -286,47 +291,45 @@ clase GradientBoosting extiende AnalizadorBase
                 v_idx = v_idx + 1
             fin_mientras
 
-            f = f + 1
+            f_idx = f_idx + 1
         fin_mientras
 
-        si encontrado == falso entonces
-            retornar nulo
+        si encontrado == verdadero entonces
+            mapa res = mapa_crear()
+            mapa_poner(res, "idx_feature", mejor_idx)
+            mapa_poner(res, "umbral", mejor_umbral)
+            retornar res
         fin_si
 
-        mapa division = mapa_crear()
-        mapa_poner(division, "idx_feature", mejor_idx)
-        mapa_poner(division, "umbral", mejor_umbral)
-        mapa_poner(division, "mse", mejor_mse)
-
-        retornar division
+        retornar nulo
     fin_funcion
 
     # Calcula MSE simple de una lista de valores
-    funcion calcular_mse_simple(lista y) retorna flotante
-        entero n = lista_tamano(y)
-        si n == 0 entonces retornar 0.0 fin_si
+    funcion calcular_mse_simple(lista _y) retorna flotante
+        entero n_ms = lista_tamano(_y)
+        si n_ms == 0 entonces retornar 0.0 fin_si
 
         # Calcular media
-        flotante suma = 0.0
-        entero i = 0
-        mientras i < n hacer
-            elemento val = lista_obtener(y, i)
-            suma = suma + val
-            i = i + 1
+        flotante suma_ms = 0.0
+        entero i_ms = 0
+        mientras i_ms < n_ms hacer
+            flotante val_ms = lista_obtener(_y, i_ms)
+            suma_ms = suma_ms + val_ms
+            i_ms = i_ms + 1
         fin_mientras
-        flotante media = suma / n
+        flotante media_ms = suma_ms / n_ms
 
         # Calcular MSE
-        flotante suma_cuadrados = 0.0
-        i = 0
-        mientras i < n hacer
-            elemento val = lista_obtener(y, i)
-            flotante diff = val - media
-            suma_cuadrados = suma_cuadrados + (diff * diff)
-            i = i + 1
+        flotante suma_cuadrados_ms = 0.0
+        entero j_ms = 0
+        mientras j_ms < n_ms hacer
+            flotante val_j = lista_obtener(_y, j_ms)
+            flotante diff_j = val_j - media_ms
+            suma_cuadrados_ms = suma_cuadrados_ms + (diff_j * diff_j)
+            j_ms = j_ms + 1
         fin_mientras
 
-        retornar suma_cuadrados / n
+        retornar suma_cuadrados_ms / n_ms
     fin_funcion
 
     # =============================================================================
@@ -334,13 +337,13 @@ clase GradientBoosting extiende AnalizadorBase
     # =============================================================================
 
     # Entrena el modelo Gradient Boosting
-    funcion gradient_boosting_fit(lista X, lista y, entero n_estimadores, flotante learning_rate, entero max_prof) retorna mapa
+    funcion gradient_boosting_fit(lista X, lista _y, entero n_estimadores, flotante learning_rate, entero max_prof) retorna mapa
         este.describir()
         imprimir "Entrenando Gradient Boosting con " + n_estimadores + " estimadores..."
 
         # Validar datos
         entero n_muestras = lista_tamano(X)
-        entero n_y = lista_tamano(y)
+        entero n_y = lista_tamano(_y)
 
         si n_muestras == 0 o n_y == 0 o n_muestras != n_y entonces
             imprimir "[ERROR] Datos de entrada inválidos"
@@ -348,7 +351,7 @@ clase GradientBoosting extiende AnalizadorBase
         fin_si
 
         # Calcular predicción inicial (media de y)
-        flotante pred_inicial = este.calcular_prediccion_inicial(y)
+        flotante pred_inicial = este.calcular_prediccion_inicial(_y)
         imprimir "Predicción inicial: " + pred_inicial
 
         # Inicializar predicciones con valor constante
@@ -361,10 +364,10 @@ clase GradientBoosting extiende AnalizadorBase
         entero t = 0
         mientras t < n_estimadores hacer
             # Calcular residuos (gradientes negativos)
-            lista residuos = este.calcular_residuos(y, predicciones)
+            lista residuos = este.calcular_residuos(_y, predicciones)
 
             # Entrenar árbol en los residuos
-            mapa arbol = este.construir_arbol_regresion(X, residuos, max_prof, 0)
+            mapa arbol = este.construir_arbol_regresion_sub(X, residuos, max_prof, 0)
             lista_agregar(arboles, arbol)
 
             # Actualizar predicciones
@@ -372,7 +375,7 @@ clase GradientBoosting extiende AnalizadorBase
 
             # Calcular error actual
             si (t + 1) == 1 o (t + 1) == 10 o (t + 1) == n_estimadores entonces
-                flotante mse = este.calcular_mse_simple(este.calcular_residuos(y, predicciones))
+                flotante mse = este.calcular_mse_simple(este.calcular_residuos(_y, predicciones))
                 imprimir "Estimador " + (t + 1) + " - MSE: " + mse
             fin_si
 
@@ -409,12 +412,12 @@ clase GradientBoosting extiende AnalizadorBase
 
         # Sumar contribuciones de cada árbol
         entero n_arboles = lista_tamano(arboles)
-        entero i = 0
-        mientras i < n_arboles hacer
-            mapa arbol = lista_obtener(arboles, i)
+        entero i_sum = 0
+        mientras i_sum < n_arboles hacer
+            mapa arbol = lista_obtener(arboles, i_sum)
             flotante contribucion = este.predecir_con_arbol(arbol, x_nuevo)
             prediccion = prediccion + (lr * contribucion)
-            i = i + 1
+            i_sum = i_sum + 1
         fin_mientras
 
         retornar prediccion
@@ -429,8 +432,8 @@ clase GradientBoosting extiende AnalizadorBase
 
         entero i = 0
         mientras i < n hacer
-            lista x_i = lista_obtener(X_test, i)
-            flotante pred = este.gradient_boosting_predecir(modelo, x_i)
+            elemento x_i_p = lista_obtener(X_test, i)
+            flotante pred = este.gradient_boosting_predecir(modelo, x_i_p)
             lista_agregar(predicciones, pred)
             i = i + 1
         fin_mientras
@@ -474,20 +477,20 @@ clase GradientBoosting extiende AnalizadorBase
         entero i = 0
         mientras i < lista_tamano(claves) hacer
             elemento clave = lista_obtener(claves, i)
-            elemento valor = mapa_obtener(importancias, clave)
-            suma_total = suma_total + valor
+            elemento _valor = mapa_obtener(importancias, clave)
+            suma_total = suma_total + _valor
             i = i + 1
         fin_mientras
 
         si suma_total > 0.0 entonces
             mapa importancias_norm = mapa_crear()
-            i = 0
-            mientras i < lista_tamano(claves) hacer
-                elemento clave = lista_obtener(claves, i)
-                elemento valor = mapa_obtener(importancias, clave)
-                flotante norm = valor / suma_total
-                mapa_poner(importancias_norm, clave, norm)
-                i = i + 1
+            entero i_norm = 0
+            mientras i_norm < lista_tamano(claves) hacer
+                elemento clave_norm = lista_obtener(claves, i_norm)
+                elemento valor_norm = mapa_obtener(importancias, clave_norm)
+                flotante norm = valor_norm / suma_total
+                mapa_poner(importancias_norm, clave_norm, norm)
+                i_norm = i_norm + 1
             fin_mientras
 
             imprimir "Importancia de features calculada"
@@ -498,7 +501,7 @@ clase GradientBoosting extiende AnalizadorBase
     fin_funcion
 
     # Acumula importancia de un árbol (recursivo)
-    funcion acumular_importancia_arbol(mapa arbol, mapa importancias, lista claves_features, flotante peso)
+    funcion acumular_importancia_arbol(mapa arbol, mapa importancias, lista claves_features, flotante _peso)
         # Si es hoja, no contribuye
         si mapa_contiene(arbol, "es_hoja") entonces
             elemento es_hoja = mapa_obtener(arbol, "es_hoja")
@@ -508,28 +511,32 @@ clase GradientBoosting extiende AnalizadorBase
         fin_si
 
         # Obtener feature usado en este nodo
-        elemento idx_feature = mapa_obtener(arbol, "idx_feature")
+        entero idx_feature = 0
+        idx_feature = mapa_obtener(arbol, "idx_feature")
         texto clave_feature = "feature_" + idx_feature
 
         # Incrementar importancia de este feature
         si mapa_contiene(importancias, clave_feature) entonces
-            elemento valor_actual = mapa_obtener(importancias, clave_feature)
-            flotante nuevo_valor = valor_actual + peso
+            flotante valor_actual = 0.0
+            valor_actual = mapa_obtener(importancias, clave_feature)
+            flotante nuevo_valor = valor_actual + _peso
             mapa_poner(importancias, clave_feature, nuevo_valor)
         sino
-            mapa_poner(importancias, clave_feature, peso)
+            mapa_poner(importancias, clave_feature, _peso)
             lista_agregar(claves_features, clave_feature)
         fin_si
 
-        # Recursión en subárboles
+        # Acumular importancia de subárboles
         si mapa_contiene(arbol, "izquierda") entonces
-            mapa hijo_izq = mapa_obtener(arbol, "izquierda")
-            este.acumular_importancia_arbol(hijo_izq, importancias, claves_features, peso * 0.5)
+            mapa hijo_izq = nulo
+            hijo_izq = mapa_obtener(arbol, "izquierda")
+            este.acumular_importancia_arbol(hijo_izq, importancias, claves_features, _peso * 0.5)
         fin_si
 
         si mapa_contiene(arbol, "derecha") entonces
-            mapa hijo_der = mapa_obtener(arbol, "derecha")
-            este.acumular_importancia_arbol(hijo_der, importancias, claves_features, peso * 0.5)
+            mapa hijo_der = nulo
+            hijo_der = mapa_obtener(arbol, "derecha")
+            este.acumular_importancia_arbol(hijo_der, importancias, claves_features, _peso * 0.5)
         fin_si
     fin_funcion
 
@@ -604,33 +611,33 @@ clase GradientBoosting extiende AnalizadorBase
 
     # Calcula R²
     funcion calcular_r2(lista y_real, lista y_pred) retorna flotante
-        entero n = lista_tamano(y_real)
+        entero n_r2 = lista_tamano(y_real)
 
         # Calcular media de y_real
-        flotante suma = 0.0
-        entero i = 0
-        mientras i < n hacer
-            flotante val = lista_obtener(y_real, i)
-            suma = suma + val
-            i = i + 1
+        flotante suma_r2 = 0.0
+        entero i_r2 = 0
+        mientras i_r2 < n_r2 hacer
+            flotante val_r2 = lista_obtener(y_real, i_r2)
+            suma_r2 = suma_r2 + val_r2
+            i_r2 = i_r2 + 1
         fin_mientras
-        flotante media = suma / n
+        flotante media_r2 = suma_r2 / n_r2
 
         # Calcular SS_tot y SS_res
         flotante ss_tot = 0.0
         flotante ss_res = 0.0
 
-        i = 0
-        mientras i < n hacer
-            flotante real = lista_obtener(y_real, i)
-            flotante pred = lista_obtener(y_pred, i)
+        entero j_r2 = 0
+        mientras j_r2 < n_r2 hacer
+            flotante real_j = lista_obtener(y_real, j_r2)
+            flotante pred_j = lista_obtener(y_pred, j_r2)
 
-            flotante diff_media = real - media
-            flotante diff_pred = real - pred
+            flotante diff_media = real_j - media_r2
+            flotante diff_pred = real_j - pred_j
 
             ss_tot = ss_tot + (diff_media * diff_media)
             ss_res = ss_res + (diff_pred * diff_pred)
-            i = i + 1
+            j_r2 = j_r2 + 1
         fin_mientras
 
         si ss_tot == 0.0 entonces

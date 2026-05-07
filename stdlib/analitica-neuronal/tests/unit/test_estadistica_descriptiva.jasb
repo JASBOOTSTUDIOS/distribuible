@@ -1,0 +1,22 @@
+# =============================================================================
+# TEST UNITARIO PARA ESTADÍSTICA DESCRIPTIVA - UNO POR UNO
+# =============================================================================
+# Propósito: Probar cada función individualmente
+# =============================================================================
+
+# Importación específica de la clase y funciones
+usar { EstadisticaDescriptiva, _estadistica_global, ejecutar_pruebas } de "../../estadistica/estadistica_descriptiva.jasb"
+
+# =============================================================================
+# TEST 1: CONSTRUCTOR - INICIALIZAR()
+# =============================================================================
+principal
+    EstadisticaDescriptiva estadistica
+    imprimir "=============================================================================="
+    imprimir "TEST 1: CONSTRUCTOR - INICIALIZAR()"
+    imprimir "=============================================================================="
+    entero de = -10 
+    imprimir de
+   
+    imprimir "=============================================================================="
+fin_principal

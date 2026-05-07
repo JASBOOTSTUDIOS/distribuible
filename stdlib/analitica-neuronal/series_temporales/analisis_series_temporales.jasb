@@ -1,7 +1,8 @@
 # =============================================================================
 # MÓDULO DE ANÁLISIS DE SERIES TEMPORALES (VERSIÓN CLASES)
 # =============================================================================
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 clase SeriesTemporales extiende AnalizadorBase
 
@@ -19,15 +20,17 @@ clase SeriesTemporales extiende AnalizadorBase
         entero n = lista_tamano(datos)
         si n < ventana entonces retornar _v_resultado fin_si
 
+        entero ultimo_inicio = n - ventana
         entero i = 0
-        mientras i <= n - ventana hacer
+        mientras i <= ultimo_inicio hacer
             flotante suma = 0.0
             entero j = 0
             mientras j < ventana hacer
-                suma = suma + lista_obtener(datos, i + j)
+                suma = suma + convertir_flotante(lista_obtener(datos, i + j))
                 j = j + 1
             fin_mientras
-            lista_agregar(_v_resultado, suma / ventana)
+            flotante ventana_f = ventana + 0.0
+            lista_agregar(_v_resultado, suma / ventana_f)
             i = i + 1
         fin_mientras
 
@@ -96,21 +99,21 @@ clase SeriesTemporales extiende AnalizadorBase
         flotante suma = 0.0
         entero i = 0
         mientras i < n hacer
-            suma = suma + lista_obtener(datos, i)
+            suma = suma + convertir_flotante(lista_obtener(datos, i))
             i = i + 1
         fin_mientras
-        flotante media = suma / n
+        flotante media = suma / (n + 0.0)
 
         flotante num = 0.0
         flotante den = 0.0
 
         i = 0
         mientras i < n hacer
-            flotante diff = lista_obtener(datos, i) - media
+            flotante diff = convertir_flotante(lista_obtener(datos, i)) - media
             den = den + (diff * diff)
 
             si i >= lag entonces
-                flotante diff_lag = lista_obtener(datos, i - lag) - media
+                flotante diff_lag = convertir_flotante(lista_obtener(datos, i - lag)) - media
                 num = num + (diff * diff_lag)
             fin_si
             i = i + 1

@@ -11,8 +11,8 @@
 # 4. Búsqueda Semántica por Similitud del Coseno
 # 5. Generación de Idea Creativa (Interpolación vectorial)
 # =============================================================================
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 clase ProcesadorLenguajeNatural extiende AnalizadorBase
 
@@ -25,27 +25,30 @@ clase ProcesadorLenguajeNatural extiende AnalizadorBase
     # 1. TOKENIZACIÓN BÁSICA
     # =============================================================================
     # Divide un texto en palabras individuales usando separadores comunes
+    # Subcadena + cadena vacía: reduce alias al guardar en lista en la VM.
+    # Incluye signos de apertura españoles como separadores.
     funcion tokenizar(texto contenido) retorna lista
         lista tokens = crear_lista()
-        texto palabra = ""
-        entero i = 0
         entero n = longitud_texto(contenido)
+        entero inicio = 0
+        entero i = 0
         
         mientras i < n hacer
             texto char = extraer_subtexto(contenido, i, 1)
-            si char == " " o char == "," o char == "." o char == ";" o char == "!" o char == "?" entonces
-                si longitud_texto(palabra) > 0 entonces
-                    lista_agregar(tokens, palabra)
-                    palabra = ""
+            si char == " " o char == "," o char == "." o char == ";" o char == "!" o char == "?"
+                    o char == "¡" o char == "¿" entonces
+                si i > inicio entonces
+                    texto trozo = extraer_subtexto(contenido, inicio, i - inicio)
+                    lista_agregar(tokens, trozo + "")
                 fin_si
-            sino
-                palabra = palabra + char
+                inicio = i + 1
             fin_si
             i = i + 1
         fin_mientras
         
-        si longitud_texto(palabra) > 0 entonces
-            lista_agregar(tokens, palabra)
+        si inicio < n entonces
+            texto ultimo = extraer_subtexto(contenido, inicio, n - inicio)
+            lista_agregar(tokens, ultimo + "")
         fin_si
         
         retornar tokens
@@ -95,8 +98,8 @@ clase ProcesadorLenguajeNatural extiende AnalizadorBase
         
         entero i = 0
         mientras i < n_v hacer
-            flotante tf = lista_obtener(tf_vec, i) / n_tokens
-            flotante df = lista_obtener(doc_frequencies, i) + 0.0
+            flotante tf = convertir_flotante(lista_obtener(tf_vec, i)) / n_tokens
+            flotante df = convertir_flotante(lista_obtener(doc_frequencies, i))
             
             # IDF aproximado: (Total / (1 + df)) para evitar log nativo
             flotante idf = (total_docs + 0.0) / (1.0 + df)

@@ -1,0 +1,133 @@
+# =============================================================================
+# MÓDULO DE NLP GENERATIVO (MODELOS DE LENGUAJE)
+# =============================================================================
+# Propósito: Implementar modelos probabilísticos para predicción de texto
+#            y generación de lenguaje natural (Cadenas de Markov, N-Grams).
+# =============================================================================
+
+usar { AnalizadorBase } de "../base.jasb"
+usar { ProcesadorLenguajeNatural } de "./nlp_basico.jasb"
+
+enviar clase ModeloLenguaje extiende AnalizadorBase
+    entero orden_n
+    mapa modelo_markov
+    ProcesadorLenguajeNatural procesador
+
+    # Constructor
+    funcion inicializar(entero n)
+        padre.inicializar("ModeloLenguaje", "1.0.0")
+        este.modelo_markov = mapa_crear()
+        este.orden_n = n
+        este.procesador = ProcesadorLenguajeNatural()
+        este.procesador.inicializar()
+    fin_funcion
+
+    # =========================================================================
+    # 1. ENTRENAMIENTO (CONSTRUCCIÓN DEL MODELO)
+    # =========================================================================
+
+    # Entrena el modelo con un corpus de texto
+    funcion entrenar(texto corpus)
+        lista v_tokens
+        v_tokens = este.procesador.tokenizar(corpus)
+        entero total = lista_tamano(v_tokens)
+        entero n = este.orden_n
+
+        si total < n entonces retornar fin_si
+
+        entero i = 0
+        mientras i <= (total - n) hacer
+            # Crear la clave (contexto de N-1 palabras)
+            texto clave = ""
+            entero j = 0
+            mientras j < (n - 1) hacer
+                texto t_i = lista_obtener(v_tokens, i + j)
+                clave = clave + t_i
+                si j < (n - 2) entonces clave = clave + "_" fin_si
+                j = j + 1
+            fin_mientras
+
+            # La siguiente palabra es el target
+            texto siguiente = lista_obtener(v_tokens, i + n - 1)
+
+            # Guardar en el mapa de probabilidades
+            mapa candidatos
+            si mapa_contiene(este.modelo_markov, clave) entonces
+                candidatos = mapa_obtener(este.modelo_markov, clave)
+            sino
+                candidatos = mapa_crear()
+                mapa_poner(este.modelo_markov, clave, candidatos)
+            fin_si
+
+            # Incrementar contador de la palabra siguiente
+            entero cuenta = 0
+            si mapa_contiene(candidatos, siguiente) entonces
+                cuenta = mapa_obtener(candidatos, siguiente)
+            fin_si
+            mapa_poner(candidatos, siguiente, cuenta + 1)
+
+            i = i + 1
+        fin_mientras
+    fin_funcion
+
+    # =========================================================================
+    # 2. PREDICCIÓN (INFERENCIA)
+    # =========================================================================
+
+    # Predice la siguiente palabra más probable dado un contexto
+    funcion predecir_siguiente(texto contexto) retorna texto
+        lista tokens_ctx
+        tokens_ctx = este.procesador.tokenizar(contexto)
+        entero n_ctx = lista_tamano(tokens_ctx)
+        entero n_gram = este.orden_n
+        entero n_req = n_gram - 1
+
+        si n_ctx < n_req entonces retornar "" fin_si
+
+        # Tomar las últimas N-1 palabras para la clave
+        texto clave = ""
+        entero i = 0
+        mientras i < n_req hacer
+            texto t_ctx = lista_obtener(tokens_ctx, n_ctx - n_req + i)
+            clave = clave + t_ctx
+            si i < (n_req - 1) entonces clave = clave + "_" fin_si
+            i = i + 1
+        fin_mientras
+
+        si no mapa_contiene(este.modelo_markov, clave) entonces
+            retornar ""
+        fin_si
+
+        mapa candidatos = mapa_obtener(este.modelo_markov, clave)
+        
+        texto mejor_palabra = ""
+        entero max_cuenta = -1
+        
+        para cada texto p en candidatos hacer
+            entero c = mapa_obtener(candidatos, p)
+            si c > max_cuenta entonces
+                max_cuenta = c
+                mejor_palabra = p
+            fin_si
+        fin_para
+
+        retornar mejor_palabra
+    fin_funcion
+
+    # Genera una secuencia de texto a partir de una semilla
+    funcion generar_texto(texto semilla, entero max_palabras) retorna texto
+        texto resultado_gen = semilla
+        entero cuenta_gen = 0
+        
+        mientras cuenta_gen < max_palabras hacer
+            texto siguiente = este.predecir_siguiente(resultado_gen)
+            si siguiente == "" entonces romper fin_si
+            
+            resultado_gen = resultado_gen + " " + siguiente
+            cuenta_gen = cuenta_gen + 1
+        fin_mientras
+        
+        retornar resultado_gen
+    fin_funcion
+
+fin_clase

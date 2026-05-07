@@ -5,7 +5,15 @@
 # la calidad de un algoritmo de clustering.
 # =============================================================================
 
-usar todas de "metricas_clustering.jasb"
+usar { MetricasClustering } de "./metricas_clustering.jasb"
+
+# Función auxiliar para crear puntos 2D (debe declararse antes de principal)
+funcion crear_punto(flotante x, flotante y) retorna lista
+    lista punto = crear_lista()
+    lista_agregar(punto, x)
+    lista_agregar(punto, y)
+    retornar punto
+fin_funcion
 
 principal
     imprimir "╔════════════════════════════════════════════╗"
@@ -168,11 +176,3 @@ principal
     imprimir "✅ Ejemplo completado exitosamente"
     imprimir "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fin_principal
-
-# Función auxiliar para crear puntos 2D
-funcion crear_punto(flotante x, flotante y) retorna lista
-    lista punto = crear_lista()
-    lista_agregar(punto, x)
-    lista_agregar(punto, y)
-    retornar punto
-fin_funcion

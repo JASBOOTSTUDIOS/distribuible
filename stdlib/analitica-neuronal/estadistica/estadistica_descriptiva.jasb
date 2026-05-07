@@ -12,13 +12,14 @@
 # 5. Resúmenes estadísticos completos
 # =============================================================================
 
-usar todas de "../base.jasb"
+usar { AnalizadorBase } de "../base.jasb"
+usar { valor_absoluto, raiz_cuadrada, potencia } de "../math_lib.jasb"
 
 clase EstadisticaDescriptiva extiende AnalizadorBase
 
     # Constructor
     funcion inicializar()
-        padre.inicializar("Estadística Descriptiva", "V1.5")
+        padre.inicializar("Estadística Descriptiva", "V0.0.1")
     fin_funcion
 
     # =============================================================================
@@ -704,48 +705,59 @@ clase EstadisticaDescriptiva extiende AnalizadorBase
 
 fin_clase
 
-enviar {
-    EstadisticaDescriptiva
-}
-
 # =============================================================================
 # INSTANCIA GLOBAL Y FUNCIONES INDEPENDIENTES
 # =============================================================================
 
 EstadisticaDescriptiva _estadistica_global
 
+funcion _asegurar_estadistica_global() retorna entero
+    si _estadistica_global == nulo entonces
+        _estadistica_global = EstadisticaDescriptiva()
+        _estadistica_global.inicializar()
+    fin_si
+    retornar 1
+fin_funcion
+
 # Función: calcular_media_aritmetica
 funcion calcular_media_aritmetica(lista datos) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_media_aritmetica(datos)
 fin_funcion
 
 # Función: calcular_media_geometrica
 funcion calcular_media_geometrica(lista datos) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_media_geometrica(datos)
 fin_funcion
 
 # Función: calcular_media_armonica
 funcion calcular_media_armonica(lista datos) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_media_armonica(datos)
 fin_funcion
 
 # Función: calcular_mediana
 funcion calcular_mediana(lista datos) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_mediana(datos)
 fin_funcion
 
 # Función: calcular_moda
 funcion calcular_moda(lista datos) retorna lista
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_moda(datos)
 fin_funcion
 
 # Función: calcular_varianza
 funcion calcular_varianza(lista datos, bool es_muestra) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_varianza(datos, es_muestra)
 fin_funcion
 
 # Función: calcular_desviacion_estandar
 funcion calcular_desviacion_estandar(lista datos, bool es_muestra) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_desviacion_estandar(datos, es_muestra)
 fin_funcion
 
@@ -761,6 +773,7 @@ fin_funcion
 
 # Función: calcular_coeficiente_variacion
 funcion calcular_coeficiente_variacion(lista datos) retorna flotante
+    _asegurar_estadistica_global()
     retornar _estadistica_global.calcular_coeficiente_variacion(datos)
 fin_funcion
 
@@ -791,6 +804,7 @@ fin_funcion
 
 # Función: resumen_estadistico_completo
 funcion resumen_estadistico_completo(lista datos) retorna mapa
+    _asegurar_estadistica_global()
     retornar _estadistica_global.resumen_estadistico_completo(datos)
 fin_funcion
 
@@ -1256,6 +1270,7 @@ fin_funcion
 # =============================================================================
 # Exportar la clase y funciones de prueba
 enviar { 
-    EstadisticaDescriptiva, 
+    EstadisticaDescriptiva,
+    _estadistica_global,
     ejecutar_pruebas 
 }

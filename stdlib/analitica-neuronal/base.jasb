@@ -23,13 +23,13 @@ enviar clase AnalizadorBase
             retornar falso
         fin_si
         
-        entero i = 0
-        mientras i < lista_tamano(datos) hacer
-            elemento v = lista_obtener(datos, i)
-            si v == nulo o v == "indefinido" entonces
+        entero i_val = 0
+        mientras i_val < lista_tamano(datos) hacer
+            elemento v_val = lista_obtener(datos, i_val)
+            si v_val == nulo o v_val == "indefinido" entonces
                 retornar falso
             fin_si
-            i = i + 1
+            i_val = i_val + 1
         fin_mientras
         
         retornar verdadero

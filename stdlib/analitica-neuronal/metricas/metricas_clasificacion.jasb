@@ -3,8 +3,7 @@
 # Implementa métricas estándar para evaluar modelos de clasificación
 # =============================================================================
 
-usar todas de "../base.jasb"
-usar todas de "../math_lib.jasb"
+usar { AnalizadorBase } de "../base.jasb"
 
 clase MetricasClasificacion extiende AnalizadorBase
 
