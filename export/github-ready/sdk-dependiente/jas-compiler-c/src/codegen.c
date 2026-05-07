@@ -18,6 +18,7 @@
 #define PATCH_JUMP       0
 #define PATCH_SI         1
 #define PATCH_TRY_ENTER  2
+#define CODEGEN_MAX_FRAME_BYTES (1024u * 1024u) /* 1 MB por frame */
 
 typedef struct Patch {
     size_t offset;
@@ -89,6 +90,11 @@ static int is_node(const ASTNode *n, NodeType t) {
     return n && n->type == t;
 }
 
+static SymResult obtener_o_crear_resultado(CodeGen *cg) {
+    /* `resultado` debe conservar tipo dinamico para evitar degradacion a entero. */
+    return sym_get_or_create(&cg->sym, "resultado", "elemento");
+}
+
 static void codegen_error_macro_arity(CodeGen *cg, const char *name, size_t n_params, size_t n_args, int line, int col) {
     const char *pw = (n_params == 1) ? "parametro" : "parametros";
     const char *aw = (n_args == 1) ? "argumento" : "argumentos";
@@ -101,6 +107,20 @@ static void codegen_error_macro_arity(CodeGen *cg, const char *name, size_t n_pa
     cg->has_error = 1;
     cg->err_line = line;
     cg->err_col = col;
+}
+
+static int codegen_validar_tamano_frame(CodeGen *cg, uint32_t frame_size, const char *scope_name, int line, int col) {
+    if (frame_size <= CODEGEN_MAX_FRAME_BYTES) return 1;
+    snprintf(cg->last_error, CODEGEN_ERROR_MAX,
+             "Frame local demasiado grande (%u bytes) en '%s'. Limite actual: %u bytes. "
+             "Reduzca variables locales o divida la funcion.",
+             (unsigned)frame_size,
+             scope_name ? scope_name : "<anonimo>",
+             (unsigned)CODEGEN_MAX_FRAME_BYTES);
+    cg->has_error = 1;
+    cg->err_line = line;
+    cg->err_col = col;
+    return 0;
 }
 
 /* Detecta llamadas en un subarbol para evitar clobber de registros 1..4. */
@@ -1627,7 +1647,7 @@ static int visit_call_sistema(CodeGen *cg, CallNode *cn, int dest_reg) {
     if (strcmp(name, "pensar") == 0) {
         if (!ARG0) return 0;
         visit_expression(cg, ARG0, 1);
-        SymResult r = sym_get_or_create(&cg->sym, "resultado", NULL);
+        SymResult r = obtener_o_crear_resultado(cg);
         uint8_t fl = IR_INST_FLAG_A_IMMEDIATE | IR_INST_FLAG_B_REGISTER | IR_INST_FLAG_C_IMMEDIATE;
         if (r.is_relative) fl |= IR_INST_FLAG_RELATIVE;
         emit(cg, OP_ESCRIBIR, r.addr & 0xFF, 1, (r.addr >> 8) & 0xFF, fl);
@@ -1642,7 +1662,7 @@ static int visit_call_sistema(CodeGen *cg, CallNode *cn, int dest_reg) {
             visit_expression(cg, ARG0, 1);
         }
         emit(cg, OP_MEM_OBTENER_VALOR, 1, 1, 0, IR_INST_FLAG_A_REGISTER | IR_INST_FLAG_B_REGISTER);
-        SymResult r = sym_get_or_create(&cg->sym, "resultado", NULL);
+        SymResult r = obtener_o_crear_resultado(cg);
         uint8_t fl = IR_INST_FLAG_A_IMMEDIATE | IR_INST_FLAG_B_REGISTER | IR_INST_FLAG_C_IMMEDIATE;
         if (r.is_relative) fl |= IR_INST_FLAG_RELATIVE;
         emit(cg, OP_ESCRIBIR, r.addr & 0xFF, 1, (r.addr >> 8) & 0xFF, fl);
@@ -2871,6 +2891,8 @@ static int visit_expression(CodeGen *cg, ASTNode *node, int dest_reg) {
         else
             (void)visit_expression(cg, ld->body, 1);
         uint32_t frame_size = cg->sym.next_local_offset;
+        if (!codegen_validar_tamano_frame(cg, frame_size, "__lambda", node->line, node->col))
+            return dest_reg;
         cg->code[reserve_pos + 2] = frame_size & 0xFF;
         cg->code[reserve_pos + 3] = (frame_size >> 8) & 0xFF;
         cg->code[reserve_pos + 4] = (frame_size >> 16) & 0xFF;
@@ -4167,7 +4189,7 @@ static void visit_statement(CodeGen *cg, ASTNode *node) {
         visit_expression(cg, cn->source, 1);
         visit_expression(cg, cn->pattern, 2);
         emit(cg, OP_MEM_CONTIENE_TEXTO_REG, 1, 1, 2, IR_INST_FLAG_A_REGISTER | IR_INST_FLAG_B_REGISTER);
-        SymResult r = sym_get_or_create(&cg->sym, "resultado", NULL);
+        SymResult r = obtener_o_crear_resultado(cg);
         uint8_t fl = IR_INST_FLAG_A_IMMEDIATE | IR_INST_FLAG_B_REGISTER | IR_INST_FLAG_C_IMMEDIATE;
         if (r.is_relative) fl |= IR_INST_FLAG_RELATIVE;
         emit(cg, OP_ESCRIBIR, r.addr & 0xFF, 1, (r.addr >> 8) & 0xFF, fl);
@@ -4178,7 +4200,7 @@ static void visit_statement(CodeGen *cg, ASTNode *node) {
         visit_expression(cg, tn->source, 1);
         visit_expression(cg, tn->suffix, 2);
         emit(cg, OP_MEM_TERMINA_CON_REG, 1, 1, 2, IR_INST_FLAG_A_REGISTER | IR_INST_FLAG_B_REGISTER);
-        SymResult r = sym_get_or_create(&cg->sym, "resultado", NULL);
+        SymResult r = obtener_o_crear_resultado(cg);
         uint8_t fl = IR_INST_FLAG_A_IMMEDIATE | IR_INST_FLAG_B_REGISTER | IR_INST_FLAG_C_IMMEDIATE;
         if (r.is_relative) fl |= IR_INST_FLAG_RELATIVE;
         emit(cg, OP_ESCRIBIR, r.addr & 0xFF, 1, (r.addr >> 8) & 0xFF, fl);
@@ -4406,6 +4428,13 @@ static void visit_function(CodeGen *cg, ASTNode *node) {
     }
     visit_block(cg, fn->body);
     uint32_t frame_size = cg->sym.next_local_offset;
+    if (!codegen_validar_tamano_frame(cg, frame_size, fn->name, node->line, node->col)) {
+        cg->function_depth--;
+        cg->current_fn_return = prev_ret;
+        cg->current_fn_name = prev_name;
+        sym_exit_scope(&cg->sym);
+        return;
+    }
     cg->code[reserve_pos + 2] = frame_size & 0xFF;
     cg->code[reserve_pos + 3] = (frame_size >> 8) & 0xFF;
     cg->code[reserve_pos + 4] = (frame_size >> 16) & 0xFF;

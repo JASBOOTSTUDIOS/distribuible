@@ -65,6 +65,34 @@ int werror_unused = 0;
 #define ANSI_RED    "\x1b[31m"
 #define ANSI_RESET  "\x1b[0m"
 
+static void print_error_detallado(const char *stage, const char *diag_path, const char *source, int line, int col, const char *msg) {
+    const char *etapa = stage ? stage : "compilacion";
+    const char *archivo = diag_path ? diag_path : "<desconocido>";
+    const char *detalle = msg ? msg : "error sin detalle";
+    int cl = (col >= 1) ? col : 1;
+
+    if (source && line >= 1 && col >= 1) {
+        char head[3072];
+        snprintf(head, sizeof head,
+                 "Archivo %s, linea %d, columna %d: error %s: %s",
+                 archivo, line, cl, etapa, detalle);
+        char *full = diag_attach_snippet(source, line, cl, head);
+        fprintf(stderr, "%s%s%s", ANSI_RED, full ? full : head, ANSI_RESET);
+        if (full && full[0] && full[strlen(full) - 1] != '\n')
+            fputc('\n', stderr);
+        free(full);
+        return;
+    }
+
+    if (line >= 1) {
+        fprintf(stderr, "%sArchivo %s, linea %d, columna %d: error %s: %s%s\n",
+                ANSI_RED, archivo, line, cl, etapa, detalle, ANSI_RESET);
+    } else {
+        fprintf(stderr, "%sArchivo %s: error %s: %s%s\n",
+                ANSI_RED, archivo, etapa, detalle, ANSI_RESET);
+    }
+}
+
 static const char *node_type_str(NodeType t) {
     switch (t) {
         case NODE_PROGRAM: return "Program";
@@ -1368,14 +1396,7 @@ int do_compile(const char *in_path, const char *out_path, char **err_msg) {
     }
 
     if (lex.last_error) {
-        if (buf && lex.err_line >= 1 && lex.err_column >= 1) {
-            char head[2048];
-            snprintf(head, sizeof head, "Archivo %s, linea %d, columna %d: %s", diag_path, lex.err_line, lex.err_column, lex.last_error);
-            char *full = diag_attach_snippet(buf, lex.err_line, lex.err_column, head);
-            fprintf(stderr, "%s%s%s", ANSI_RED, full, ANSI_RESET);
-            free(full);
-        } else
-            fprintf(stderr, "%s%s: %s%s\n", ANSI_RED, diag_path, lex.last_error, ANSI_RESET);
+        print_error_detallado("lexico", diag_path, buf, lex.err_line, lex.err_column, lex.last_error);
         lexer_free(&lex);
         token_vec_free(&tvec);
         free(buf);
@@ -1462,20 +1483,8 @@ int do_compile(const char *in_path, const char *out_path, char **err_msg) {
     if (!bin) {
         int err_line, err_col;
         const char *cerr = codegen_get_error(cg, &err_line, &err_col);
-        if (cerr) {
-            int col_snip = err_col >= 1 ? err_col : 1;
-            if (buf && err_line >= 1) {
-                char head[2048];
-                snprintf(head, sizeof head, "Archivo %s, linea %d, columna %d: error semantico: %s", diag_path, err_line, col_snip, cerr);
-                char *full = diag_attach_snippet(buf, err_line, col_snip, head);
-                fprintf(stderr, "%s%s%s", ANSI_RED, full ? full : head, ANSI_RESET);
-                if (full && full[0] && full[strlen(full) - 1] != '\n')
-                    fputc('\n', stderr);
-                free(full);
-            } else {
-                fprintf(stderr, "%sArchivo %s: error semantico (generacion de codigo): %s%s\n", ANSI_RED, diag_path, cerr, ANSI_RESET);
-            }
-        }
+            if (cerr)
+                print_error_detallado("semantico (generacion de codigo)", diag_path, buf, err_line, err_col, cerr);
         codegen_free(cg);
         ast_free(ast); sym_free(&sym); parser_free(&par); token_vec_free(&tvec); free(buf); return 1;
     }

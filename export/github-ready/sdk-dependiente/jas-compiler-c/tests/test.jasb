@@ -1,1 +1,3 @@
-imprimir "Hola mundo"
+principal
+    imprimir "Hola mundo"
+fin_principal

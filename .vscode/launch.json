@@ -6,36 +6,25 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
-      "args": [
-        "${file}",
-        "--debug"
-      ],
+      "args": ["${file}"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": [
         "<node_internals>/**"
-      ],
-      "preLaunchTask": "Compilar Jasboot",
-      "sourceMaps": false,
-      "outFiles": [
-        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
       ]
     },
     {
       "name": "Ejecutar Jasboot (sin depuración)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
-      "args": [
-        "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
-      ],
+      "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+      "args": ["${file}"],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "preLaunchTask": "Compilar Jasboot",
-      "sourceMaps": false
+      "noDebug": true
     }
   ]
 }

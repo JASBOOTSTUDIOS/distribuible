@@ -724,15 +724,17 @@ static float vm_parse_decimal_flotante_estricto(const char *s) {
     return (float)d;
 }
 
+static int vm_rango_valido(size_t total_size, uint64_t addr, size_t bytes);
+
 /* Leer/escribir float desde memoria (8 bytes por float, bits en low 32 del uint64) */
 static float vm_mem_read_float(const VM* vm, size_t addr) {
-    if (addr + 8 > vm->memory_size) return 0.0f;
+    if (!vm_rango_valido(vm->memory_size, (uint64_t)addr, 8)) return 0.0f;
     uint64_t u = *(uint64_t*)(vm->memory + addr);
     union { uint64_t u64; float f32; } uf = { .u64 = (uint32_t)(u & 0xFFFFFFFF) };
     return uf.f32;
 }
 static void vm_mem_write_float(VM* vm, size_t addr, float f) {
-    if (addr + 8 > vm->memory_size) return;
+    if (!vm_rango_valido(vm->memory_size, (uint64_t)addr, 8)) return;
     union { uint64_t u64; float f32; } uf = { .f32 = f };
     *(uint64_t*)(vm->memory + addr) = uf.u64;
 }
@@ -795,6 +797,86 @@ static uint32_t vm_hash_texto(const char* texto) {
     return hash;
 }
 
+static int vm_rango_valido(size_t total_size, uint64_t addr, size_t bytes) {
+    if (addr > (uint64_t)SIZE_MAX) return 0;
+    size_t pos = (size_t)addr;
+    if (pos > total_size) return 0;
+    return (total_size - pos) >= bytes;
+}
+
+static int vm_leer_u64_memoria(VM* vm, uint64_t addr, uint64_t* out) {
+    if (!vm || !out) return 0;
+    if (!vm_rango_valido(vm->memory_size, addr, sizeof(uint64_t))) return 0;
+    *out = *(uint64_t*)(vm->memory + (size_t)addr);
+    return 1;
+}
+
+static int vm_escribir_u64_memoria(VM* vm, uint64_t addr, uint64_t valor) {
+    if (!vm) return 0;
+    if (!vm_rango_valido(vm->memory_size, addr, sizeof(uint64_t))) return 0;
+    *(uint64_t*)(vm->memory + (size_t)addr) = valor;
+    return 1;
+}
+
+static int vm_ensure_stack_space(VM* vm, uint32_t bytes_to_alloc, const char* context) {
+    const size_t VM_MEMORY_HARD_LIMIT = 256u * 1024u * 1024u; /* 256 MB */
+    if (!vm) return 0;
+    if (bytes_to_alloc == 0) return 1;
+
+    uint64_t required64 = (uint64_t)vm->sp + (uint64_t)bytes_to_alloc;
+    if (required64 <= (uint64_t)vm->memory_size) return 1;
+    if (required64 > (uint64_t)SIZE_MAX || required64 > (uint64_t)VM_MEMORY_HARD_LIMIT) {
+        fprintf(stderr,
+                "[VM ERR] %s: stack requerido=%llu bytes (SP=%u,+%u), limite duro=%zu.\n",
+                context ? context : "OP_RESERVAR_PILA",
+                (unsigned long long)required64,
+                (unsigned)vm->sp,
+                (unsigned)bytes_to_alloc,
+                VM_MEMORY_HARD_LIMIT);
+        return 0;
+    }
+
+    size_t required = (size_t)required64;
+    size_t new_size = vm->memory_size ? vm->memory_size : (1024u * 1024u);
+    while (new_size < required) {
+        size_t grown = new_size * 2u;
+        if (grown <= new_size) {
+            new_size = required;
+            break;
+        }
+        if (grown > VM_MEMORY_HARD_LIMIT) {
+            new_size = VM_MEMORY_HARD_LIMIT;
+            break;
+        }
+        new_size = grown;
+    }
+    if (new_size < required) return 0;
+
+    uint8_t* new_memory = (uint8_t*)realloc(vm->memory, new_size);
+    if (!new_memory) {
+        fprintf(stderr,
+                "[VM ERR] %s: fallo realloc al ampliar memoria a %zu bytes (actual=%zu).\n",
+                context ? context : "OP_RESERVAR_PILA",
+                new_size,
+                vm->memory_size);
+        return 0;
+    }
+    memset(new_memory + vm->memory_size, 0, new_size - vm->memory_size);
+    vm->memory = new_memory;
+    vm->memory_size = new_size;
+    return 1;
+}
+
+static const char* vm_data_cstr_segura(const IRFile* ir, size_t offset) {
+    if (!ir || !ir->data) return NULL;
+    if (offset >= ir->header.data_size) return NULL;
+    const uint8_t* inicio = ir->data + offset;
+    size_t restantes = ir->header.data_size - offset;
+    const void* fin = memchr(inicio, '\0', restantes);
+    if (!fin) return NULL;
+    return (const char*)inicio;
+}
+
 #ifdef JASBOOT_LANG_INTEGRATION
 // Integración con memoria neuronal activa
 #endif
@@ -804,11 +886,6 @@ int vm_load(VM* vm, IRFile* ir) {
     vm->ir = ir;
     vm->pc = 0; // Header no está en ir->code
     vm->try_depth = 0;
-    
-    // Saltar metadata IA si está presente
-    if (ir->header.flags & IR_FLAG_IA_METADATA && ir->ia_metadata_size > 0) {
-        vm->pc += 4 + ir->ia_metadata_size;  // IA_SIZE (4 bytes) + payload
-    }
     
     // Cargar datos en memoria (dirección base 0)
     if (ir->header.data_size > 0) {
@@ -1001,8 +1078,8 @@ int vm_step(VM* vm) {
                 addr += vm->fp;
             }
             
-            if (addr + sizeof(uint64_t) <= vm->memory_size) {
-                uint64_t value = *(uint64_t*)(vm->memory + addr);
+            uint64_t value = 0;
+            if (vm_leer_u64_memoria(vm, addr, &value)) {
                 vm_set_register(vm, inst.operand_a, value);
             }
             vm->pc += IR_INSTRUCTION_SIZE;
@@ -1031,9 +1108,7 @@ int vm_step(VM* vm) {
                 addr += vm->fp;
             }
             
-            if (addr + sizeof(uint64_t) <= vm->memory_size) {
-                 *(uint64_t*)(vm->memory + addr) = b_val;
-            }
+            vm_escribir_u64_memoria(vm, addr, b_val);
             vm->pc += IR_INSTRUCTION_SIZE;
             break;
         }
@@ -1045,8 +1120,15 @@ int vm_step(VM* vm) {
             }
             
             uint32_t hash = 0;
-            if (vm->ir && vm->ir->data && offset < vm->ir->header.data_size) {
-                 const char* str = (const char*)(vm->ir->data + offset);
+            if (vm->ir && vm->ir->data) {
+                 const char* str = vm_data_cstr_segura(vm->ir, offset);
+                 if (!str) {
+                     fprintf(stderr, "[VM ERROR] OP_LOAD_STR_HASH offset inválido/sin NUL: %u (data_size=%u)\n",
+                             (unsigned)offset, (unsigned)vm->ir->header.data_size);
+                     vm->running = 0;
+                     vm->exit_code = 1;
+                     return -1;
+                 }
                  hash = vm_hash_texto(str);
                  vm_text_cache_put(vm, hash, str);
                  if (getenv("JASBOOT_DEBUG")) printf("[VM LOAD HASH] '%s' (off=%u, hash=%u) -> R%d\n", str, offset, hash, inst.operand_a);
@@ -1510,8 +1592,8 @@ int vm_step(VM* vm) {
                                     | ((uint32_t)inst.operand_b << 8) 
                                     | ((uint32_t)inst.operand_c << 16);
             // printf("[VM DBG] RESERVAR_PILA: %u bytes\n", bytes_to_alloc);
-            if (vm->sp + bytes_to_alloc > vm->memory_size) {
-                 const char *ms = "[VM ERR] Memory Stack Exhausted";
+            if (!vm_ensure_stack_space(vm, bytes_to_alloc, "OP_RESERVAR_PILA")) {
+                 const char *ms = "[VM ERR] Memory Stack Exhausted (sin crecimiento posible)";
                  if (vm_try_catch_or_abort(vm, ms)) return 0;
                  fprintf(stderr, "%s\n", ms);
                  vm->running = 0;
@@ -1963,10 +2045,10 @@ int vm_step(VM* vm) {
                          }
                      }
 #endif
-                     if (dest_addr + sizeof(uint64_t) <= vm->memory_size) *(uint64_t*)(vm->memory + dest_addr) = (uint64_t)new_id;
+                     vm_escribir_u64_memoria(vm, dest_addr, (uint64_t)new_id);
                  } else {
-                     if (vm->modo_continuo && dest_addr + sizeof(uint64_t) <= vm->memory_size)
-                         *(uint64_t*)(vm->memory + dest_addr) = 5381; /* "" */
+                     if (vm->modo_continuo)
+                         vm_escribir_u64_memoria(vm, dest_addr, 5381); /* "" */
                      else if (!vm->modo_continuo)
                          vm->running = 0;
                  }
@@ -2622,7 +2704,7 @@ int vm_step(VM* vm) {
                 if (res != 0) {
                     char buf[4096];
                     if (jmn_obtener_texto(vm->mem_neuronal, res, buf, sizeof(buf)) == 0) vm_text_cache_put(vm, res, buf);
-                    if (addr + sizeof(uint64_t) <= vm->memory_size) *(uint64_t*)(vm->memory + addr) = (uint64_t)res;
+                    vm_escribir_u64_memoria(vm, addr, (uint64_t)res);
                 }
             }
 #endif
@@ -2773,9 +2855,7 @@ int vm_step(VM* vm) {
                 }
                 
                 // Guardar resultado en memoria
-                if (dest_addr + sizeof(uint64_t) <= vm->memory_size) {
-                    *(uint64_t*)(vm->memory + dest_addr) = (uint64_t)id_res;
-                }
+                vm_escribir_u64_memoria(vm, dest_addr, (uint64_t)id_res);
                 
                 // Cachear texto para optimizar visualización posterior
                 char buffer[4096];
@@ -3246,6 +3326,22 @@ int vm_step(VM* vm) {
             if (id_res == 0) {
                 const char* s1 = vm_text_cache_get(vm, id_izq);
                 const char* s2 = vm_text_cache_get(vm, id_der);
+#ifdef JASBOOT_LANG_INTEGRATION
+                /* Robustez: si el ID viene de lista/mapa/JMN y no está en cache local,
+                 * recuperar desde JMN para evitar concatenaciones incorrectas. */
+                char s1_buf[4096];
+                char s2_buf[4096];
+                if (!s1 && vm->mem_neuronal && id_izq != 0 &&
+                    jmn_obtener_texto(vm->mem_neuronal, id_izq, s1_buf, sizeof(s1_buf)) >= 0 && s1_buf[0]) {
+                    vm_text_cache_put(vm, id_izq, s1_buf);
+                    s1 = vm_text_cache_get(vm, id_izq);
+                }
+                if (!s2 && vm->mem_neuronal && id_der != 0 &&
+                    jmn_obtener_texto(vm->mem_neuronal, id_der, s2_buf, sizeof(s2_buf)) >= 0 && s2_buf[0]) {
+                    vm_text_cache_put(vm, id_der, s2_buf);
+                    s2 = vm_text_cache_get(vm, id_der);
+                }
+#endif
                 if (!s1 && id_izq == 0) s1 = "";
                 if (!s2 && id_der == 0) s2 = "";
                 if (s1 && s2) {
@@ -3534,8 +3630,15 @@ int vm_step(VM* vm) {
             (void)offset;
 #endif
 #ifdef JASBOOT_LANG_INTEGRATION
-            if (vm->mem_neuronal && vm->ir && vm->ir->data && offset < vm->ir->header.data_size) {
-                const char* texto = (const char*)vm->ir->data + offset;
+            if (vm->mem_neuronal && vm->ir && vm->ir->data) {
+                const char* texto = vm_data_cstr_segura(vm->ir, offset);
+                if (!texto) {
+                    fprintf(stderr, "[VM ERROR] OP_MEM_RECORDAR_TEXTO offset inválido/sin NUL: %u (data_size=%u)\n",
+                            (unsigned)offset, (unsigned)vm->ir->header.data_size);
+                    vm->running = 0;
+                    vm->exit_code = 1;
+                    return -1;
+                }
                 uint32_t hash = vm_hash_texto(texto);
                 
                 jmn_guardar_texto(vm->mem_neuronal, hash, texto);
@@ -3570,9 +3673,7 @@ int vm_step(VM* vm) {
                     valor = (uint64_t)(nodo->peso.u);
                 }
                 
-                if (dest_addr + sizeof(uint64_t) <= vm->memory_size) {
-                    *(uint64_t*)(vm->memory + dest_addr) = valor;
-                }
+                vm_escribir_u64_memoria(vm, dest_addr, valor);
             }
 #endif
             vm->pc += IR_INSTRUCTION_SIZE;
@@ -3908,6 +4009,15 @@ int vm_step(VM* vm) {
                     return 0;
                 }
                 JMNValor val = jmn_lista_obtener(vm->mem_colecciones, list_id, idx);
+#ifdef JASBOOT_LANG_INTEGRATION
+                /* Hidratar cache textual cuando la lista almacena IDs de texto. */
+                if (val.u != 0 && !vm_text_cache_get(vm, val.u) && vm->mem_neuronal) {
+                    char txt_buf[4096];
+                    if (jmn_obtener_texto(vm->mem_neuronal, val.u, txt_buf, sizeof(txt_buf)) >= 0 && txt_buf[0]) {
+                        vm_text_cache_put(vm, val.u, txt_buf);
+                    }
+                }
+#endif
                 vm_set_register(vm, inst.operand_a, (uint64_t)val.u);
             } else {
                 vm_set_register(vm, inst.operand_a, 0);

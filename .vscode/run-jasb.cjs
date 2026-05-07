@@ -1,5 +1,5 @@
 "use strict";
-const { spawnSync } = require("child_process");
+const { spawnSync, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -71,9 +71,9 @@ function findJbc() {
 
 function findVm() {
   const rels = [
+    ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm.exe"],
     ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-trace.exe"],
     ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-net.exe"],
-    ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm.exe"],
     ["sdk-dependiente", "bin", "jasboot-ir-vm.exe"],
     ["sdk", "jasboot-ir", "bin", "jasboot-ir-vm.exe"],
   ];
@@ -706,14 +706,20 @@ const vm = findVm();
 
 if (vm && fs.existsSync(jboFile)) {
   console.log(`Ejecutando con VM: ${vm}`);
-  const r = spawnSync(vm, [jboFile], {
+  const child = spawn(vm, [jboFile], {
     stdio: "inherit",
     cwd: workspaceRoot,
     env: childEnv,
     shell: false,
     windowsHide: true,
   });
-  process.exit(r.status !== null && r.status !== undefined ? r.status : 1);
+  child.on("error", (err) => {
+    console.error(`Error ejecutando VM: ${err && err.message ? err.message : err}`);
+    process.exit(1);
+  });
+  child.on("exit", (code) => {
+    process.exit(code !== null && code !== undefined ? code : 1);
+  });
 } else {
   console.error(`Error: No se encontró la VM o el archivo .jbo (${jboFile}).`);
   process.exit(1);

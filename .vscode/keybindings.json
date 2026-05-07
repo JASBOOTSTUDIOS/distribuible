@@ -1,5 +1,15 @@
 [
   {
+    "key": "f5",
+    "command": "workbench.action.debug.start",
+    "when": "editorTextFocus && editorLangId == 'jasboot'"
+  },
+  {
+    "key": "ctrl+f5",
+    "command": "workbench.action.debug.run",
+    "when": "editorTextFocus && editorLangId == 'jasboot'"
+  },
+  {
     "key": "ctrl+shift+j",
     "command": "workbench.action.terminal.sendSequence",
     "args": {
