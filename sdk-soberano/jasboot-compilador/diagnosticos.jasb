@@ -1,0 +1,303 @@
+# DIAGNÓSTICOS - Sistema de Errores y Alertas para Compilador Jasboot
+# Proporciona mensajes de error detallados y sugerencias de corrección
+# Basado en el sistema de diagnósticos del compilador C original
+
+# Tipos de error
+entero ERROR_LEXICO = 1
+entero ERROR_SINTACTICO = 2
+entero ERROR_SEMANTICO = 3
+entero ERROR_GENERACION = 4
+entero ADVERTENCIA = 5
+entero INFORMACION = 6
+
+# Niveles de severidad
+registro Diagnostico
+    entero tipo
+    entero severidad
+    texto mensaje
+    texto archivo
+    entero linea
+    entero columna
+    texto sugerencia
+    texto codigo_error
+fin_registro
+
+# Estado del sistema de diagnósticos
+registro SistemaDiagnosticos
+    lista diagnosticos
+    entero contador_errores
+    entero contador_advertencias
+    texto archivo_actual
+    bool modo_verbose
+fin_registro
+
+# Códigos de error estandarizados
+mapa codigos_error = mapa_crear()
+mapa_poner(codigos_error, "LEX001", "Caracter no reconocido")
+mapa_poner(codigos_error, "LEX002", "String sin cerrar")
+mapa_poner(codigos_error, "LEX003", "Número inválido")
+mapa_poner(codigos_error, "LEX004", "Escape sequence inválida")
+mapa_poner(codigos_error, "SIN001", "Se esperaba palabra clave")
+mapa_poner(codigos_error, "SIN002", "Se esperaba identificador")
+mapa_poner(codigos_error, "SIN003", "Se esperaba ')'")
+mapa_poner(codigos_error, "SIN004", "Se esperaba '}'")
+mapa_poner(codigos_error, "SIN005", "Asignación inválida")
+mapa_poner(codigos_error, "SEM001", "Variable no declarada")
+mapa_poner(codigos_error, "SEM002", "Redeclaración de variable")
+mapa_poner(codigos_error, "SEM003", "Tipo incompatible")
+mapa_poner(codigos_error, "SEM004", "Función no definida")
+mapa_poner(codigos_error, "GEN001", "Error en generación de código")
+mapa_poner(codigos_error, "GEN002", "Función no soportada")
+
+# Funciones de inicialización
+funcion diagnosticos_iniciar(texto archivo, bool verbose) retorna SistemaDiagnosticos
+    SistemaDiagnosticos diag
+    diag.diagnosticos = crear_lista()
+    diag.contador_errores = 0
+    diag.contador_advertencias = 0
+    diag.archivo_actual = archivo
+    diag.modo_verbose = verbose
+    retornar diag
+fin_funcion
+
+funcion diagnosticos_agregar_error(SistemaDiagnosticos diag, texto codigo, texto mensaje, 
+                                entero linea, entero columna, texto sugerencia) retorna
+    Diagnostico d
+    d.tipo = ERROR_LEXICO
+    d.severidad = 1  # Error
+    d.mensaje = mensaje
+    d.archivo = diag.archivo_actual
+    d.linea = linea
+    d.columna = columna
+    d.sugerencia = sugerencia
+    d.codigo_error = codigo
+    
+    lista_agregar(diag.diagnosticos, d)
+    diag.contador_errores = diag.contador_errores + 1
+fin_funcion
+
+funcion diagnosticos_agregar_advertencia(SistemaDiagnosticos diag, texto codigo, texto mensaje,
+                                      entero linea, entero columna, texto sugerencia) retorna
+    Diagnostico d
+    d.tipo = ADVERTENCIA
+    d.severidad = 0  # Advertencia
+    d.mensaje = mensaje
+    d.archivo = diag.archivo_actual
+    d.linea = linea
+    d.columna = columna
+    d.sugerencia = sugerencia
+    d.codigo_error = codigo
+    
+    lista_agregar(diag.diagnosticos, d)
+    diag.contador_advertencias = diag.contador_advertencias + 1
+fin_funcion
+
+funcion diagnosticos_agregar_info(SistemaDiagnosticos diag, texto codigo, texto mensaje,
+                                 entero linea, entero columna) retorna
+    Diagnostico d
+    d.tipo = INFORMACION
+    d.severidad = 0  # Info
+    d.mensaje = mensaje
+    d.archivo = diag.archivo_actual
+    d.linea = linea
+    d.columna = columna
+    d.sugerencia = ""
+    d.codigo_error = codigo
+    
+    lista_agregar(diag.diagnosticos, d)
+fin_funcion
+
+# Funciones específicas de error léxico
+funcion diagnosticos_error_caracter_no_reconocido(SistemaDiagnosticos diag, caracter c, 
+                                                   entero linea, entero columna) retorna
+    texto mensaje = "Carácter no reconocido: '" + c + "'"
+    texto sugerencia = "Verifique que el carácter sea válido en Jasboot"
+    diagnosticos_agregar_error(diag, "LEX001", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_string_sin_cerrar(SistemaDiagnosticos diag, entero linea, entero columna) retorna
+    texto mensaje = "String literal sin cerrar"
+    texto sugerencia = "Agregue comillas de cierre (\") al final del string"
+    diagnosticos_agregar_error(diag, "LEX002", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_numero_invalido(SistemaDiagnosticos diag, texto numero_str, 
+                                          entero linea, entero columna) retorna
+    texto mensaje = "Número inválido: '" + numero_str + "'"
+    texto sugerencia = "Verifique el formato del número (ej: 42, 3.14, 1e-5)"
+    diagnosticos_agregar_error(diag, "LEX003", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+# Funciones específicas de error sintáctico
+funcion diagnosticos_error_se_esperaba_palabra_clave(SistemaDiagnosticos diag, texto esperada,
+                                                      entero linea, entero columna) retorna
+    texto mensaje = "Se esperaba palabra clave '" + esperada + "'"
+    texto sugerencia = "Revise la sintaxis de Jasboot para la construcción correcta"
+    diagnosticos_agregar_error(diag, "SIN001", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_se_esperaba_identificador(SistemaDiagnosticos diag, entero linea, 
+                                                   entero columna) retorna
+    texto mensaje = "Se esperaba un identificador"
+    texto sugerencia = "Los identificadores deben comenzar con letra o '_' y contener solo letras, números y '_'"
+    diagnosticos_agregar_error(diag, "SIN002", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_se_esperaba_parentesis_cierre(SistemaDiagnosticos diag, entero linea, 
+                                                          entero columna) retorna
+    texto mensaje = "Se esperaba ')' para cerrar expresión"
+    texto sugerencia = "Verifique que todas las '(' tengan su ')' correspondiente"
+    diagnosticos_agregar_error(diag, "SIN003", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_se_esperaba_llave_cierre(SistemaDiagnosticos diag, entero linea, 
+                                                     entero columna) retorna
+    texto mensaje = "Se esperaba '}' para cerrar bloque"
+    texto sugerencia = "Verifique que todos los bloques tengan su '}' correspondiente"
+    diagnosticos_agregar_error(diag, "SIN004", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+# Funciones específicas de error semántico
+funcion diagnosticos_error_variable_no_declarada(SistemaDiagnosticos diag, texto nombre_var,
+                                                entero linea, entero columna) retorna
+    texto mensaje = "Variable '" + nombre_var + "' no declarada"
+    texto sugerencia = "Declare la variable antes de usarla con: " + 
+                     "tipo " + nombre_var + " = valor_inicial"
+    diagnosticos_agregar_error(diag, "SEM001", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_redeclaracion_variable(SistemaDiagnosticos diag, texto nombre_var,
+                                                entero linea, entero columna) retorna
+    texto mensaje = "Redeclaración de variable '" + nombre_var + "'"
+    texto sugerencia = "Use un nombre diferente para la variable o elimine la declaración anterior"
+    diagnosticos_agregar_error(diag, "SEM002", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_tipo_incompatible(SistemaDiagnosticos diag, texto tipo1, texto tipo2,
+                                           texto operacion, entero linea, entero columna) retorna
+    texto mensaje = "Tipos incompatibles en operación '" + operacion + "': " + 
+                    tipo1 + " y " + tipo2
+    texto sugerencia = "Use conversión explícita de tipos o verifique los tipos de las variables"
+    diagnosticos_agregar_error(diag, "SEM003", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_error_funcion_no_definida(SistemaDiagnosticos diag, texto nombre_func,
+                                                entero linea, entero columna) retorna
+    texto mensaje = "Función '" + nombre_func + "' no definida"
+    texto sugerencia = "Verifique el nombre de la función o defínala antes de usarla"
+    diagnosticos_agregar_error(diag, "SEM004", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+# Funciones de advertencia
+funcion diagnosticos_advertencia_variable_no_usada(SistemaDiagnosticos diag, texto nombre_var,
+                                                    entero linea, entero columna) retorna
+    texto mensaje = "Variable '" + nombre_var + "' declarada pero nunca utilizada"
+    texto sugerencia = "Elimine la declaración o utilice la variable en el código"
+    diagnosticos_agregar_advertencia(diag, "WARN001", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+funcion diagnosticos_advertencia_asignacion_sin_efecto(SistemaDiagnosticos diag, entero linea,
+                                                          entero columna) retorna
+    texto mensaje = "Asignación sin efecto (posible error)"
+    texto sugerencia = "Verifique si quiso usar '==' en lugar de '='"
+    diagnosticos_agregar_advertencia(diag, "WARN002", mensaje, linea, columna, sugerencia)
+fin_funcion
+
+# Funciones de formato y salida
+funcion diagnosticos_formatear_mensaje(Diagnostico d) retorna texto
+    texto severidad_str
+    si d.severidad == 1 entonces
+        severidad_str = "ERROR"
+    sino si d.tipo == ADVERTENCIA entonces
+        severidad_str = "ADVERTENCIA"
+    sino
+        severidad_str = "INFO"
+    fin_si
+    
+    texto mensaje_formateado = severidad_str + " " + d.codigo_error + ": " + d.mensaje
+    mensaje_formateado = mensaje_formateado + " (línea " + texto_desde_numero(d.linea) + 
+                                      ", columna " + texto_desde_numero(d.columna) + ")"
+    
+    si d.sugerencia != "" entonces
+        mensaje_formateado = mensaje_formateado + "\n  Sugerencia: " + d.sugerencia
+    fin_si
+    
+    retornar mensaje_formateado
+fin_funcion
+
+funcion diagnosticos_imprimir_todos(SistemaDiagnosticos diag) retorna
+    si lista_tamano(diag.diagnosticos) == 0 entonces
+        imprimir("✅ No se encontraron errores ni advertencias")
+        retornar
+    fin_si
+    
+    imprimir("\n📋 DIAGNÓSTICOS ENCONTRADOS:")
+    imprimir("Archivo: " + diag.archivo_actual)
+    imprimir("")
+    
+    entero i = 0
+    mientras i < lista_tamano(diag.diagnosticos) hacer
+        Diagnostico d = lista_obtener(diag.diagnosticos, i)
+        texto mensaje_formateado = diagnosticos_formatear_mensaje(d)
+        imprimir(mensaje_formateado)
+        i = i + 1
+    fin_mientras
+    
+    imprimir("")
+    imprimir("📊 RESUMEN:")
+    imprimir("Errores: " + texto_desde_numero(diag.contador_errores))
+    imprimir("Advertencias: " + texto_desde_numero(diag.contador_advertencias))
+    
+    si diag.contador_errores > 0 entonces
+        imprimir("❌ La compilación falló debido a errores")
+    sino
+        imprimir("⚠️  La compilación tuvo advertencias pero fue exitosa")
+    fin_si
+fin_funcion
+
+funcion diagnosticos_guardar_reporte(SistemaDiagnosticos diag, texto archivo_salida) retorna bool
+    entero fd = abrir_archivo(archivo_salida, "w")
+    si fd == 0 entonces
+        imprimir("Error: No se pudo crear el archivo de reporte " + archivo_salida)
+        retornar falso
+    fin_si
+    
+    escribir_archivo("# Reporte de Diagnósticos - Compilador Jasboot\n", fd)
+    escribir_archivo("Archivo: " + diag.archivo_actual + "\n", fd)
+    escribir_archivo("Fecha: " + obtener_timestamp() + "\n\n", fd)
+    
+    entero i = 0
+    mientras i < lista_tamano(diag.diagnosticos) hacer
+        Diagnostico d = lista_obtener(diag.diagnosticos, i)
+        texto mensaje_formateado = diagnosticos_formatear_mensaje(d)
+        escribir_archivo(mensaje_formateado + "\n", fd)
+        i = i + 1
+    fin_mientras
+    
+    escribir_archivo("\nResumen:\n", fd)
+    escribir_archivo("Errores: " + texto_desde_numero(diag.contador_errores) + "\n", fd)
+    escribir_archivo("Advertencias: " + texto_desde_numero(diag.contador_advertencias) + "\n", fd)
+    
+    cerrar_archivo(fd)
+    imprimir("Reporte guardado en: " + archivo_salida)
+    retornar verdadero
+fin_funcion
+
+funcion diagnosticos_tiene_errores(SistemaDiagnosticos diag) retorna bool
+    retornar diag.contador_errores > 0
+fin_funcion
+
+funcion diagnosticos_obtener_resumen(SistemaDiagnosticos diag) retorna texto
+    si diag.contador_errores == 0 y diag.contador_advertencias == 0 entonces
+        retornar "✅ Compilación exitosa sin problemas"
+    sino si diag.contador_errores > 0 entonces
+        retornar "❌ Falló: " + texto_desde_numero(diag.contador_errores) + " errores"
+    sino
+        retornar "⚠️  Advertencias: " + texto_desde_numero(diag.contador_advertencias)
+    fin_si
+fin_funcion
+
+enviar {diagnosticos_iniciar, diagnosticos_agregar_error, diagnosticos_agregar_advertencia,
+        diagnosticos_imprimir_todos, diagnosticos_guardar_reporte, diagnosticos_tiene_errores,
+        diagnosticos_obtener_resumen, ERROR_LEXICO, ERROR_SINTACTICO, ERROR_SEMANTICO,
+        ERROR_GENERACION, ADVERTENCIA, INFORMACION}

@@ -1,0 +1,362 @@
+# COMPILADOR JASBOOT FINAL - Versión Corregida y Funcional
+# Compila código Jasboot básico a bytecode .jbo ejecutable
+# Enfoque: simplicidad máxima, robustez, compatibilidad total con VM
+
+# Opcodes básicos para imprimir (definidos en opcodes.h)
+entero OP_IMPRIMIR = 15
+entero OP_HALT = 0
+entero OP_MOVER = 1
+entero OP_LOAD_STR_HASH = 5
+
+# Estructura básica del compilador
+registro CompiladorFinal
+    texto fuente
+    entero posicion
+    lista bytecode
+    lista strings
+    entero tiene_errores
+    texto ultimo_error
+fin_registro
+
+# Funciones de utilidad
+funcion compilador_iniciar(texto fuente_codigo) retorna CompiladorFinal
+    CompiladorFinal comp
+    comp.fuente = fuente_codigo
+    comp.posicion = 0
+    comp.bytecode = crear_lista()
+    comp.strings = crear_lista()
+    comp.tiene_errores = 0
+    comp.ultimo_error = ""
+    retornar comp
+fin_funcion
+
+funcion compilador_error(CompiladorFinal comp, texto mensaje) retorna
+    comp.tiene_errores = 1
+    comp.ultimo_error = mensaje
+    imprimir("ERROR: " + mensaje)
+fin_funcion
+
+funcion compilador_caracter_actual(CompiladorFinal comp) retorna caracter
+    si comp.posicion >= longitud(comp.fuente) entonces
+        retornar '\0'
+    sino
+        retornar comp.fuente[comp.posicion]
+    fin_si
+fin_funcion
+
+funcion compilador_avanzar(CompiladorFinal comp) retorna caracter
+    caracter c = compilador_caracter_actual(comp)
+    comp.posicion = comp.posicion + 1
+    retornar c
+fin_funcion
+
+funcion compilador_saltar_espacios(CompiladorFinal comp) retorna
+    mientras compilador_caracter_actual(comp) == ' ' o 
+           compilador_caracter_actual(comp) == '\t' o
+           compilador_caracter_actual(comp) == '\n' o
+           compilador_caracter_actual(comp) == '\r' hacer
+        compilador_avanzar(comp)
+    fin_mientras
+fin_funcion
+
+funcion compilador_leer_palabra(CompiladorFinal comp) retorna texto
+    texto palabra = ""
+    
+    compilador_saltar_espacios(comp)
+    
+    mientras (compilador_caracter_actual(comp) >= 'a' y compilador_caracter_actual(comp) <= 'z') o
+           (compilador_caracter_actual(comp) >= 'A' y compilador_caracter_actual(comp) <= 'Z') o
+           compilador_caracter_actual(comp) == '_' hacer
+        palabra = palabra + compilador_avanzar(comp)
+    fin_mientras
+    
+    retornar palabra
+fin_funcion
+
+funcion compilador_agregar_byte(CompiladorFinal comp, entero byte_val) retorna
+    lista_agregar(comp.bytecode, byte_val)
+fin_funcion
+
+funcion compilador_agregar_string(CompiladorFinal comp, texto str) retorna
+    lista_agregar(comp.strings, str)
+fin_funcion
+
+funcion compilador_generar_string_hash(texto str) retorna entero
+    # Hash simple pero consistente para strings
+    entero hash = 5381
+    entero i = 0
+    mientras i < longitud(str) hacer
+        hash = ((hash << 5) - hash) + codigo_caracter(str[i])
+        i = i + 1
+    fin_mientras
+    hash = hash y 2147483647
+    hash = hash o 2147483648
+    retornar hash
+fin_funcion
+
+funcion compilador_procesar_imprimir(CompiladorFinal comp) retorna
+    compilador_saltar_espacios(comp)
+    
+    # Verificar si es la palabra clave "imprimir"
+    texto palabra = compilador_leer_palabra(comp)
+    
+    si palabra != "imprimir" entonces
+        compilador_error(comp, "Se esperaba 'imprimir', se encontro: " + palabra)
+        retornar
+    fin_si
+    
+    compilador_saltar_espacios(comp)
+    
+    # Verificar parentesis de apertura
+    si compilador_caracter_actual(comp) != '(' entonces
+        compilador_error(comp, "Se esperaba '(' despues de 'imprimir'")
+        retornar
+    fin_si
+    
+    compilador_avanzar(comp)
+    compilador_saltar_espacios(comp)
+    
+    # Procesar el argumento (string o expresion simple)
+    caracter siguiente = compilador_caracter_actual(comp)
+    
+    si siguiente == '"' entonces
+        # Es un string literal
+        texto contenido = ""
+        compilador_avanzar(comp)  # Consumir comilla inicial
+        
+        mientras compilador_caracter_actual(comp) != '"' y 
+              compilador_caracter_actual(comp) != '\0' y
+              compilador_caracter_actual(comp) != '\n' hacer
+            contenido = contenido + compilador_avanzar(comp)
+        fin_mientras
+        
+        compilador_avanzar(comp)  # Consumir comilla final
+        
+        entero hash_id = compilador_generar_string_hash(contenido)
+        
+        # Generar bytecode:
+        compilador_agregar_byte(comp, OP_LOAD_STR_HASH)
+        compilador_agregar_byte(comp, (hash_id >> 24) y 255)
+        compilador_agregar_byte(comp, (hash_id >> 16) y 255)
+        compilador_agregar_byte(comp, (hash_id >> 8) y 255)
+        compilador_agregar_byte(comp, hash_id y 255)
+        
+        compilador_agregar_byte(comp, OP_IMPRIMIR)
+        compilador_agregar_string(comp, contenido)
+        
+    sino
+        compilador_error(comp, "Solo se soportan strings literales en imprimir()")
+        retornar
+    fin_si
+    
+    compilador_saltar_espacios(comp)
+    
+    # Verificar parentesis de cierre
+    si compilador_caracter_actual(comp) != ')' entonces
+        compilador_error(comp, "Se esperaba ')' al final de imprimir()")
+        retornar
+    fin_si
+    
+    compilador_avanzar(comp)  # Consumir ')'
+fin_funcion
+
+funcion compilador_escribir_header_jbo(CompiladorFinal comp, entero fd) retorna
+    # Escribir magic number "JASB" (4 bytes)
+    escribir_archivo("J", fd)
+    escribir_archivo("A", fd)
+    escribir_archivo("S", fd)
+    escribir_archivo("B", fd)
+    
+    # Escribir version (1 byte)
+    escribir_archivo("\x01", fd)
+    
+    # Escribir endianness (1 byte, 0 = little endian)
+    escribir_archivo("\x00", fd)
+    
+    # Escribir tamano del codigo (4 bytes)
+    entero code_size = lista_tamano(comp.bytecode)
+    escribir_archivo(codigo_caracter(code_size y 255), fd)
+    escribir_archivo(codigo_caracter((code_size >> 8) y 255), fd)
+    escribir_archivo(codigo_caracter((code_size >> 16) y 255), fd)
+    escribir_archivo(codigo_caracter((code_size >> 24) y 255), fd)
+    
+    # Escribir tamano de datos (strings) (4 bytes)
+    entero data_size = 0
+    entero i = 0
+    mientras i < lista_tamano(comp.strings) hacer
+        texto str = lista_obtener(comp.strings, i)
+        data_size = data_size + longitud(str) + 1
+        i = i + 1
+    fin_mientras
+    
+    escribir_archivo(codigo_caracter(data_size y 255), fd)
+    escribir_archivo(codigo_caracter((data_size >> 8) y 255), fd)
+    escribir_archivo(codigo_caracter((data_size >> 16) y 255), fd)
+    escribir_archivo(codigo_caracter((data_size >> 24) y 255), fd)
+fin_funcion
+
+funcion compilador_escribir_bytecode_jbo(CompiladorFinal comp, entero fd) retorna
+    entero i = 0
+    mientras i < lista_tamano(comp.bytecode) hacer
+        entero byte_val = lista_obtener(comp.bytecode, i)
+        escribir_archivo(codigo_caracter(byte_val y 255), fd)
+        i = i + 1
+    fin_mientras
+fin_funcion
+
+funcion compilador_escribir_strings_jbo(CompiladorFinal comp, entero fd) retorna
+    entero i = 0
+    mientras i < lista_tamano(comp.strings) hacer
+        texto str = lista_obtener(comp.strings, i)
+        escribir_archivo(str, fd)
+        escribir_archivo("\x00", fd)
+        i = i + 1
+    fin_mientras
+fin_funcion
+
+funcion compilador_guardar_jbo(CompiladorFinal comp, texto nombre_archivo) retorna bool
+    entero fd = abrir_archivo(nombre_archivo, "wb")
+    si fd == 0 entonces
+        imprimir("Error: No se pudo crear archivo " + nombre_archivo)
+        retornar falso
+    fin_si
+    
+    compilador_escribir_header_jbo(comp, fd)
+    compilador_escribir_bytecode_jbo(comp, fd)
+    compilador_escribir_strings_jbo(comp, fd)
+    
+    cerrar_archivo(fd)
+    imprimir("Bytecode .jbo guardado en: " + nombre_archivo)
+    retornar verdadero
+fin_funcion
+
+funcion compilador_compilar(CompiladorFinal comp) retorna bool
+    imprimir("Iniciando compilacion final...")
+    
+    mientras comp.posicion < longitud(comp.fuente) hacer
+        compilador_saltar_espacios(comp)
+        
+        si comp.posicion >= longitud(comp.fuente) entonces
+            romper
+        fin_si
+        
+        caracter actual = compilador_caracter_actual(comp)
+        
+        si actual == '#' entonces
+            # Comentario - saltar hasta fin de linea
+            mientras compilador_caracter_actual(comp) != '\n' y 
+                  compilador_caracter_actual(comp) != '\0' hacer
+                compilador_avanzar(comp)
+            fin_mientras
+        sino si actual == 'p' entonces
+            texto palabra = compilador_leer_palabra(comp)
+            si palabra == "principal" entonces
+                imprimir("Encontrado bloque principal")
+            fin_si
+        sino si actual == 'i' entonces
+            texto palabra = compilador_leer_palabra(comp)
+            si palabra == "imprimir" entonces
+                compilador_procesar_imprimir(comp)
+            fin_si
+        sino
+            compilador_avanzar(comp)
+        fin_si
+    fin_mientras
+    
+    compilador_agregar_byte(comp, OP_HALT)
+    
+    si comp.tiene_errores entonces
+        imprimir("Compilacion fallida:")
+        imprimir("   " + comp.ultimo_error)
+        retornar falso
+    fin_si
+    
+    imprimir("Compilacion exitosa!")
+    imprimir("Bytecode: " + texto_desde_numero(lista_tamano(comp.bytecode)) + " bytes")
+    imprimir("Strings: " + texto_desde_numero(lista_tamano(comp.strings)) + " strings")
+    retornar verdadero
+fin_funcion
+
+funcion mostrar_ayuda() retorna
+    imprimir("Compilador Jasboot Final v1.0")
+    imprimir("")
+    imprimir("Sintaxis soportada:")
+    imprimir("  principal")
+    imprimir("      imprimir \"texto\"")
+    imprimir("  fin_principal")
+    imprimir("")
+    imprimir("Uso:")
+    imprimir("  compilador_final.jasb entrada.jasb salida.jbo")
+    imprimir("")
+    imprimir("Caracteristicas:")
+    imprimir("  Compila a bytecode .jbo ejecutable")
+    imprimir("  Soporte basico para imprimir()")
+    imprimir("  Compatible con VM jasboot-ir-vm")
+    imprimir("  Manejo robusto de errores")
+    imprimir("")
+fin_funcion
+
+principal
+    lista argv = crear_lista()
+    entero argc = sys_argc()
+    entero i = 0
+    mientras i < argc hacer
+        lista_agregar(argv, sys_argv(i))
+        i = i + 1
+    fin_mientras
+    
+    si lista_tamano(argv) < 2 entonces
+        mostrar_ayuda()
+        finalizar 0
+    fin_si
+    
+    texto archivo_entrada = lista_obtener(argv, 1)
+    texto archivo_salida = "salida.jbo"
+    
+    si lista_tamano(argv) > 2 entonces
+        archivo_salida = lista_obtener(argv, 2)
+    fin_si
+    
+    si archivo_entrada == "-h" o archivo_entrada == "--help" entonces
+        mostrar_ayuda()
+        finalizar 0
+    fin_si
+    
+    si no existe_archivo(archivo_entrada) entonces
+        imprimir("Error: Archivo no encontrado: " + archivo_entrada)
+        finalizar 1
+    fin_si
+    
+    entero fd = abrir_archivo(archivo_entrada, "r")
+    si fd == 0 entonces
+        imprimir("Error: No se pudo abrir el archivo: " + archivo_entrada)
+        finalizar 1
+    fin_si
+    
+    texto fuente = ""
+    texto linea = leer_linea_archivo(fd)
+    mientras linea != "" hacer
+        fuente = fuente + linea + "\n"
+        linea = leer_linea_archivo(fd)
+    fin_mientras
+    cerrar_archivo(fd)
+    
+    imprimir("Archivo fuente leido: " + texto_desde_numero(longitud(fuente)) + " caracteres")
+    
+    CompiladorFinal compilador = compilador_iniciar(fuente)
+    
+    si compilador_compilar(compilador) entonces
+        si compilador_guardar_jbo(compilador, archivo_salida) entonces
+            imprimir("Compilacion completada exitosamente!")
+            imprimir("Para ejecutar:")
+            imprimir("   jasboot-ir-vm.exe " + archivo_salida)
+            finalizar 0
+        sino
+            imprimir("Error al guardar bytecode")
+            finalizar 1
+        fin_si
+    sino
+        imprimir("La compilacion fallo")
+        finalizar 1
+    fin_si
+fin_principal

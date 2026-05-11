@@ -1,0 +1,168 @@
+# COMPILADOR JASBOOT SOBERANO - Todo en uno
+# Escrito en Jasboot para máxima compatibilidad y rendimiento.
+
+# =============================================================================
+# 1. LEXER
+# =============================================================================
+
+entero TOK_EOF = 0
+entero TOK_ID = 1
+entero TOK_NUM = 2
+entero TOK_STR = 4
+entero TOK_KEY = 5
+entero TOK_OP = 6
+entero TOK_SYM = 7
+
+registro RegistroToken
+    entero tipo_t
+    texto valor_t
+fin_registro
+
+registro RegistroLexer
+    texto fuente_t
+    entero pos_t
+    lista keys_t
+fin_registro
+
+funcion lexer_iniciar_keywords() retorna lista
+    lista k
+    k = crear_lista()
+    lista_agregar(k, "principal")
+    lista_agregar(k, "fin_principal")
+    lista_agregar(k, "imprimir")
+    lista_agregar(k, "recordar")
+    lista_agregar(k, "buscar")
+    retornar k
+fin_funcion
+
+funcion lexer_crear(texto p_fuente) retorna elemento
+    RegistroLexer v_rl
+    v_rl.fuente_t = p_fuente
+    v_rl.pos_t = 0
+    v_rl.keys_t = lexer_iniciar_keywords()
+    retornar v_rl
+fin_funcion
+
+funcion lexer_actual(RegistroLexer p_rl) retorna texto
+    texto v_res = ""
+    entero v_p = 0
+    entero v_f_len = 0
+    
+    v_p = p_rl.pos_t
+    v_f_len = longitud_texto(p_rl.fuente_t)
+    si v_p >= v_f_len entonces
+        v_res = ""
+    sino
+        v_res = extraer_subtexto(p_rl.fuente_t, v_p, 1)
+    fin_si
+    retornar v_res
+fin_funcion
+
+funcion lexer_avanzar(RegistroLexer p_rl) retorna texto
+    texto v_c = ""
+    v_c = lexer_actual(p_rl)
+    p_rl.pos_t = p_rl.pos_t + 1
+    retornar v_c
+fin_funcion
+
+funcion lexer_saltar(RegistroLexer p_rl) retorna entero
+    texto v_c = ""
+    mientras verdadero hacer
+        v_c = lexer_actual(p_rl)
+        si v_c == " " o v_c == "\n" entonces
+            lexer_avanzar(p_rl)
+        sino
+            romper
+        fin_si
+    fin_mientras
+    retornar 0
+fin_funcion
+
+funcion lexer_siguiente(RegistroLexer p_rl) retorna elemento
+    texto v_c_act = ""
+    RegistroToken v_t_res
+    texto v_s_id = ""
+    texto v_cur = ""
+    entero v_c_code = 0
+    entero v_i = 0
+    texto v_s_str = ""
+    entero v_code = 0
+    
+    lexer_saltar(p_rl)
+    v_c_act = lexer_actual(p_rl)
+    
+    si v_c_act == "" entonces
+        v_t_res.tipo_t = TOK_EOF
+        v_t_res.valor_t = ""
+        retornar v_t_res
+    fin_si
+    
+    v_code = codigo_caracter(v_c_act)
+    
+    # Identificador
+    si (v_code >= 97 y v_code <= 122) o (v_code >= 65 y v_code <= 90) entonces
+        v_s_id = ""
+        mientras verdadero hacer
+            v_cur = lexer_actual(p_rl)
+            v_c_code = codigo_caracter(v_cur)
+            si (v_c_code >= 97 y v_c_code <= 122) o (v_c_code >= 65 y v_c_code <= 90) o (v_c_code >= 48 y v_c_code <= 57) o v_cur == "_" entonces
+                v_s_id = v_s_id + lexer_avanzar(p_rl)
+            sino
+                romper
+            fin_si
+        fin_mientras
+        v_t_res.valor_t = v_s_id
+        v_t_res.tipo_t = TOK_ID
+        v_i = 0
+        mientras v_i < lista_tamano(p_rl.keys_t) hacer
+            si lista_obtener(p_rl.keys_t, v_i) == v_s_id entonces
+                v_t_res.tipo_t = TOK_KEY
+                romper
+            fin_si
+            v_i = v_i + 1
+        fin_mientras
+        retornar v_t_res
+    fin_si
+    
+    # Texto
+    si v_c_act == "\"" entonces
+        lexer_avanzar(p_rl)
+        v_s_str = ""
+        mientras lexer_actual(p_rl) != "\"" y lexer_actual(p_rl) != "" hacer
+            v_s_str = v_s_str + lexer_avanzar(p_rl)
+        fin_mientras
+        lexer_avanzar(p_rl)
+        v_t_res.tipo_t = TOK_STR
+        v_t_res.valor_t = v_s_str
+        retornar v_t_res
+    fin_si
+    
+    # Simbolo
+    v_t_res.tipo_t = TOK_SYM
+    v_t_res.valor_t = lexer_avanzar(p_rl)
+    retornar v_t_res
+fin_funcion
+
+# =============================================================================
+# 2. MAIN
+# =============================================================================
+
+principal
+    texto s_src
+    RegistroLexer rl_inst
+    RegistroToken rt_tok
+    
+    imprimir "--- Jasboot Soberano v1.3 ---"
+    s_src = "principal\n  recordar \"IA\"\nfin_principal"
+    
+    rl_inst = lexer_crear(s_src)
+    rt_tok = lexer_siguiente(rl_inst)
+    
+    imprimir "Analizando tokens..."
+    mientras rt_tok.tipo_t != TOK_EOF hacer
+        imprimir rt_tok.valor_t
+        rt_tok = lexer_siguiente(rl_inst)
+    fin_mientras
+    
+    imprimir "¡Compilador Soberano Iniciado con éxito!"
+fin_principal

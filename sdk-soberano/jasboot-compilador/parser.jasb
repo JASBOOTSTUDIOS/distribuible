@@ -1,0 +1,176 @@
+# PARSER - Analizador Sintáctico para el Compilador Jasboot en Jasboot
+# Este módulo convierte la lista de tokens en un Árbol de Sintaxis Abstracta (AST).
+
+usar {Token, Lexer, lexer_crear, lexer_siguiente, TOK_EOF, TOK_IDENTIFICADOR, 
+      TOK_ENTERO, TOK_FLOTANTE, TOK_TEXTO, TOK_KEYWORD, TOK_OPERADOR, TOK_SIMBOLO} de "lexer.jasb"
+
+# Tipos de Nodo AST
+entero NODE_PROGRAM = 1
+entero NODE_BLOCK = 2
+entero NODE_FUNCTION = 3
+entero NODE_PRINT = 4
+entero NODE_ASSIGNMENT = 5
+entero NODE_VAR_DECL = 6
+entero NODE_BINARY_OP = 7
+entero NODE_LITERAL = 8
+entero NODE_IDENTIFIER = 9
+entero NODE_CALL = 10
+entero NODE_WHILE = 11
+entero NODE_IF = 12
+entero NODE_RETURN = 13
+entero NODE_BREAK = 14
+entero NODE_CONTINUE = 15
+entero NODE_RECORDAR = 16
+entero NODE_BUSCAR = 17
+entero NODE_STRUCT_DEF = 18
+entero NODE_MEMBER_ACCESS = 19
+entero NODE_ASOCIAR = 20
+entero NODE_LIST_LITERAL = 21
+entero NODE_MAP_LITERAL = 22
+
+# Estructura del Nodo AST
+registro ASTNode
+    entero tipo
+    texto valor_texto     # Nombre de var, operador, o valor literal
+    lista hijos           # Nodos hijos (sentencias en un bloque, argumentos en llamada, etc.)
+    texto tipo_dato       # entero, texto, flotante, etc.
+    entero valor_int
+    flotante valor_float
+    texto nombre_funcion
+fin_registro
+
+# Estructura del Parser
+registro Parser
+    Lexer lexer
+    Token token_actual
+    texto ultimo_error
+fin_registro
+
+# Crear nuevo Nodo AST
+funcion ast_crear_nodo(entero tipo) retorna ASTNode
+    ASTNode nodo
+    nodo.tipo = tipo
+    nodo.hijos = crear_lista()
+    nodo.valor_texto = ""
+    nodo.tipo_dato = ""
+    retornar nodo
+fin_funcion
+
+# Inicializar Parser
+funcion parser_crear(texto codigo) retorna Parser
+    Parser p
+    p.lexer = lexer_crear(codigo)
+    p.token_actual = lexer_siguiente(p.lexer)
+    p.ultimo_error = ""
+    retornar p
+fin_funcion
+
+# Avanzar token
+funcion parser_avanzar(Parser p) retorna
+    p.token_actual = lexer_siguiente(p.lexer)
+fin_funcion
+
+# Consumir token esperado
+funcion parser_consumir(Parser p, texto valor_esperado) retorna bool
+    si p.token_actual.valor == valor_esperado entonces
+        parser_avanzar(p)
+        retornar verdadero
+    sino
+        p.ultimo_error = "Se esperaba '" + valor_esperado + "' pero se encontró '" + p.token_actual.valor + "'"
+        imprimir p.ultimo_error
+        retornar falso
+    fin_si
+fin_funcion
+
+# Prototipos (Jasboot permite llamadas a funciones definidas después)
+# Pero por claridad seguiremos un orden lógico.
+
+# Analizar Expresión (Muy básica por ahora)
+funcion parser_analizar_expresion(Parser p) retorna ASTNode
+    si p.token_actual.tipo == TOK_ENTERO entonces
+        ASTNode n = ast_crear_nodo(NODE_LITERAL)
+        n.tipo_dato = "entero"
+        n.valor_int = str_a_entero(p.token_actual.valor)
+        parser_avanzar(p)
+        retornar n
+    sino si p.token_actual.tipo == TOK_TEXTO entonces
+        ASTNode n = ast_crear_nodo(NODE_LITERAL)
+        n.tipo_dato = "texto"
+        n.valor = p.token_actual.valor
+        parser_avanzar(p)
+        retornar n
+    sino si p.token_actual.tipo == TOK_IDENTIFICADOR entonces
+        ASTNode n = ast_crear_nodo(NODE_IDENTIFIER)
+        n.valor = p.token_actual.valor
+        parser_avanzar(p)
+        retornar n
+    fin_si
+    retornar ast_crear_nodo(0)
+fin_funcion
+
+# Analizar Sentencia Imprimir
+funcion parser_analizar_imprimir(Parser p) retorna ASTNode
+    parser_avanzar(p) # saltar imprimir
+    ASTNode n = ast_crear_nodo(NODE_PRINT)
+    lista_agregar(n.hijos, parser_analizar_expresion(p))
+    retornar n
+fin_funcion
+
+# Analizar Sentencia Variable (entero x = 10)
+funcion parser_analizar_declaracion(Parser p) retorna ASTNode
+    texto tipo = p.token_actual.valor
+    parser_avanzar(p)
+    
+    texto nombre = p.token_actual.valor
+    parser_avanzar(p)
+    
+    ASTNode n = ast_crear_nodo(NODE_VAR_DECL)
+    n.tipo_dato = tipo
+    n.valor = nombre
+    
+    si p.token_actual.valor == "=" entonces
+        parser_avanzar(p)
+        lista_agregar(n.hijos, parser_analizar_expresion(p))
+    fin_si
+    
+    retornar n
+fin_funcion
+
+# Analizar Bloque de código
+funcion parser_analizar_bloque(Parser p, texto fin_keyword) retorna ASTNode
+    ASTNode bloque = ast_crear_nodo(NODE_BLOCK)
+    
+    mientras p.token_actual.valor != fin_keyword y p.token_actual.tipo != TOK_EOF hacer
+        si p.token_actual.valor == "imprimir" entonces
+            lista_agregar(bloque.hijos, parser_analizar_imprimir(p))
+        sino si p.token_actual.valor == "entero" o p.token_actual.valor == "texto" o p.token_actual.valor == "flotante" entonces
+            lista_agregar(bloque.hijos, parser_analizar_declaracion(p))
+        sino
+            parser_avanzar(p) # Ignorar por ahora
+        fin_si
+    fin_mientras
+    
+    retornar bloque
+fin_funcion
+
+# Analizar Programa (Entry point del parser)
+funcion parser_analizar(Parser p) retorna ASTNode
+    ASTNode prog = ast_crear_nodo(NODE_PROGRAM)
+    
+    mientras p.token_actual.tipo != TOK_EOF hacer
+        si p.token_actual.valor == "principal" entonces
+            parser_avanzar(p)
+            lista_agregar(prog.hijos, parser_analizar_bloque(p, "fin_principal"))
+            parser_consumir(p, "fin_principal")
+        sino
+            parser_avanzar(p)
+        fin_si
+    fin_mientras
+    
+    retornar prog
+fin_funcion
+
+# Función de utilidad para depuración
+funcion ast_a_texto(ASTNode nodo) retorna texto
+    retornar "Nodo(tipo=" + texto_desde_numero(nodo.tipo) + ", valor=" + nodo.valor + ")"
+fin_funcion

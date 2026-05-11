@@ -1,0 +1,335 @@
+# COMPILADOR JASBOOT - Compilador completo escrito en Jasboot
+# Compila código Jasboot a C intermedio usando lexer, parser y codegen
+# Basado en la arquitectura del compilador C original
+
+usar {lexer_tokenizar, token_a_texto} de "lexer.jasb"
+usar {parser_analizar, ast_a_texto} de "parser.jasb"
+usar {codegen_generar_codigo_c, codegen_guardar_archivo_c} de "codegen.jasb"
+usar {diagnosticos_iniciar, diagnosticos_agregar_error, diagnosticos_agregar_advertencia,
+        diagnosticos_imprimir_todos, diagnosticos_guardar_reporte, diagnosticos_tiene_errores,
+        diagnosticos_obtener_resumen, ERROR_LEXICO, ERROR_SINTACTICO, ERROR_SEMANTICO} de "diagnosticos.jasb"
+
+# Configuración del compilador
+registro ConfiguracionCompilador
+    texto archivo_entrada
+    texto archivo_salida_c
+    texto archivo_salida_reporte
+    bool modo_verbose
+    bool modo_debug
+    bool solo_analizar
+    bool generar_reporte
+fin_registro
+
+# Estado del compilador
+registro CompiladorJasboot
+    ConfiguracionCompilador config
+    SistemaDiagnosticos diagnosticos
+    texto codigo_fuente
+    lista tokens
+    ASTNode ast_programa
+    texto codigo_c_generado
+    bool compilacion_exitosa
+fin_registro
+
+# Funciones de inicialización
+funcion compilador_iniciar(texto archivo_entrada) retorna CompiladorJasboot
+    CompiladorJasboot comp
+    
+    # Configuración por defecto
+    comp.config.archivo_entrada = archivo_entrada
+    comp.config.archivo_salida_c = ""
+    comp.config.archivo_salida_reporte = ""
+    comp.config.modo_verbose = falso
+    comp.config.modo_debug = falso
+    comp.config.solo_analizar = falso
+    comp.config.generar_reporte = verdadero
+    
+    # Inicializar estado
+    comp.codigo_fuente = ""
+    comp.tokens = crear_lista()
+    comp.ast_programa = ""
+    comp.codigo_c_generado = ""
+    comp.compilacion_exitosa = falso
+    
+    # Generar nombres de archivos de salida
+    texto nombre_base = archivo_entrada
+    # Remover extensión .jasb si existe
+    entero pos_punto = longitud(nombre_base) - 1
+    mientras pos_punto >= 0 y nombre_base[pos_punto] != '.' hacer
+        pos_punto = pos_punto - 1
+    fin_mientras
+    
+    si pos_punto > 0 entonces
+        nombre_base = extraer_subtexto(nombre_base, 0, pos_punto)
+    fin_si
+    
+    comp.config.archivo_salida_c = nombre_base + "_generado.c"
+    comp.config.archivo_salida_reporte = nombre_base + "_reporte.txt"
+    
+    # Inicializar sistema de diagnósticos
+    comp.diagnosticos = diagnosticos_iniciar(archivo_entrada, comp.config.modo_verbose)
+    
+    retornar comp
+fin_funcion
+
+funcion compilador_leer_fuente(CompiladorJasboot comp) retorna bool
+    # Verificar si el archivo existe
+    si no existe_archivo(comp.config.archivo_entrada) entonces
+        diagnosticos_agregar_error(comp.diagnosticos, "FILE001", 
+                                 "Archivo no encontrado: " + comp.config.archivo_entrada,
+                                 0, 0, "Verifique que el archivo exista y la ruta sea correcta")
+        retornar falso
+    fin_si
+    
+    entero fd = abrir_archivo(comp.config.archivo_entrada, "r")
+    si fd == 0 entonces
+        diagnosticos_agregar_error(comp.diagnosticos, "FILE002", 
+                                 "No se pudo abrir el archivo: " + comp.config.archivo_entrada,
+                                 0, 0, "Verifique permisos del archivo")
+        retornar falso
+    fin_si
+    
+    # Leer todo el contenido
+    texto contenido = ""
+    texto linea = ""
+    linea = leer_linea_archivo(fd)
+    mientras linea != "" hacer
+        contenido = contenido + linea + "\n"
+        linea = leer_linea_archivo(fd)
+    fin_mientras
+    
+    cerrar_archivo(fd)
+    comp.codigo_fuente = contenido
+    
+    si comp.config.modo_verbose entonces
+        imprimir("📖 Archivo fuente leído: " + texto_desde_numero(longitud(contenido)) + " caracteres")
+    fin_si
+    
+    retornar verdadero
+fin_funcion
+
+funcion compilador_fase_lexico(CompiladorJasboot comp) retorna bool
+    si comp.config.modo_verbose entonces
+        imprimir("\n🔍 FASE 1: ANÁLISIS LÉXICO")
+    fin_si
+    
+    # Tokenizar el código fuente
+    comp.tokens = lexer_tokenizar(comp.codigo_fuente)
+    
+    si comp.config.modo_debug entonces
+        imprimir("\nTokens generados:")
+        entero i = 0
+        mientras i < lista_tamano(comp.tokens) hacer
+            Token tok = lista_obtener(comp.tokens, i)
+            imprimir("  " + token_a_texto(tok))
+            i = i + 1
+        fin_mientras
+    fin_si
+    
+    # Verificar si hubo errores léxicos
+    # (El lexer ya maneja sus propios errores)
+    
+    si comp.config.modo_verbose entonces
+        imprimir("✅ Fase léxica completada: " + texto_desde_numero(lista_tamano(comp.tokens)) + " tokens")
+    fin_si
+    
+    retornar verdadero
+fin_funcion
+
+funcion compilador_fase_parser(CompiladorJasboot comp) retorna bool
+    si comp.config.modo_verbose entonces
+        imprimir("\n🌳 FASE 2: ANÁLISIS SINTÁCTICO")
+    fin_si
+    
+    # Parsear tokens a AST
+    comp.ast_programa = parser_analizar(comp.codigo_fuente)
+    
+    si comp.config.modo_debug entonces
+        imprimir("\nAST generado:")
+        imprimir(ast_a_texto(comp.ast_programa, 0))
+    fin_si
+    
+    # Verificar si hubo errores de parsing
+    # (El parser ya maneja sus propios errores)
+    
+    si comp.config.modo_verbose entonces
+        imprimir("✅ Fase de parsing completada")
+    fin_si
+    
+    retornar verdadero
+fin_funcion
+
+funcion compilador_fase_codegen(CompiladorJasboot comp) retorna bool
+    si comp.config.modo_verbose entonces
+        imprimir("\n⚙️  FASE 3: GENERACIÓN DE CÓDIGO")
+    fin_si
+    
+    # Generar código C desde AST
+    comp.codigo_c_generado = codegen_generar_codigo_c(comp.ast_programa)
+    
+    si comp.config.modo_debug entonces
+        imprimir("\nCódigo C generado:")
+        imprimir(comp.codigo_c_generado)
+    fin_si
+    
+    # Guardar código C en archivo
+    si no codegen_guardar_archivo_c(comp.codigo_c_generado, comp.config.archivo_salida_c) entonces
+        diagnosticos_agregar_error(comp.diagnosticos, "GEN001", 
+                                 "No se pudo guardar el código C generado",
+                                 0, 0, "Verifique permisos de escritura")
+        retornar falso
+    fin_si
+    
+    si comp.config.modo_verbose entonces
+        imprimir("✅ Fase de codegen completada")
+        imprimir("📄 Código C guardado en: " + comp.config.archivo_salida_c)
+    fin_si
+    
+    retornar verdadero
+fin_funcion
+
+funcion compilador_compilar(CompiladorJasboot comp) retorna bool
+    imprimir("\n🚀 INICIANDO COMPILACIÓN JASBOOT")
+    imprimir("Archivo entrada: " + comp.config.archivo_entrada)
+    imprimir("Archivo salida C: " + comp.config.archivo_salida_c)
+    
+    # FASE 1: Leer fuente
+    si no compilador_leer_fuente(comp) entonces
+        imprimir("❌ Falló fase de lectura de fuente")
+        retornar falso
+    fin_si
+    
+    # FASE 2: Análisis léxico
+    si no compilador_fase_lexico(comp) entonces
+        imprimir("❌ Falló fase léxica")
+        retornar falso
+    fin_si
+    
+    # FASE 3: Análisis sintáctico
+    si no compilador_fase_parser(comp) entonces
+        imprimir("❌ Falló fase de parsing")
+        retornar falso
+    fin_si
+    
+    # FASE 4: Generación de código
+    si no compilador_fase_codegen(comp) entonces
+        imprimir("❌ Falló fase de codegen")
+        retornar falso
+    fin_si
+    
+    # Verificar si hubo errores
+    si diagnosticos_tiene_errores(comp.diagnosticos) entonces
+        imprimir("❌ COMPILACIÓN FALLÓ - Se encontraron errores")
+        comp.compilacion_exitosa = falso
+    sino
+        imprimir("✅ COMPILACIÓN EXITOSA")
+        comp.compilacion_exitosa = verdadero
+    fin_si
+    
+    # Mostrar diagnósticos
+    diagnosticos_imprimir_todos(comp.diagnosticos)
+    
+    # Generar reporte
+    si comp.config.generar_reporte entonces
+        diagnosticos_guardar_reporte(comp.diagnosticos, comp.config.archivo_salida_reporte)
+    fin_si
+    
+    retornar comp.compilacion_exitosa
+fin_funcion
+
+funcion compilador_mostrar_ayuda() retorna
+    imprimir("Compilador Jasboot - Compila código Jasboot a C")
+    imprimir("")
+    imprimir("Uso:")
+    imprimir("  compilador.jasb [opciones] archivo.jasb")
+    imprimir("")
+    imprimir("Opciones:")
+    imprimir("  -v, --verbose    Modo verbose (muestra detalles)")
+    imprimir("  -d, --debug      Modo debug (muestra AST y código intermedio)")
+    imprimir("  -a, --analyze    Solo analizar, no generar código")
+    imprimir("  -r, --report      Generar reporte de diagnósticos")
+    imprimir("  -h, --help       Muestra esta ayuda")
+    imprimir("")
+    imprimir("Ejemplos:")
+    imprimir("  compilador.jasb programa.jasb")
+    imprimir("  compilador.jasb -v -d programa.jasb")
+    imprimir("")
+    imprimir("Salida:")
+    imprimir("  - archivo_generado.c     Código C generado")
+    imprimir("  - archivo_reporte.txt    Reporte de errores y advertencias")
+fin_funcion
+
+funcion compilador_procesar_argumentos(lista argv) retorna ConfiguracionCompilador
+    ConfiguracionCompilador config
+    config.archivo_entrada = ""
+    config.modo_verbose = falso
+    config.modo_debug = falso
+    config.solo_analizar = falso
+    config.generar_reporte = verdadero
+    
+    entero i = 1
+    mientras i < lista_tamano(argv) hacer
+        texto arg = lista_obtener(argv, i)
+        
+        si arg == "-v" o arg == "--verbose" entonces
+            config.modo_verbose = verdadero
+        sino si arg == "-d" o arg == "--debug" entonces
+            config.modo_debug = verdadero
+        sino si arg == "-a" o arg == "--analyze" entonces
+            config.solo_analizar = verdadero
+        sino si arg == "-r" o arg == "--report" entonces
+            config.generar_reporte = verdadero
+        sino si arg == "-h" o arg == "--help" entonces
+            compilador_mostrar_ayuda()
+            config.archivo_entrada = ""  # Indicar que solo se mostró ayuda
+        sino si arg[0] != '-' entonces
+            # Es el archivo de entrada
+            si config.archivo_entrada == "" entonces
+                config.archivo_entrada = arg
+            sino
+                imprimir("Error: Múltiples archivos de entrada especificados")
+                imprimir("Use: compilador.jasb [opciones] archivo.jasb")
+            fin_si
+        sino
+            imprimir("Error: Opción no reconocida: " + arg)
+            imprimir("Use -h para ver la ayuda")
+        fin_si
+        
+        i = i + 1
+    fin_mientras
+    
+    retornar config
+fin_funcion
+
+# Función principal
+principal
+    lista argv = crear_lista()
+    entero argc = sys_argc()
+    entero i = 0
+    mientras i < argc hacer
+        lista_agregar(argv, sys_argv(i))
+        i = i + 1
+    fin_mientras
+    
+    # Procesar argumentos de línea de comandos
+    ConfiguracionCompilador config = compilador_procesar_argumentos(argv)
+    
+    # Si solo se pidió ayuda, terminar
+    si config.archivo_entrada == "" entonces
+        finalizar 0
+    fin_si
+    
+    # Inicializar compilador
+    CompiladorJasboot compilador = compilador_iniciar(config.archivo_entrada)
+    compilador.config = config
+    
+    # Ejecutar compilación
+    bool exito = compilador_compilar(compilador)
+    
+    # Retornar código de salida apropiado
+    si exito entonces
+        finalizar 0
+    sino
+        finalizar 1
+    fin_si
+fin_principal

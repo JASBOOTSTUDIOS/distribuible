@@ -1,0 +1,392 @@
+# CODEGEN - Generador de Código para Compilador Jasboot
+# Convierte AST a código C intermedio
+# Basado en la arquitectura del compilador C original
+
+usar {parser_analizar, ast_a_texto, NODE_PROGRAM, NODE_BLOCK, NODE_FUNCTION,
+        NODE_PRINT, NODE_ASSIGNMENT, NODE_VAR_DECL, NODE_BINARY_OP, NODE_LITERAL,
+        NODE_IDENTIFIER, NODE_CALL, NODE_WHILE, NODE_IF, NODE_RETURN,
+        NODE_BREAK, NODE_CONTINUE, NODE_RECORDAR, NODE_BUSCAR, NODE_STRUCT_DEF,
+        NODE_MEMBER_ACCESS, NODE_ASOCIAR, NODE_LIST_LITERAL, NODE_MAP_LITERAL} de "parser.jasb"
+
+# Estado del generador de código
+registro CodeGen
+    texto codigo_c
+    lista variables_declaradas
+    lista funciones_generadas
+    entero indentacion
+    texto nombre_funcion_actual
+    lista errores
+    entero tiene_errores
+fin_registro
+
+# Funciones de inicialización
+funcion codegen_iniciar_tipos() retorna mapa
+    mapa tipos = mapa_crear()
+    mapa_poner(tipos, "entero", "int64_t")
+    mapa_poner(tipos, "texto", "char*")
+    mapa_poner(tipos, "flotante", "double")
+    mapa_poner(tipos, "bool", "int")
+    mapa_poner(tipos, "caracter", "char")
+    retornar tipos
+fin_funcion
+funcion codegen_iniciar() retorna CodeGen
+    CodeGen cg
+    cg.codigo_c = ""
+    cg.variables_declaradas = crear_lista()
+    cg.funciones_generadas = crear_lista()
+    cg.indentacion = 0
+    cg.nombre_funcion_actual = ""
+    cg.errores = crear_lista()
+    cg.tiene_errores = 0
+    retornar cg
+fin_funcion
+
+funcion codegen_error(CodeGen cg, texto mensaje) retorna
+    lista_agregar(cg.errores, mensaje)
+    cg.tiene_errores = 1
+fin_funcion
+
+funcion codegen_obtener_tipo_c(mapa tipos, texto tipo_jasboot) retorna texto
+    texto tipo_c = mapa_obtener(tipos, tipo_jasboot)
+    si tipo_c == "" entonces
+        retornar "void*"  # Tipo desconocido
+    sino
+        retornar tipo_c
+    fin_si
+fin_funcion
+
+funcion codegen_generar_indentacion(CodeGen cg) retorna texto
+    texto indent = ""
+    entero i = 0
+    mientras i < cg.indentacion hacer
+        indent = indent + "    "
+        i = i + 1
+    fin_mientras
+    retornar indent
+fin_funcion
+
+funcion codegen_agregar_linea(CodeGen cg, texto linea) retorna
+    texto indent = codegen_generar_indentacion(cg)
+    cg.codigo_c = cg.codigo_c + indent + linea + "\n"
+fin_funcion
+
+funcion codegen_agregar_linea_comentario(CodeGen cg, texto comentario) retorna
+    texto indent = codegen_generar_indentacion(cg)
+    cg.codigo_c = cg.codigo_c + indent + "// " + comentario + "\n"
+fin_funcion
+
+funcion codegen_verificar_variable_declarada(CodeGen cg, texto nombre_var) retorna bool
+    entero i = 0
+    mientras i < lista_tamano(cg.variables_declaradas) hacer
+        texto v = lista_obtener(cg.variables_declaradas, i)
+        si v == nombre_var entonces
+            retornar verdadero
+        fin_si
+        i = i + 1
+    fin_mientras
+    retornar falso
+fin_funcion
+
+funcion codegen_declarar_variable(CodeGen cg, mapa tipos, texto n_var, texto t_var) retorna
+    si no codegen_verificar_variable_declarada(cg, n_var) entonces
+        texto tipo_c = codegen_obtener_tipo_c(tipos, t_var)
+        texto linea = tipo_c + " " + n_var + ";"
+        codegen_agregar_linea(cg, linea)
+        lista_agregar(cg.variables_declaradas, n_var)
+    fin_si
+fin_funcion
+
+funcion codegen_generar_expresion_literal(CodeGen cg, ASTNode nodo) retorna texto
+    seleccionar nodo.tipo_dato
+        caso "entero":
+            retornar texto_desde_numero(nodo.valor_int)
+        caso "flotante":
+            retornar texto_desde_numero(nodo.valor_float)
+        caso "texto":
+            retornar "\"" + nodo.valor_texto + "\""
+        caso "bool":
+            si nodo.valor_int != 0 entonces
+                retornar "1"
+            sino
+                retornar "0"
+            fin_si
+        defecto:
+            retornar "NULL"
+    fin_seleccionar
+fin_funcion
+
+funcion codegen_generar_expresion_identificador(CodeGen cg, ASTNode nodo) retorna texto
+    retornar nodo.valor_texto
+fin_funcion
+
+funcion codegen_generar_expresion_binaria(CodeGen cg, mapa tipos, ASTNode nodo) retorna texto
+    si lista_tamano(nodo.hijos) < 2 entonces
+        codegen_error(cg, "Operación binaria sin operandos suficientes")
+        retornar "NULL"
+    fin_si
+    
+    ASTNode izquierdo = lista_obtener(nodo.hijos, 0)
+    ASTNode derecho = lista_obtener(nodo.hijos, 1)
+    
+    texto expr_izq = codegen_generar_expresion(cg, tipos, izquierdo)
+    texto expr_der = codegen_generar_expresion(cg, tipos, derecho)
+    
+    # Convertir operador Jasboot a C
+    texto op_c = nodo.valor_texto
+    si nodo.valor_texto == "y" entonces
+        op_c = "&&"
+    sino si nodo.valor == "o" entonces
+        op_c = "||"
+    sino si nodo.valor == "no" entonces
+        op_c = "!"
+    sino si nodo.valor == "igual" entonces
+        op_c = "=="
+    sino si nodo.valor == "distinto" entonces
+        op_c = "!="
+    sino si nodo.valor == "mayor" entonces
+        op_c = ">"
+    sino si nodo.valor == "menor" entonces
+        op_c = "<"
+    fin_si
+    
+    retornar "(" + expr_izq + " " + op_c + " " + expr_der + ")"
+fin_funcion
+
+funcion codegen_generar_expresion_llamada(CodeGen cg, mapa tipos, ASTNode nodo) retorna texto
+    texto nombre_func = nodo.nombre_funcion
+    
+    # Funciones del sistema Jasboot
+    si nombre_func == "imprimir" entonces
+        si lista_tamano(nodo.hijos) > 0 entonces
+            ASTNode arg = lista_obtener(nodo.hijos, 0)
+            texto expr_arg = codegen_generar_expresion(cg, tipos, arg)
+            
+            # Determinar tipo de formato para printf
+            seleccionar arg.tipo_dato
+                caso "entero":
+                    retornar "printf(\"%lld\\n\", " + expr_arg + ")"
+                caso "flotante":
+                    retornar "printf(\"%g\\n\", " + expr_arg + ")"
+                caso "texto":
+                    retornar "printf(\"%s\\n\", " + expr_arg + ")"
+                defecto:
+                    retornar "printf(\"%s\\n\", " + expr_arg + ")"
+            fin_seleccionar
+        sino
+            retornar "printf(\"\\n\")"
+        fin_si
+    sino si nombre_func == "longitud" entonces
+        si lista_tamano(nodo.hijos) > 0 entonces
+            ASTNode arg = lista_obtener(nodo.hijos, 0)
+            texto expr_arg = codegen_generar_expresion(cg, tipos, arg)
+            retornar "strlen(" + expr_arg + ")"
+        fin_si
+    sino si nombre_func == "texto_desde_numero" entonces
+        si lista_tamano(nodo.hijos) > 0 entonces
+            ASTNode arg = lista_obtener(nodo.hijos, 0)
+            texto expr_arg = codegen_generar_expresion(cg, tipos, arg)
+            
+            # Crear buffer temporal para conversión
+            texto buffer_name = "_temp_str_" + texto_desde_numero(cg.indentacion)
+            texto linea = "char " + buffer_name + "[64];"
+            codegen_agregar_linea(cg, linea)
+            
+            linea = "snprintf(" + buffer_name + ", sizeof(" + buffer_name + "), \"%lld\", " + expr_arg + ");"
+            codegen_agregar_linea(cg, linea)
+            
+            retornar buffer_name
+        fin_si
+    fin_si
+    
+    # Llamada a función normal
+    texto args_str = ""
+    entero i = 0
+    mientras i < lista_tamano(nodo.hijos) hacer
+        ASTNode arg = lista_obtener(nodo.hijos, i)
+        texto expr_arg = codegen_generar_expresion(cg, tipos, arg)
+        
+        si i > 0 entonces
+            args_str = args_str + ", "
+        fin_si
+        args_str = args_str + expr_arg
+        
+        i = i + 1
+    fin_mientras
+    
+    retornar nombre_func + "(" + args_str + ")"
+fin_funcion
+
+funcion codegen_generar_expresion(CodeGen cg, mapa tipos, ASTNode nodo) retorna texto
+    si nodo.tipo == NODE_LITERAL entonces
+        retornar codegen_generar_expresion_literal(cg, nodo)
+    sino si nodo.tipo == NODE_IDENTIFIER entonces
+        retornar codegen_generar_expresion_identificador(cg, nodo)
+    sino si nodo.tipo == NODE_BINARY_OP entonces
+        retornar codegen_generar_expresion_binaria(cg, nodo)
+    sino si nodo.tipo == NODE_CALL entonces
+        retornar codegen_generar_expresion_llamada(cg, nodo)
+    sino
+        codegen_error(cg, "Tipo de nodo no soportado en expresión: " + texto_desde_numero(nodo.tipo))
+        retornar "NULL"
+    fin_si
+fin_funcion
+
+funcion codegen_generar_asignacion(CodeGen cg, mapa tipos, ASTNode nodo) retorna
+    si lista_tamano(nodo.hijos) < 2 entonces
+        codegen_error(cg, "Asignación sin destino o valor")
+        retornar
+    fin_si
+    
+    ASTNode destino = lista_obtener(nodo.hijos, 0)
+    ASTNode valor = lista_obtener(nodo.hijos, 1)
+    
+    # Declarar variable si no existe
+    si destino.tipo == NODE_IDENTIFIER entonces
+        si no codegen_verificar_variable_declarada(cg, destino.valor_texto) entonces
+            codegen_declarar_variable(cg, tipos, destino.valor_texto, "entero")
+        fin_si
+    fin_si
+    
+    texto expr_destino = codegen_generar_expresion(cg, tipos, destino)
+    texto expr_valor = codegen_generar_expresion(cg, tipos, valor)
+    
+    texto linea = expr_destino + " = " + expr_valor + ";"
+    codegen_agregar_linea(cg, linea)
+fin_funcion
+
+funcion codegen_generar_declaracion_variable(CodeGen cg, mapa tipos, ASTNode nodo) retorna
+    texto nombre_var = nodo.valor_texto
+    texto tipo_var = nodo.tipo_dato
+    
+    # Declarar variable
+    codegen_declarar_variable(cg, tipos, nombre_var, tipo_var)
+    
+    # Si hay inicialización, generar código
+    si lista_tamano(nodo.hijos) > 0 entonces
+        ASTNode expr_inicial = lista_obtener(nodo.hijos, 0)
+        texto expr_valor = codegen_generar_expresion(cg, tipos, expr_inicial)
+        
+        texto linea = nombre_var + " = " + expr_valor + ";"
+        codegen_agregar_linea(cg, linea)
+    fin_si
+fin_funcion
+
+funcion codegen_generar_imprimir(CodeGen cg, mapa tipos, ASTNode nodo) retorna
+    si lista_tamano(nodo.hijos) > 0 entonces
+        ASTNode expr = lista_obtener(nodo.hijos, 0)
+        texto expr_str = codegen_generar_expresion(cg, tipos, expr)
+        
+        # Generar llamada a printf
+        seleccionar expr.tipo_dato
+            caso "entero":
+                codegen_agregar_linea(cg, "printf(\"%lld\\n\", " + expr_str + ");")
+            caso "flotante":
+                codegen_agregar_linea(cg, "printf(\"%g\\n\", " + expr_str + ");")
+            caso "texto":
+                codegen_agregar_linea(cg, "printf(\"%s\\n\", " + expr_str + ");")
+            defecto:
+                codegen_agregar_linea(cg, "printf(\"%s\\n\", " + expr_str + ");")
+        fin_seleccionar
+    sino
+        codegen_agregar_linea(cg, "printf(\"\\n\");")
+    fin_si
+fin_funcion
+
+funcion codegen_generar_bloque(CodeGen cg, mapa tipos, ASTNode nodo) retorna
+    codegen_agregar_linea(cg, "{")
+    cg.indentacion = cg.indentacion + 1
+    
+    entero i = 0
+    mientras i < lista_tamano(nodo.hijos) hacer
+        ASTNode hijo = lista_obtener(nodo.hijos, i)
+        codegen_generar_sentencia(cg, tipos, hijo)
+        i = i + 1
+    fin_mientras
+    
+    cg.indentacion = cg.indentacion - 1
+    codegen_agregar_linea(cg, "}")
+fin_funcion
+
+funcion codegen_generar_sentencia(CodeGen cg, mapa tipos, ASTNode nodo) retorna
+    seleccionar nodo.tipo
+        caso NODE_ASSIGNMENT:
+            codegen_generar_asignacion(cg, tipos, nodo)
+        caso NODE_VAR_DECL:
+            codegen_generar_declaracion_variable(cg, tipos, nodo)
+        caso NODE_PRINT:
+            codegen_generar_imprimir(cg, tipos, nodo)
+        caso NODE_BLOCK:
+            codegen_generar_bloque(cg, tipos, nodo)
+        caso NODE_BINARY_OP:
+            # Expresión sin asignación, probablemente llamada a función
+            texto expr = codegen_generar_expresion(cg, tipos, nodo)
+            si expr != "NULL" entonces
+                codegen_agregar_linea(cg, expr + ";")
+            fin_si
+        defecto:
+            codegen_error(cg, "Tipo de sentencia no soportado: " + texto_desde_numero(nodo.tipo))
+    fin_seleccionar
+fin_funcion
+
+funcion codegen_generar_programa(CodeGen cg, mapa tipos, ASTNode programa) retorna
+    # Generar encabezado C
+    codegen_agregar_linea_comentario(cg, "Código generado por Compilador Jasboot")
+    codegen_agregar_linea(cg, "#include <stdio.h>")
+    codegen_agregar_linea(cg, "#include <stdlib.h>")
+    codegen_agregar_linea(cg, "#include <string.h>")
+    codegen_agregar_linea(cg, "#include <stdint.h>")
+    codegen_agregar_linea(cg, "")
+    
+    # Generar función main
+    codegen_agregar_linea(cg, "int main(int argc, char* argv[]) {")
+    cg.indentacion = cg.indentacion + 1
+    
+    # Generar sentencias del programa
+    entero i = 0
+    mientras i < lista_tamano(programa.hijos) hacer
+        ASTNode sentencia = lista_obtener(programa.hijos, i)
+        codegen_generar_sentencia(cg, tipos, sentencia)
+        i = i + 1
+    fin_mientras
+    
+    # Retorno por defecto
+    codegen_agregar_linea(cg, "return 0;")
+    cg.indentacion = cg.indentacion - 1
+    codegen_agregar_linea(cg, "}")
+fin_funcion
+
+# Función principal de codegen
+funcion codegen_generar_codigo_c(ASTNode programa) retorna texto
+    CodeGen cg = codegen_iniciar()
+    mapa tipos = codegen_iniciar_tipos()
+    
+    codegen_generar_programa(cg, tipos, programa)
+    
+    si cg.tiene_errores entonces
+        imprimir("Errores en generación de código:")
+        entero i = 0
+        mientras i < lista_tamano(cg.errores) hacer
+            texto error = lista_obtener(cg.errores, i)
+            imprimir("  " + error)
+            i = i + 1
+        fin_mientras
+    fin_si
+    
+    retornar cg.codigo_c
+fin_funcion
+
+funcion codegen_guardar_archivo_c(texto codigo_c, texto nombre_archivo) retorna bool
+    entero fd = abrir_archivo(nombre_archivo, "w")
+    si fd == 0 entonces
+        imprimir("Error: No se pudo crear el archivo " + nombre_archivo)
+        retornar falso
+    fin_si
+    
+    escribir_archivo(codigo_c, fd)
+    cerrar_archivo(fd)
+    
+    imprimir("Código C guardado en: " + nombre_archivo)
+    retornar verdadero
+fin_funcion
+
+enviar {codegen_generar_codigo_c, codegen_guardar_archivo_c}

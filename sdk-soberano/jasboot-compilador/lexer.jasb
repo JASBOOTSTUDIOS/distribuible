@@ -1,0 +1,250 @@
+# LEXER - Analizador Léxico para el Compilador Jasboot en Jasboot
+# Este módulo se encarga de convertir el código fuente en una lista de tokens.
+
+# Tipos de Token
+entero TOK_EOF = 0
+entero TOK_IDENTIFICADOR = 1
+entero TOK_ENTERO = 2
+entero TOK_FLOTANTE = 3
+entero TOK_TEXTO = 4
+entero TOK_KEYWORD = 5
+entero TOK_OPERADOR = 6
+entero TOK_SIMBOLO = 7
+
+# Estructura del Token
+registro Token
+    entero tipo
+    texto contenido
+    entero linea
+    entero columna
+fin_registro
+
+# Estructura del Lexer
+registro Lexer
+    texto fuente
+    entero posicion
+    entero linea
+    entero columna
+    lista tokens
+    lista palabras_clave
+fin_registro
+
+# Inicializar palabras clave
+funcion lexer_iniciar_keywords() retorna lista
+    lista k = crear_lista()
+    lista_agregar(k, "principal")
+    lista_agregar(k, "fin_principal")
+    lista_agregar(k, "funcion")
+    lista_agregar(k, "fin_funcion")
+    lista_agregar(k, "si")
+    lista_agregar(k, "entonces")
+    lista_agregar(k, "sino")
+    lista_agregar(k, "fin_si")
+    lista_agregar(k, "mientras")
+    lista_agregar(k, "hacer")
+    lista_agregar(k, "fin_mientras")
+    lista_agregar(k, "entero")
+    lista_agregar(k, "texto")
+    lista_agregar(k, "flotante")
+    lista_agregar(k, "bool")
+    lista_agregar(k, "retornar")
+    lista_agregar(k, "imprimir")
+    lista_agregar(k, "imprimir_sin_salto")
+    retornar k
+fin_funcion
+
+# Crear nuevo Lexer
+funcion lexer_crear(texto codigo) retorna Lexer
+    Lexer lex
+    lex.fuente = codigo
+    lex.posicion = 0
+    lex.linea = 1
+    lex.columna = 1
+    lex.tokens = crear_lista()
+    lex.palabras_clave = lexer_iniciar_keywords()
+    retornar lex
+fin_funcion
+
+# Obtener carácter actual
+funcion lexer_actual(Lexer lex) retorna caracter
+    si lex.posicion >= longitud_texto(lex.fuente) entonces
+        retornar '\0'
+    sino
+        retornar str_extraer_caracter(lex.fuente, lex.posicion)
+    fin_si
+fin_funcion
+
+# Avanzar un carácter
+funcion lexer_avanzar(Lexer lex) retorna caracter
+    caracter c = lexer_actual(lex)
+    lex.posicion = lex.posicion + 1
+    si c == '\n' entonces
+        lex.linea = lex.linea + 1
+        lex.columna = 1
+    sino
+        lex.columna = lex.columna + 1
+    fin_si
+    retornar c
+fin_funcion
+
+# Saltar espacios y comentarios
+funcion lexer_saltar_basura(Lexer lex) retorna
+    mientras verdadero hacer
+        caracter c = lexer_actual(lex)
+        si c == ' ' o c == '\t' o c == '\r' o c == '\n' entonces
+            lexer_avanzar(lex)
+        sino si c == '#' entonces
+            mientras lexer_actual(lex) != '\n' y lexer_actual(lex) != '\0' hacer
+                lexer_avanzar(lex)
+            fin_mientras
+        sino
+            romper
+        fin_si
+    fin_mientras
+fin_funcion
+
+# Analizar un identificador o palabra clave
+funcion lexer_leer_identificador(Lexer lex) retorna Token
+    entero l = lex.linea
+    entero col = lex.columna
+    texto val = ""
+    
+    mientras verdadero hacer
+        caracter c = lexer_actual(lex)
+        si (c >= 'a' y c <= 'z') o (c >= 'A' y c <= 'Z') o (c >= '0' y c <= '9') o c == '_' entonces
+            val = val + lexer_avanzar(lex)
+        sino
+            romper
+        fin_si
+    fin_mientras
+    
+    Token t
+    t.contenido = val
+    t.linea = l
+    t.columna = col
+    
+    # Verificar si es palabra clave
+    entero es_k = 0
+    entero i = 0
+    mientras i < lista_tamano(lex.palabras_clave) hacer
+        si lista_obtener(lex.palabras_clave, i) == val entonces
+            es_k = 1
+            romper
+        fin_si
+        i = i + 1
+    fin_mientras
+    
+    si es_k == 1 entonces
+        t.tipo = TOK_KEYWORD
+    sino
+        t.tipo = TOK_IDENTIFICADOR
+    fin_si
+    
+    retornar t
+fin_funcion
+
+# Analizar un número
+funcion lexer_leer_numero(Lexer lex) retorna Token
+    entero l = lex.linea
+    entero col = lex.columna
+    texto val = ""
+    entero es_flotante = 0
+    
+    mientras verdadero hacer
+        caracter c = lexer_actual(lex)
+        si c >= '0' y c <= '9' entonces
+            val = val + lexer_avanzar(lex)
+        sino si c == '.' entonces
+            si es_flotante == 1 entonces romper fin_si
+            es_flotante = 1
+            val = val + lexer_avanzar(lex)
+        sino
+            romper
+        fin_si
+    fin_mientras
+    
+    Token t
+    t.valor = val
+    t.linea = l
+    t.columna = col
+    si es_flotante == 1 entonces
+        t.tipo = TOK_FLOTANTE
+    sino
+        t.tipo = TOK_ENTERO
+    fin_si
+    retornar t
+fin_funcion
+
+# Analizar un string
+funcion lexer_leer_texto(Lexer lex) retorna Token
+    entero l = lex.linea
+    entero col = lex.columna
+    lexer_avanzar(lex) # saltar "
+    texto val = ""
+    
+    mientras lexer_actual(lex) != '"' y lexer_actual(lex) != '\0' hacer
+        val = val + lexer_avanzar(lex)
+    fin_mientras
+    
+    si lexer_actual(lex) == '"' entonces
+        lexer_avanzar(lex)
+    fin_si
+    
+    Token t
+    t.tipo = TOK_TEXTO
+    t.valor = val
+    t.linea = l
+    t.columna = col
+    retornar t
+fin_funcion
+
+# Obtener siguiente token
+funcion lexer_siguiente(Lexer lex) retorna Token
+    lexer_saltar_basura(lex)
+    
+    caracter c = lexer_actual(lex)
+    
+    si c == '\0' entonces
+        Token t
+        t.tipo = TOK_EOF
+        t.valor = "EOF"
+        t.linea = lex.linea
+        t.columna = lex.columna
+        retornar t
+    fin_si
+    
+    si (c >= 'a' y c <= 'z') o (c >= 'A' y c <= 'Z') o c == '_' entonces
+        retornar lexer_leer_identificador(lex)
+    fin_si
+    
+    si c >= '0' y c <= '9' entonces
+        retornar lexer_leer_numero(lex)
+    fin_si
+    
+    si c == '"' entonces
+        retornar lexer_leer_texto(lex)
+    fin_si
+    
+    # Operadores y símbolos
+    entero l = lex.linea
+    entero col = lex.columna
+    texto op = ""
+    op = op + lexer_avanzar(lex)
+    
+    # Manejar operadores de dos caracteres como ==, !=, <=, >=
+    caracter sig = lexer_actual(lex)
+    si (op == "=" o op == "!" o op == "<" o op == ">") y sig == "=" entonces
+        op = op + lexer_avanzar(lex)
+    fin_si
+    
+    Token t
+    t.valor = op
+    t.linea = l
+    t.columna = col
+    si op == "=" o op == "+" o op == "-" o op == "*" o op == "/" o op == "==" o op == "!=" o op == "<" o op == ">" o op == "<=" o op == ">=" entonces
+        t.tipo = TOK_OPERADOR
+    sino
+        t.tipo = TOK_SIMBOLO
+    fin_si
+    retornar t
+fin_funcion

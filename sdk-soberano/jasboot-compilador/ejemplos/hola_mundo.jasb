@@ -1,0 +1,6 @@
+# Hola Mundo - Ejemplo básico del Compilador Jasboot
+# Demuestra la capacidad más fundamental del compilador
+
+principal
+    imprimir "Hola Mundo desde Jasboot!"
+fin_principal

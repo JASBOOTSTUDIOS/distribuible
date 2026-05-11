@@ -1,0 +1,18 @@
+# Funciones - Ejemplo del Compilador Jasboot
+# Demuestra definición y llamada de funciones
+
+funcion sumar(entero a, entero b) retorna entero
+    entero resultado = a + b
+    retornar resultado
+fin_funcion
+
+funcion saludar(texto nombre) retorna
+    imprimir "Hola, " + nombre + "!"
+fin_funcion
+
+principal
+    entero resultado_suma = sumar(15, 25)
+    imprimir "El resultado de sumar(15, 25) es: " + texto_desde_numero(resultado_suma)
+    
+    saludar("Mundo Jasboot")
+fin_principal

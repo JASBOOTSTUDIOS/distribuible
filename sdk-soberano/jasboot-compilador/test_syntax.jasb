@@ -1,0 +1,14 @@
+registro MiRegistro
+    entero x
+fin_registro
+
+funcion mi_funcion(MiRegistro r) retorna entero
+    entero _a = r.x
+    retornar _a
+fin_funcion
+
+principal
+    MiRegistro reg
+    reg.x = 10
+    imprimir mi_funcion(reg)
+fin_principal

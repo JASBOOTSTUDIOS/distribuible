@@ -1,0 +1,6 @@
+# Test Simple para Compilador Robusto
+# Programa mínimo para probar funcionalidad básica
+
+principal
+    imprimir "Hola Mundo desde Compilador Robusto!"
+fin_principal

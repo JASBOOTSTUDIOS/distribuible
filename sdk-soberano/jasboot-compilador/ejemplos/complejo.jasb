@@ -1,0 +1,51 @@
+# Ejemplo Complejo - Demostración completa del Compilador Jasboot
+# Muestra múltiples características del lenguaje en un solo programa
+
+funcion calcular_factorial(entero n) retorna entero
+    si n <= 1 entonces
+        retornar 1
+    sino
+        retornar n * calcular_factorial(n - 1)
+    fin_si
+fin_funcion
+
+funcion es_par(entero numero) retorna bool
+    retornar (numero % 2) == 0
+fin_funcion
+
+principal
+    # Variables y operaciones
+    entero base = 5
+    entero exponente = 3
+    entero potencia = base * base * base
+    
+    imprimir "=== Operaciones Aritméticas ==="
+    imprimir "Base: " + texto_desde_numero(base)
+    imprimir "Potencia (" + texto_desde_numero(base) + "^2): " + texto_desde_numero(potencia)
+    
+    # Funciones y condicionales
+    entero num_factorial = 6
+    entero resultado_factorial = calcular_factorial(num_factorial)
+    
+    imprimir "\n=== Funciones ==="
+    imprimir "Factorial de " + texto_desde_numero(num_factorial) + ": " + texto_desde_numero(resultado_factorial)
+    
+    # Booleanos y control de flujo
+    imprimir "\n=== Control de Flujo ==="
+    entero test_num = 8
+    si es_par(test_num) entonces
+        imprimir texto_desde_numero(test_num) + " es par"
+    sino
+        imprimir texto_desde_numero(test_num) + " es impar"
+    fin_si
+    
+    # Bucle simple
+    imprimir "\n=== Bucles ==="
+    entero i = 1
+    mientras i <= 3 hacer
+        imprimir "Iteración " + texto_desde_numero(i)
+        i = i + 1
+    fin_mientras
+    
+    imprimir "\n✅ Programa completado exitosamente!"
+fin_principal
