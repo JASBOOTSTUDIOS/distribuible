@@ -1,7 +1,0 @@
-funcion suma_uno(entero n) retorna entero
-    retornar n + 1
-
-principal
-    imprimir suma_uno(4)
-fin_principal
-

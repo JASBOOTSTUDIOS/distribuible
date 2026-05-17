@@ -1,5 +1,0 @@
-# E: mapa_poner sin argumentos — jbc debe fallar (llamada no resuelta / aridad).
-
-principal
-    mapa_poner()
-fin_principal

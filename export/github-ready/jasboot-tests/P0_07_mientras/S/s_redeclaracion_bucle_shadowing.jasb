@@ -1,8 +1,0 @@
-principal
-    entero iter = 0
-    mientras iter < 10 hacer
-        entero iter = 5
-        iter = iter + 1
-        imprimir iter
-    fin_mientras
-fin_principal

@@ -1,6 +1,0 @@
-// e14 — macro con expresion flecha IIFE incompleta (falta cerrar parentesis)
-// Esperado: error de sintaxis cerca de '(' o fin de linea; lambda mal balanceada en el valor de macro.
-// Mide: parse_lambda en contexto macro = sin cerrar el ) externo de ((x)=>...).
-principal
-    macro f = ((x) => x + 1
-fin_principal

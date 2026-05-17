@@ -1,6 +1,0 @@
-principal
-    imprimir 1
-fin_principal
-
-# Codigo huérfano despues de fin_principal.
-imprimir 2

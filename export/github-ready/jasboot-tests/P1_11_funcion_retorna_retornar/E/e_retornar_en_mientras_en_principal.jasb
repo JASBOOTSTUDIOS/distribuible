@@ -1,8 +1,0 @@
-principal
-    entero i = 0
-    mientras i < 2 hacer
-        retornar i
-    fin_mientras
-    imprimir i
-fin_principal
-

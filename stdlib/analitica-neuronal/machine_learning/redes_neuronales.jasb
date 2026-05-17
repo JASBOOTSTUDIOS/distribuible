@@ -59,6 +59,39 @@ funcion derivada_tanh(flotante x) retorna flotante
     retornar 1.0 - (tanh_val * tanh_val)
 fin_funcion
 
+funcion softmax_vector(lista vals) retorna lista
+    lista res = crear_lista()
+    entero n = lista_tamano(vals)
+    si n <= 0 entonces retornar res fin_si
+
+    flotante maxv = lista_obtener(vals, 0)
+    entero i = 1
+    mientras i < n hacer
+        flotante v = lista_obtener(vals, i)
+        si v > maxv entonces maxv = v fin_si
+        i = i + 1
+    fin_mientras
+
+    flotante suma = 0.0
+    lista exps = crear_lista()
+    i = 0
+    mientras i < n hacer
+        flotante v = lista_obtener(vals, i)
+        flotante e = exp(v - maxv)
+        lista_agregar(exps, e)
+        suma = suma + e
+        i = i + 1
+    fin_mientras
+    si suma <= 0.0 entonces suma = 1.0 fin_si
+
+    i = 0
+    mientras i < n hacer
+        lista_agregar(res, lista_obtener(exps, i) / suma)
+        i = i + 1
+    fin_mientras
+    retornar res
+fin_funcion
+
 # =============================================================================
 # CLASE REDES NEURONALES
 # =============================================================================
@@ -84,8 +117,10 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         entero nuevo_seed = ((num_a * seed + num_c) % num_m)
         este.seed_global = nuevo_seed
 
-        # Normalizar a [0, 1]
-        flotante val = nuevo_seed / num_m
+        # Normalizar a [0, 1] — obligatorio en flotante: entero/entero aqui seria casi siempre 0
+        flotante ns = nuevo_seed * 1.0
+        flotante nm = num_m * 1.0
+        flotante val = ns / nm
         si val < 0.0 entonces val = -val fin_si
         retornar val
     fin_funcion
@@ -127,7 +162,8 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         lista sesgos = crear_lista()
         entero i = 0
         mientras i < n_salida hacer
-            lista_agregar(sesgos, 0.0)
+            # Pequeno positivo: sin esto ReLU oculta con sesgo 0 suele quedar toda "muerta" (z<0) y XOR no aprende.
+            lista_agregar(sesgos, 0.05)
             i = i + 1
         fin_mientras
         retornar sesgos
@@ -163,6 +199,39 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         retornar _resultado
     fin_funcion
 
+    funcion softmax_capa(lista vals) retorna lista
+        lista res = crear_lista()
+        entero n = lista_tamano(vals)
+        si n <= 0 entonces retornar res fin_si
+
+        flotante maxv = lista_obtener(vals, 0)
+        entero i = 1
+        mientras i < n hacer
+            flotante v = lista_obtener(vals, i)
+            si v > maxv entonces maxv = v fin_si
+            i = i + 1
+        fin_mientras
+
+        flotante suma = 0.0
+        lista exps = crear_lista()
+        i = 0
+        mientras i < n hacer
+            flotante v = lista_obtener(vals, i)
+            flotante e = exp(v - maxv)
+            lista_agregar(exps, e)
+            suma = suma + e
+            i = i + 1
+        fin_mientras
+        si suma <= 0.0 entonces suma = 1.0 fin_si
+
+        i = 0
+        mientras i < n hacer
+            lista_agregar(res, lista_obtener(exps, i) / suma)
+            i = i + 1
+        fin_mientras
+        retornar res
+    fin_funcion
+
     funcion aplicar_derivada_capa(lista valores, texto tipo_act) retorna lista
         lista _resultado = crear_lista()
         entero n = lista_tamano(valores)
@@ -190,29 +259,31 @@ enviar clase RedesNeuronales extiende AnalizadorBase
     fin_funcion
 
     # =========================================================================
-    # MULTIPLICACIÓN MATRIZ-VECTOR
+    # MULTIPLICACIÓN MATRIZ-VECTOR (x * W + b)
+    # x: 1 x n_entrada, W: n_entrada x n_salida, b: 1 x n_salida
     # =========================================================================
 
     funcion multiplicar_matriz_vector(lista matriz, lista vector) retorna lista
+        # matriz tiene n_entrada filas, cada una con n_salida columnas
+        entero n_entrada = lista_tamano(matriz)
+        lista primera_fila = lista_obtener(matriz, 0)
+        entero n_salida = lista_tamano(primera_fila)
+
         lista _resultado = crear_lista()
-        entero n_filas = lista_tamano(matriz)
-
-        entero i = 0
-        mientras i < n_filas hacer
-            lista fila = lista_obtener(matriz, i)
-            entero n_cols = lista_tamano(fila)
-
+        
+        entero j = 0
+        mientras j < n_salida hacer
             flotante suma = 0.0
-            entero j = 0
-            mientras j < n_cols hacer
+            entero i = 0
+            mientras i < n_entrada hacer
+                lista fila = lista_obtener(matriz, i)
                 flotante _peso = lista_obtener(fila, j)
-                flotante _entrada = lista_obtener(vector, j)
+                flotante _entrada = lista_obtener(vector, i)
                 suma = suma + (_peso * _entrada)
-                j = j + 1
+                i = i + 1
             fin_mientras
-
             lista_agregar(_resultado, suma)
-            i = i + 1
+            j = j + 1
         fin_mientras
 
         retornar _resultado
@@ -269,8 +340,19 @@ enviar clase RedesNeuronales extiende AnalizadorBase
             si i < (n_capas - 1) entonces
                 activacion_resultado = este.aplicar_activacion_capa(z, activacion)
             sino
-                # Última capa: activación lineal o sigmoid para clasificación
-                activacion_resultado = este.aplicar_activacion_capa(z, "sigmoid")
+                # Última capa:
+                # - multisalida: softmax (debe coincidir con nativo_mlp_entrenar cuando n_out > 1)
+                # - 1 salida: sigmoid
+                entero ns = mapa_obtener(modelo, "n_salidas")
+                # JBM1 v1 no guardaba n_salidas: sin esto se usaba sigmoid en 12 logits y la salida dejaba de ser comparable al entrenamiento.
+                si ns <= 1 y lista_tamano(z) > 1 entonces
+                    ns = lista_tamano(z)
+                fin_si
+                si ns > 1 entonces
+                    activacion_resultado = este.softmax_capa(z)
+                sino
+                    activacion_resultado = este.aplicar_activacion_capa(z, "sigmoid")
+                fin_si
             fin_si
 
             lista_agregar(todas_activaciones, activacion_resultado)
@@ -302,11 +384,19 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         # Calcular error en la salida
         lista salida = lista_obtener(activaciones_todas, n_capas)
         flotante y_pred = lista_obtener(salida, 0)
-        flotante error_salida = y_pred - flot_y
+        
+        # Delta salida = (y_pred - y_target) * derivada_activacion(z_ultima_capa)
+        # Como la última capa usa sigmoid por defecto en forward_pass:
+        lista z_ultima = lista_obtener(todos_z, n_capas - 1)
+        flotante z_out = lista_obtener(z_ultima, 0)
+        flotante d_out = y_pred - flot_y
+        
+        # Aplicar derivada de sigmoid para la salida
+        flotante delta_salida = d_out * derivada_sigmoid(z_out)
 
         # Inicializar delta de la última capa
         lista delta = crear_lista()
-        lista_agregar(delta, error_salida)
+        lista_agregar(delta, delta_salida)
 
         # Backpropagation hacia atrás
         entero capa = n_capas - 1
@@ -315,50 +405,14 @@ enviar clase RedesNeuronales extiende AnalizadorBase
             lista pesos = lista_obtener(pesos_capas, capa)
             lista sesgos = lista_obtener(sesgos_capas, capa)
 
-            # Actualizar pesos y sesgos de esta capa
             entero n_neuronas = lista_tamano(delta)
             entero n_entradas = lista_tamano(a_prev)
 
-            # Actualizar sesgos: b = b - lr * delta
-            lista nuevos_sesgos = crear_lista()
-            entero i = 0
-            mientras i < n_neuronas hacer
-                flotante sesgo = lista_obtener(sesgos, i)
-                flotante d = lista_obtener(delta, i)
-                lista_agregar(nuevos_sesgos, sesgo - (lr * d))
-                i = i + 1
-            fin_mientras
-
-            # Actualizar pesos: W[i][j] = W[i][j] - lr * delta[j] * a_prev[i]
-            lista nuevos_pesos = crear_lista()
-            i = 0
-            mientras i < n_entradas hacer
-                lista fila = lista_obtener(pesos, i)
-                lista nueva_fila = crear_lista()
-
-                entero j = 0
-                mientras j < n_neuronas hacer
-                    flotante _peso = lista_obtener(fila, j)
-                    flotante a_val = lista_obtener(a_prev, i)
-                    flotante d = lista_obtener(delta, j)
-                    flotante nuevo_peso = _peso - (lr * d * a_val)
-                    lista_agregar(nueva_fila, nuevo_peso)
-                    j = j + 1
-                fin_mientras
-
-                lista_agregar(nuevos_pesos, nueva_fila)
-                i = i + 1
-            fin_mientras
-
-            # Guardar pesos y sesgos actualizados
-            pesos_capas = este.establecer_en_lista(pesos_capas, capa, nuevos_pesos)
-            sesgos_capas = este.establecer_en_lista(sesgos_capas, capa, nuevos_sesgos)
-
-            # Calcular delta para la capa anterior
+            # Delta para la capa anterior con pesos actuales (antes del gradiente de esta capa)
+            lista delta_prev_capa = nulo
             si capa > 0 entonces
-                lista nuevo_delta = crear_lista()
+                delta_prev_capa = crear_lista()
 
-                # delta_prev[i] = sum(W[i][j] * delta[j]) * derivada_activacion(z_prev[i])
                 entero i = 0
                 mientras i < n_entradas hacer
                     flotante suma = 0.0
@@ -371,7 +425,6 @@ enviar clase RedesNeuronales extiende AnalizadorBase
                         j = j + 1
                     fin_mientras
 
-                    # Aplicar derivada de activación
                     lista z_prev = lista_obtener(todos_z, capa - 1)
                     flotante z_val = lista_obtener(z_prev, i)
                     flotante derivada = 0.0
@@ -386,23 +439,140 @@ enviar clase RedesNeuronales extiende AnalizadorBase
                         derivada = 1.0
                     fin_si
 
-                    lista_agregar(nuevo_delta, suma * derivada)
+                    lista_agregar(delta_prev_capa, suma * derivada)
                     i = i + 1
                 fin_mientras
+            fin_si
 
-                delta = nuevo_delta
+            entero i = 0
+            mientras i < n_neuronas hacer
+                flotante sesgo = lista_obtener(sesgos, i)
+                flotante d_act = lista_obtener(delta, i)
+                lista_poner(sesgos, i, sesgo - (lr * d_act))
+                i = i + 1
+            fin_mientras
+
+            i = 0
+            mientras i < n_entradas hacer
+                lista fila = lista_obtener(pesos, i)
+                entero j = 0
+                mientras j < n_neuronas hacer
+                    flotante _peso = lista_obtener(fila, j)
+                    flotante a_val = lista_obtener(a_prev, i)
+                    flotante d_act = lista_obtener(delta, j)
+                    flotante nuevo_peso = _peso - (lr * d_act * a_val)
+                    lista_poner(fila, j, nuevo_peso)
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+
+            si capa > 0 entonces
+                delta = delta_prev_capa
             fin_si
 
             capa = capa - 1
         fin_mientras
 
-        # Crear modelo actualizado
-        mapa modelo_actualizado = mapa_crear()
-        mapa_poner(modelo_actualizado, "pesos", pesos_capas)
-        mapa_poner(modelo_actualizado, "sesgos", sesgos_capas)
-        mapa_poner(modelo_actualizado, "activacion", activacion)
+        # El modelo se actualiza in-place en sus listas internas
+        retornar modelo
+    fin_funcion
 
-        retornar modelo_actualizado
+    funcion backward_pass_multisalida(lista x, lista objetivos, mapa activaciones, mapa modelo, flotante lr) retorna mapa
+        lista pesos_capas = mapa_obtener(modelo, "pesos")
+        lista sesgos_capas = mapa_obtener(modelo, "sesgos")
+        texto activacion = mapa_obtener(modelo, "activacion")
+
+        lista todos_z = mapa_obtener(activaciones, "z")
+        lista activaciones_todas = mapa_obtener(activaciones, "a")
+
+        entero n_capas = lista_tamano(pesos_capas)
+        lista salida = lista_obtener(activaciones_todas, n_capas)
+
+        lista z_ultima = lista_obtener(todos_z, n_capas - 1)
+        lista delta = crear_lista()
+        entero n_out = lista_tamano(salida)
+        entero idx_out = 0
+        mientras idx_out < n_out hacer
+            flotante pred_o = lista_obtener(salida, idx_out)
+            flotante obj_o = lista_obtener(objetivos, idx_out)
+            flotante z_o = lista_obtener(z_ultima, idx_out)
+            flotante d_o = (pred_o - obj_o) * derivada_sigmoid(z_o)
+            lista_agregar(delta, d_o)
+            idx_out = idx_out + 1
+        fin_mientras
+
+        entero capa = n_capas - 1
+        mientras capa >= 0 hacer
+            lista a_prev = lista_obtener(activaciones_todas, capa)
+            lista pesos = lista_obtener(pesos_capas, capa)
+            lista sesgos = lista_obtener(sesgos_capas, capa)
+
+            entero n_neuronas = lista_tamano(delta)
+            entero n_entradas = lista_tamano(a_prev)
+
+            lista delta_prev_capa = nulo
+            si capa > 0 entonces
+                delta_prev_capa = crear_lista()
+                entero i = 0
+                mientras i < n_entradas hacer
+                    flotante suma = 0.0
+                    entero j = 0
+                    mientras j < n_neuronas hacer
+                        lista fila = lista_obtener(pesos, i)
+                        flotante peso_ij = lista_obtener(fila, j)
+                        flotante d_j = lista_obtener(delta, j)
+                        suma = suma + (peso_ij * d_j)
+                        j = j + 1
+                    fin_mientras
+
+                    lista z_prev = lista_obtener(todos_z, capa - 1)
+                    flotante z_val = lista_obtener(z_prev, i)
+                    flotante derivada = 0.0
+                    si activacion == "relu" entonces
+                        derivada = derivada_relu(z_val)
+                    sino si activacion == "sigmoid" entonces
+                        derivada = derivada_sigmoid(z_val)
+                    sino si activacion == "tanh" entonces
+                        derivada = derivada_tanh(z_val)
+                    sino
+                        derivada = 1.0
+                    fin_si
+
+                    lista_agregar(delta_prev_capa, suma * derivada)
+                    i = i + 1
+                fin_mientras
+            fin_si
+
+            entero s = 0
+            mientras s < n_neuronas hacer
+                flotante sesgo = lista_obtener(sesgos, s)
+                flotante d_act = lista_obtener(delta, s)
+                lista_poner(sesgos, s, sesgo - (lr * d_act))
+                s = s + 1
+            fin_mientras
+
+            entero r = 0
+            mientras r < n_entradas hacer
+                lista fila_w = lista_obtener(pesos, r)
+                entero c = 0
+                mientras c < n_neuronas hacer
+                    flotante peso_rc = lista_obtener(fila_w, c)
+                    flotante a_val = lista_obtener(a_prev, r)
+                    flotante d_act = lista_obtener(delta, c)
+                    lista_poner(fila_w, c, peso_rc - (lr * d_act * a_val))
+                    c = c + 1
+                fin_mientras
+                r = r + 1
+            fin_mientras
+
+            si capa > 0 entonces
+                delta = delta_prev_capa
+            fin_si
+            capa = capa - 1
+        fin_mientras
+
+        retornar modelo
     fin_funcion
 
     # =========================================================================
@@ -457,45 +627,67 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         mapa modelo = mapa_crear()
         mapa_poner(modelo, "pesos", pesos_capas)
         mapa_poner(modelo, "sesgos", sesgos_capas)
+        # Capas ocultas: ReLU; sesgos iniciales > 0 (inicializar_sesgos) evita z<0 en toda la capa y gradiente nulo.
         mapa_poner(modelo, "activacion", "relu")
 
-        # Entrenamiento
-        imprimir "Entrenando red neuronal..."
-        entero epoch = 0
-        mientras epoch < epochs hacer
-            flotante error_total = 0.0
+        # Entrenamiento: motor nativo en la VM (C, double). Misma estructura de listas que forward_pass / .jbr.
+        imprimir "Entrenando red neuronal (motor nativo)..."
+        flotante mse_fin = nativo_mlp_entrenar(pesos_capas, sesgos_capas, X, lista_y, capas_ocultas, learning_rate, epochs)
+        imprimir "MSE ultimo epoch: " + mse_fin
+        imprimir "Entrenamiento completado"
+        retornar modelo
+    fin_funcion
 
-            entero idx = 0
-            mientras idx < n_samples hacer
-                lista x_sample = lista_obtener(X, idx)
-                flotante y_sample = lista_obtener(lista_y, idx)
+    funcion perceptron_multicapa_fit_multisalida(lista X, lista objetivos, lista capas_ocultas, entero n_salidas, flotante learning_rate, entero epochs) retorna mapa
+        entero n_samples = lista_tamano(X)
+        si n_samples == 0 o lista_tamano(objetivos) != n_samples entonces
+            imprimir "[ERROR] Datos de entrada inválidos (multisalida)"
+            retornar mapa_crear()
+        fin_si
+        si n_salidas <= 1 entonces
+            imprimir "[ERROR] n_salidas debe ser mayor que 1 en multisalida"
+            retornar mapa_crear()
+        fin_si
+        si lista_tamano(capas_ocultas) != 1 entonces
+            imprimir "[ERROR] motor nativo multisalida requiere 1 capa oculta"
+            retornar mapa_crear()
+        fin_si
 
-                # Forward pass
-                mapa activaciones = este.forward_pass(x_sample, modelo)
+        lista x_primero = lista_obtener(X, 0)
+        entero n_features = lista_tamano(x_primero)
+        entero n_capas_ocultas = lista_tamano(capas_ocultas)
 
-                # Calcular error
-                lista salida = mapa_obtener(activaciones, "salida")
-                flotante y_pred = lista_obtener(salida, 0)
-                flotante error = (y_pred - y_sample) * (y_pred - y_sample)
-                error_total = error_total + error
+        lista arquitectura = crear_lista()
+        lista_agregar(arquitectura, n_features)
+        entero i = 0
+        mientras i < n_capas_ocultas hacer
+            lista_agregar(arquitectura, lista_obtener(capas_ocultas, i))
+            i = i + 1
+        fin_mientras
+        lista_agregar(arquitectura, n_salidas)
 
-                # Backward pass
-                modelo = este.backward_pass(x_sample, y_sample, activaciones, modelo, learning_rate)
-
-                idx = idx + 1
-            fin_mientras
-
-            flotante mse = error_total / n_samples
-
-            # Mostrar progreso cada 100 epochs
-            si (epoch % 100) == 0 entonces
-                imprimir "Epoch " + epoch + " - MSE: " + mse
-            fin_si
-
-            epoch = epoch + 1
+        lista pesos_capas = crear_lista()
+        lista sesgos_capas = crear_lista()
+        entero n_capas_totales = lista_tamano(arquitectura) - 1
+        entero capa = 0
+        mientras capa < n_capas_totales hacer
+            entero n_entrada = lista_obtener(arquitectura, capa)
+            entero n_salida = lista_obtener(arquitectura, capa + 1)
+            lista_agregar(pesos_capas, este.inicializar_pesos(n_entrada, n_salida, este.seed_global + capa))
+            lista_agregar(sesgos_capas, este.inicializar_sesgos(n_salida))
+            capa = capa + 1
         fin_mientras
 
-        imprimir "Entrenamiento completado"
+        mapa modelo = mapa_crear()
+        mapa_poner(modelo, "pesos", pesos_capas)
+        mapa_poner(modelo, "sesgos", sesgos_capas)
+        mapa_poner(modelo, "activacion", "relu")
+        mapa_poner(modelo, "n_salidas", n_salidas)
+
+        imprimir "Entrenando red neuronal multisalida (motor nativo)..."
+        flotante mse_fin = nativo_mlp_entrenar(pesos_capas, sesgos_capas, X, objetivos, capas_ocultas, learning_rate, epochs)
+        imprimir "MSE ultimo epoch: " + mse_fin
+        imprimir "Entrenamiento multisalida completado"
         retornar modelo
     fin_funcion
 
@@ -506,6 +698,9 @@ enviar clase RedesNeuronales extiende AnalizadorBase
     funcion perceptron_predecir(mapa modelo, lista x_nuevo) retorna flotante
         mapa activaciones = este.forward_pass(x_nuevo, modelo)
         lista salida = mapa_obtener(activaciones, "salida")
+        si salida == nulo o lista_tamano(salida) <= 0 entonces
+            retornar 0.0
+        fin_si
         retornar lista_obtener(salida, 0)
     fin_funcion
 
@@ -555,19 +750,466 @@ enviar clase RedesNeuronales extiende AnalizadorBase
         retornar correctos / n
     fin_funcion
 
-    funcion establecer_en_lista(lista origen, entero indice, elemento nuevo_valor) retorna lista
-        lista nueva = crear_lista()
-        entero n = lista_tamano(origen)
-        entero i = 0
-        mientras i < n hacer
-            si i == indice entonces
-                lista_agregar(nueva, nuevo_valor)
-            sino
-                lista_agregar(nueva, lista_obtener(origen, i))
+    # =========================================================================
+    # PERSISTENCIA (.jbr)
+    # =========================================================================
+
+    funcion guardar_archivo_jbr(mapa modelo, texto ruta) retorna bool
+        si modelo == nulo entonces retornar falso fin_si
+        
+        entero f = abrir_archivo(ruta, "w")
+        si f == 0 entonces retornar falso fin_si
+        
+        escribir_archivo("JBR1\n", f)
+        escribir_archivo("tipo redes_neuronales\n", f)
+        
+        texto act = mapa_obtener(modelo, "activacion")
+        escribir_archivo("activacion " + act + "\n", f)
+        
+        lista pesos_capas = mapa_obtener(modelo, "pesos")
+        lista sesgos_capas = mapa_obtener(modelo, "sesgos")
+        entero n_capas = lista_tamano(pesos_capas)
+        escribir_archivo("n_capas " + n_capas + "\n", f)
+        
+        escribir_archivo("INICIO_BLOQUE_JBR\n", f)
+        
+        entero c = 0
+        mientras c < n_capas hacer
+            lista pesos = lista_obtener(pesos_capas, c)
+            lista sesgos = lista_obtener(sesgos_capas, c)
+            
+            # Guardar pesos de la capa c
+            entero n_filas = lista_tamano(pesos)
+            escribir_archivo("pesos_" + c + "_filas " + n_filas + "\n", f)
+            entero i = 0
+            mientras i < n_filas hacer
+                lista fila = lista_obtener(pesos, i)
+                texto fila_txt = este.lista_a_texto_csv(fila)
+                escribir_archivo("p_" + c + "_" + i + " " + fila_txt + "\n", f)
+                i = i + 1
+            fin_mientras
+            
+            # Guardar sesgos de la capa c
+            texto sesgos_txt = este.lista_a_texto_csv(sesgos)
+            escribir_archivo("sesgos_" + c + " " + sesgos_txt + "\n", f)
+            
+            c = c + 1
+        fin_mientras
+        
+        escribir_archivo("FIN_BLOQUE_JBR\n", f)
+        cerrar_archivo(f)
+        retornar verdadero
+    fin_funcion
+
+    funcion cargar_archivo_jbr(texto ruta) retorna mapa
+        si existe_archivo(ruta) == falso entonces retornar nulo fin_si
+        
+        entero f = abrir_archivo(ruta, "r")
+        si f == 0 entonces retornar nulo fin_si
+        
+        texto linea = leer_linea_archivo(f)
+        si contiene_texto(linea, "\r") entonces
+            linea = extraer_antes_de(linea, "\r")
+        fin_si
+        si linea != "JBR1" entonces 
+            cerrar_archivo(f)
+            retornar nulo 
+        fin_si
+        
+        mapa modelo = mapa_crear()
+        lista pesos_capas = crear_lista()
+        lista sesgos_capas = crear_lista()
+        entero n_capas = 0
+        texto activacion_tipo = "relu"
+        
+        mientras fin_archivo(f) == falso hacer
+            linea = leer_linea_archivo(f)
+            si contiene_texto(linea, "\r") entonces
+                linea = extraer_antes_de(linea, "\r")
             fin_si
+            si linea == "" entonces
+                # nada
+            sino
+                # Sin espacio (p.ej. INICIO_BLOQUE_JBR / FIN): extraer_antes_de("...", " ") falla en VM y deja clave invalida.
+                texto clave
+                texto v_leido
+                si contiene_texto(linea, " ") entonces
+                    clave = extraer_antes_de(linea, " ")
+                    v_leido = extraer_despues_de(linea, " ")
+                sino
+                    clave = linea
+                    v_leido = ""
+                fin_si
+                si contiene_texto(v_leido, "\r") entonces
+                    v_leido = extraer_antes_de(v_leido, "\r")
+                fin_si
+                
+                si clave == "activacion" entonces
+                    activacion_tipo = v_leido
+                sino si clave == "n_capas" entonces
+                    n_capas = str_a_entero(v_leido)
+                    # Inicializar listas de capas
+                    entero _c = 0
+                    mientras _c < n_capas hacer
+                        lista_agregar(pesos_capas, nulo)
+                        lista_agregar(sesgos_capas, nulo)
+                        _c = _c + 1
+                    fin_mientras
+                sino si clave == "INICIO_BLOQUE_JBR" entonces
+                    # Procesar bloques
+                    mientras fin_archivo(f) == falso hacer
+                        linea = leer_linea_archivo(f)
+                        si contiene_texto(linea, "\r") entonces
+                            linea = extraer_antes_de(linea, "\r")
+                        fin_si
+                        si linea == "FIN_BLOQUE_JBR" entonces romper fin_si
+                        
+                        texto k
+                        texto v
+                        si contiene_texto(linea, " ") entonces
+                            k = extraer_antes_de(linea, " ")
+                            v = extraer_despues_de(linea, " ")
+                        sino
+                            k = linea
+                            v = ""
+                        fin_si
+                        si contiene_texto(v, "\r") entonces
+                            v = extraer_antes_de(v, "\r")
+                        fin_si
+                        
+                        # Detectar si es peso o sesgo
+                        si contiene_texto(k, "pesos_") y contiene_texto(k, "_filas") entonces
+                            # pesos_C_filas N  (evitar subtexto mal anclado: "pesos_" + indice + "_filas")
+                            texto c_str = extraer_antes_de(extraer_despues_de(k, "pesos_"), "_filas")
+                            entero c_idx = str_a_entero(c_str)
+                            entero n_filas = str_a_entero(v)
+                            lista m_pesos = crear_lista()
+                            entero _f = 0
+                            mientras _f < n_filas hacer
+                                lista_agregar(m_pesos, nulo)
+                                _f = _f + 1
+                            fin_mientras
+                            lista_poner(pesos_capas, c_idx, m_pesos)
+                        sino si contiene_texto(k, "p_") entonces
+                            # p_C_F valor,valor...  (prefijo literal "p_")
+                            # Obtener m_pesos antes de texto_csv_a_lista: crear_lista() interno no debe
+                            # poder colisionar y vaciar la matriz de pesos (ver OP_MEM_LISTA_CREAR / jmn_crear_lista).
+                            texto resto = extraer_despues_de(k, "p_")
+                            entero c_idx = str_a_entero(extraer_antes_de(resto, "_"))
+                            entero f_idx = str_a_entero(extraer_despues_de(resto, "_"))
+                            lista m_pesos = lista_obtener(pesos_capas, c_idx)
+                            lista fila = este.texto_csv_a_lista(v)
+                            lista_poner(m_pesos, f_idx, fila)
+                        sino si contiene_texto(k, "sesgos_") entonces
+                            # sesgos_C valor,valor...
+                            entero c_idx = str_a_entero(extraer_despues_de(k, "sesgos_"))
+                            lista fila_s = este.texto_csv_a_lista(v)
+                            lista_poner(sesgos_capas, c_idx, fila_s)
+                        fin_si
+                    fin_mientras
+                fin_si
+            fin_si
+        fin_mientras
+        
+        cerrar_archivo(f)
+        
+        si n_capas <= 0 o lista_tamano(pesos_capas) <= 0 entonces
+            retornar nulo
+        fin_si
+        
+        mapa_poner(modelo, "pesos", pesos_capas)
+        mapa_poner(modelo, "sesgos", sesgos_capas)
+        mapa_poner(modelo, "activacion", activacion_tipo)
+        
+        retornar modelo
+    fin_funcion
+
+    # =========================================================================
+    # UTILIDADES DE SERIALIZACIÓN
+    # =========================================================================
+
+    funcion lista_a_texto_csv(lista l) retorna texto
+        entero n = lista_tamano(l)
+        si n == 0 entonces retornar "" fin_si
+        # lista_obtener es elemento: sin tipo flotante, str_desde_numero usa OP_STR_DESDE_ANY
+        # y los bits IEEE fuera de ventanas heurísticas se imprimían como enteros enormes (.jbr corrupto).
+        # str_desde_numero(flotante, p) ignora p en codegen (siempre ~4 decimales); usar decimal(..., 8) para .jbr.
+        texto res_csv = decimal(convertir_flotante(lista_obtener(l, 0)), 17)
+        entero i = 1
+        mientras i < n hacer
+            res_csv = res_csv + ","
+            res_csv = res_csv + decimal(convertir_flotante(lista_obtener(l, i)), 17)
             i = i + 1
         fin_mientras
-        retornar nueva
+        retornar res_csv
+    fin_funcion
+
+    funcion texto_csv_a_lista(texto t) retorna lista
+        # Windows: lineas con \r\n dejan '\r' en el ultimo campo y str_a_flotante falla (0.0).
+        si contiene_texto(t, "\r") entonces
+            t = extraer_antes_de(t, "\r")
+        fin_si
+        lista res = crear_lista()
+        lista partes = dividir_texto(t, ",")
+        entero n = lista_tamano(partes)
+        entero i = 0
+        mientras i < n hacer
+            texto p = lista_obtener(partes, i)
+            lista_agregar(res, str_a_flotante(p))
+            i = i + 1
+        fin_mientras
+        retornar res
+    fin_funcion
+
+    funcion establecer_en_lista(lista origen, entero indice, elemento nuevo_valor) retorna lista
+        lista_poner(origen, indice, nuevo_valor)
+        retornar origen
+    fin_funcion
+
+    # =========================================================================
+    # PERSISTENCIA BINARIA (.jbm) - PESOS/SESGOS COPIABLES ENTRE PROYECTOS
+    # Formato:
+    #   bytes[0..3]  = 'J','B','M','1'
+    #   byte 4       = version(1)
+    #   byte 5       = activacion (1=relu, 2=sigmoid, 3=tanh)
+    #   u32_le       = n_capas
+    #   por capa:
+    #       u32_le = n_entrada
+    #       u32_le = n_salida
+    #       n_entrada*n_salida * i32 fixed-point (escala 1e6) en u32_le
+    #       n_salida * i32 fixed-point (escala 1e6) en u32_le
+    # =========================================================================
+
+    funcion _act_a_id(texto act) retorna entero
+        si act == "sigmoid" entonces retornar 2 fin_si
+        si act == "tanh" entonces retornar 3 fin_si
+        retornar 1  # relu por defecto
+    fin_funcion
+
+    funcion _id_a_act(entero id_act) retorna texto
+        si id_act == 2 entonces retornar "sigmoid" fin_si
+        si id_act == 3 entonces retornar "tanh" fin_si
+        retornar "relu"
+    fin_funcion
+
+    funcion _i32_a_u32(entero v) retorna entero
+        si v < 0 entonces retornar v + 4294967296 fin_si
+        retornar v
+    fin_funcion
+
+    funcion _u32_a_i32(entero u) retorna entero
+        si u >= 2147483648 entonces retornar u - 4294967296 fin_si
+        retornar u
+    fin_funcion
+
+    funcion _float_a_i32_fixed(flotante v) retorna entero
+        retornar convertir_entero(v * 1000000.0)
+    fin_funcion
+
+    funcion _i32_fixed_a_float(entero v) retorna flotante
+        retornar (v * 1.0) / 1000000.0
+    fin_funcion
+
+    funcion _escribir_u32_le(entero fd, entero u) retorna entero
+        entero rem0 = u % 256
+        fs_escribir_byte(rem0, fd)
+        entero q1 = (u - rem0) / 256
+
+        entero rem1 = q1 % 256
+        fs_escribir_byte(rem1, fd)
+        entero q2 = (q1 - rem1) / 256
+
+        entero rem2 = q2 % 256
+        fs_escribir_byte(rem2, fd)
+        entero q3 = (q2 - rem2) / 256
+
+        entero rem3 = q3 % 256
+        fs_escribir_byte(rem3, fd)
+        retornar 1
+    fin_funcion
+
+    funcion _leer_u32_le(entero fd) retorna entero
+        entero b0 = fs_leer_byte(fd)
+        entero b1 = fs_leer_byte(fd)
+        entero b2 = fs_leer_byte(fd)
+        entero b3 = fs_leer_byte(fd)
+        si b0 < 0 o b1 < 0 o b2 < 0 o b3 < 0 entonces retornar -1 fin_si
+        retornar b0 + (b1 * 256) + (b2 * 65536) + (b3 * 16777216)
+    fin_funcion
+
+    funcion guardar_archivo_jbm(mapa modelo, texto ruta) retorna bool
+        si modelo == nulo entonces retornar falso fin_si
+        entero fd = abrir_archivo(ruta, "wb")
+        si fd == 0 entonces retornar falso fin_si
+
+        lista pesos_capas = mapa_obtener(modelo, "pesos")
+        lista sesgos_capas = mapa_obtener(modelo, "sesgos")
+        texto act = mapa_obtener(modelo, "activacion")
+        entero n_capas = lista_tamano(pesos_capas)
+        si n_capas <= 0 entonces
+            cerrar_archivo(fd)
+            retornar falso
+        fin_si
+
+        # magic "JBM1"
+        fs_escribir_byte(74, fd)  # J
+        fs_escribir_byte(66, fd)  # B
+        fs_escribir_byte(77, fd)  # M
+        fs_escribir_byte(49, fd)  # 1
+        fs_escribir_byte(1, fd)   # version
+        fs_escribir_byte(este._act_a_id(act), fd)
+        este._escribir_u32_le(fd, n_capas)
+
+        entero c = 0
+        mientras c < n_capas hacer
+            lista pesos = lista_obtener(pesos_capas, c)
+            lista sesgos = lista_obtener(sesgos_capas, c)
+            entero n_in = lista_tamano(pesos)
+            entero n_out = 0
+            si n_in > 0 entonces
+                lista fila0 = lista_obtener(pesos, 0)
+                n_out = lista_tamano(fila0)
+            fin_si
+
+            # Compatibilidad: algunos entrenamientos guardan sesgos como [ [b1..bn] ].
+            # Si detectamos ese formato, usamos la fila interna para exportar.
+            si lista_tamano(sesgos) == 1 entonces
+                lista posible_fila_sesgos = lista_obtener(sesgos, 0)
+                si lista_tamano(posible_fila_sesgos) == n_out entonces
+                    sesgos = posible_fila_sesgos
+                fin_si
+            fin_si
+
+            este._escribir_u32_le(fd, n_in)
+            este._escribir_u32_le(fd, n_out)
+
+            entero i = 0
+            mientras i < n_in hacer
+                lista fila = lista_obtener(pesos, i)
+                entero j = 0
+                mientras j < n_out hacer
+                    flotante val = convertir_flotante(lista_obtener(fila, j))
+                    entero q = este._float_a_i32_fixed(val)
+                    este._escribir_u32_le(fd, este._i32_a_u32(q))
+                    j = j + 1
+                fin_mientras
+                i = i + 1
+            fin_mientras
+
+            entero k = 0
+            entero n_sesgos = lista_tamano(sesgos)
+            mientras k < n_out hacer
+                entero idx_sesgo = k
+                si n_sesgos == 1 y n_out > 1 entonces
+                    idx_sesgo = 0
+                fin_si
+                flotante sb = convertir_flotante(lista_obtener(sesgos, idx_sesgo))
+                entero qsb = este._float_a_i32_fixed(sb)
+                este._escribir_u32_le(fd, este._i32_a_u32(qsb))
+                k = k + 1
+            fin_mientras
+
+            c = c + 1
+        fin_mientras
+
+        cerrar_archivo(fd)
+        retornar verdadero
+    fin_funcion
+
+    funcion cargar_archivo_jbm(texto ruta) retorna mapa
+        si existe_archivo(ruta) == falso entonces retornar nulo fin_si
+        entero fd = abrir_archivo(ruta, "rb")
+        si fd == 0 entonces retornar nulo fin_si
+
+        # validar magic JBM1
+        entero m0 = fs_leer_byte(fd)
+        entero m1 = fs_leer_byte(fd)
+        entero m2 = fs_leer_byte(fd)
+        entero m3 = fs_leer_byte(fd)
+        si m0 != 74 o m1 != 66 o m2 != 77 o m3 != 49 entonces
+            cerrar_archivo(fd)
+            retornar nulo
+        fin_si
+
+        entero version = fs_leer_byte(fd)
+        entero id_act = fs_leer_byte(fd)
+        si version != 1 entonces
+            cerrar_archivo(fd)
+            retornar nulo
+        fin_si
+
+        entero n_capas = este._leer_u32_le(fd)
+        si n_capas <= 0 entonces
+            cerrar_archivo(fd)
+            retornar nulo
+        fin_si
+
+        lista pesos_capas = crear_lista()
+        lista sesgos_capas = crear_lista()
+
+        entero c = 0
+        mientras c < n_capas hacer
+            entero n_in = este._leer_u32_le(fd)
+            entero n_out = este._leer_u32_le(fd)
+            si n_in <= 0 o n_out <= 0 entonces
+                cerrar_archivo(fd)
+                retornar nulo
+            fin_si
+
+            lista pesos = crear_lista()
+            entero i = 0
+            mientras i < n_in hacer
+                lista fila = crear_lista()
+                entero j = 0
+                mientras j < n_out hacer
+                    entero uq = este._leer_u32_le(fd)
+                    si uq < 0 entonces
+                        cerrar_archivo(fd)
+                        retornar nulo
+                    fin_si
+                    entero iq = este._u32_a_i32(uq)
+                    lista_agregar(fila, este._i32_fixed_a_float(iq))
+                    j = j + 1
+                fin_mientras
+                lista_agregar(pesos, fila)
+                i = i + 1
+            fin_mientras
+
+            lista sesgos = crear_lista()
+            entero k = 0
+            mientras k < n_out hacer
+                entero us = este._leer_u32_le(fd)
+                si us < 0 entonces
+                    cerrar_archivo(fd)
+                    retornar nulo
+                fin_si
+                entero isb = este._u32_a_i32(us)
+                lista_agregar(sesgos, este._i32_fixed_a_float(isb))
+                k = k + 1
+            fin_mientras
+
+            lista_agregar(pesos_capas, pesos)
+            lista_agregar(sesgos_capas, sesgos)
+            c = c + 1
+        fin_mientras
+
+        cerrar_archivo(fd)
+
+        mapa modelo = mapa_crear()
+        mapa_poner(modelo, "pesos", pesos_capas)
+        mapa_poner(modelo, "sesgos", sesgos_capas)
+        mapa_poner(modelo, "activacion", este._id_a_act(id_act))
+        # JBM1 v1 no incluía n_salidas en el archivo; inferir desde el ancho de la última capa.
+        entero n_sal_cargada = 0
+        si lista_tamano(pesos_capas) > 0 entonces
+            lista pw_ult = lista_obtener(pesos_capas, lista_tamano(pesos_capas) - 1)
+            si lista_tamano(pw_ult) > 0 entonces
+                lista fila0_ult = lista_obtener(pw_ult, 0)
+                n_sal_cargada = lista_tamano(fila0_ult)
+            fin_si
+        fin_si
+        mapa_poner(modelo, "n_salidas", n_sal_cargada)
+        retornar modelo
     fin_funcion
 fin_clase
 

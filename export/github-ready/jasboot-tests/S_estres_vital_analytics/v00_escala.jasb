@@ -1,5 +1,0 @@
-# Escala del bench (un solo lugar para subir/bajar carga).
-# Caso de uso: simular muchos eventos, histograma por tipo, ventana reciente y métricas por estrategia.
-enviar constante entero VITAL_OUTER = 20000
-enviar constante entero VITAL_RING_MAX = 4000
-enviar constante entero VITAL_KINDS = 48

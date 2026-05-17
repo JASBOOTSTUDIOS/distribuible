@@ -1,5 +1,0 @@
-# E: minusculas con dos argumentos — jbc debe fallar (un solo texto).
-
-principal
-    imprimir minusculas("A", "B")
-fin_principal

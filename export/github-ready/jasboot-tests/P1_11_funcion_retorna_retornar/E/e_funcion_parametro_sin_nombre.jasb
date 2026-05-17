@@ -1,9 +1,0 @@
-funcion suma(entero am) retorna entero
-    retornar 1
-fin_funcion
-
-principal
-    entero am
-    imprimir suma(2)
-fin_principal
-

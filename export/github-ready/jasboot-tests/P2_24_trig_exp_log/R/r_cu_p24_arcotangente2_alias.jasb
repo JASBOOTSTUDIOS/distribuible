@@ -1,9 +1,0 @@
-# R: arcotangente2 es alias de atan2 (mismos argumentos y resultado).
-# Esperado (jb): 1.5708, vacio, 1.5708, vacio.
-
-principal
-    imprimir atan2(1.0, 0.0)
-    imprimir ""
-    imprimir arcotangente2(1.0, 0.0)
-    imprimir ""
-fin_principal

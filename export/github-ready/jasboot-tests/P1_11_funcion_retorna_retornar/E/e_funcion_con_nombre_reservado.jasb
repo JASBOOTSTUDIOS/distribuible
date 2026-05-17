@@ -1,8 +1,0 @@
-funcion si(entero n) retorna entero
-    retornar n
-fin_funcion
-
-principal
-    imprimir 0
-fin_principal
-

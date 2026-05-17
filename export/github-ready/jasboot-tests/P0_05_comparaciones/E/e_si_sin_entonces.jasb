@@ -1,9 +1,0 @@
-principal
-    # Prueba de comparaciones sin la palabra clave 'entonces' (error de sintaxis)
-    entero edad = 20
-    
-    # Esto deberia arrojar error porque falta 'entonces'
-    si edad > 10
-        imprimir 1
-    fin_si
-fin_principal

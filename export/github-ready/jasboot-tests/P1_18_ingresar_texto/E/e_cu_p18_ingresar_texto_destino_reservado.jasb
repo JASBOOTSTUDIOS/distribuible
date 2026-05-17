@@ -1,6 +1,0 @@
-// E: nombre de variable reservado (mientras) como destino de ingresar_texto.
-// Esperado: error: palabra reservada no puede usarse como nombre de variable.
-
-principal
-    ingresar_texto mientras
-fin_principal

@@ -1,6 +1,0 @@
-# E: copiar_texto con dos argumentos — jbc debe fallar (un solo texto).
-
-principal
-    texto t = copiar_texto("uno", "dos")
-    imprimir t
-fin_principal

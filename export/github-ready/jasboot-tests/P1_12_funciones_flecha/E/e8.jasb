@@ -1,7 +1,0 @@
-// e8 — Lista de parametros sin '(' antes del identificador (una sola envoltura)
-// Esperado: error de sintaxis; se esperaba ')' y aparece => (ruta no-IIFE o agrupacion incorrecta).
-// Mide: gramatica de flecha exige ( id ) o ( tipo id ), no "x =>" tras un solo '(' de agrupacion externa.
-principal
-    entero tmp = (x => x + 1)(1)
-    imprimir tmp
-fin_principal

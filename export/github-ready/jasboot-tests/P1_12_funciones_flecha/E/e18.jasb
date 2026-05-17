@@ -1,8 +1,0 @@
-// e18 — Llamada a macro con pocos argumentos
-// Esperado: error en codegen: arity (2 parametros vs 1 argumento) y pista de argumentos faltantes.
-// Mide: arity en llamada f(...) vs macro (m,n)=>... definida con dos parametros.
-principal
-    macro f = (m, n) => m + n
-    entero tmp = f(1)
-    imprimir tmp
-fin_principal

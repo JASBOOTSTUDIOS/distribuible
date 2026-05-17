@@ -1,9 +1,0 @@
-# F2I implicito: entero desde flotante (truncamiento hacia cero, estilo C).
-# Salida: 3 y 8  (4.25+3.9 = 8.15 -> 8)
-
-principal
-    entero na = 3.7
-    entero nb = 4.25 + 3.9
-    imprimir(na)
-    imprimir(nb)
-fin_principal

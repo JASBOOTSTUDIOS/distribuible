@@ -1,8 +1,0 @@
-# E: `y` es palabra reservada; no puede ser nombre de parametro (aqui segundo parametro de tipo `entero`).
-
-funcion f(funcion g, entero y) retorna entero
-    retornar 0
-fin_funcion
-
-principal
-fin_principal

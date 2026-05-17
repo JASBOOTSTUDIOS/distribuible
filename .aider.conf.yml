@@ -1,9 +1,0 @@
-model: gpt-4
-editor: vscode
-ignore:
-  - "*.jbo"
-  - "*.jbc"
-git:
-  auto-commits: false
-  auto-push: false
-language: es

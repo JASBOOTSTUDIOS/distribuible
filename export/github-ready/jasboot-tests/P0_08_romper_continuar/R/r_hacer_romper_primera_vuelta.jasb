@@ -1,8 +1,0 @@
-principal
-    entero visto = 0
-    hacer
-        visto = visto + 1
-        romper
-    mientras visto < 100 fin_hacer
-    imprimir visto
-fin_principal

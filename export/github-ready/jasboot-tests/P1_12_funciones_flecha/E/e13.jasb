@@ -1,7 +1,0 @@
-// e13 — Tipo en parametros sin nombre: (entero) sin identificador
-// Esperado: error de sintaxis al construir la lista de parametros de la flecha.
-// Mide: tras tipo debe seguir identificador valido en ( tipo nombre ) => ...
-principal
-    entero tmp = ((entero) => 1)(1)
-    imprimir tmp
-fin_principal

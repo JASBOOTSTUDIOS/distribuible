@@ -1,6 +1,0 @@
-# E: str_copiar sin argumentos — jbc debe fallar.
-
-principal
-    texto t = str_copiar()
-    imprimir t
-fin_principal

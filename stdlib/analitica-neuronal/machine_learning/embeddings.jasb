@@ -47,10 +47,10 @@ enviar clase ManejadorEmbeddings extiende AnalizadorBase
         
         entero i = 0
         mientras i < este.dimension hacer
-            flotante a = lista_obtener(v1, i)
+            flotante val_a = lista_obtener(v1, i)
             flotante b = lista_obtener(v2, i)
-            dot = dot + (a * b)
-            norm_a = norm_a + (a * a)
+            dot = dot + (val_a * b)
+            norm_a = norm_a + (val_a * val_a)
             norm_b = norm_b + (b * b)
             i = i + 1
         fin_mientras

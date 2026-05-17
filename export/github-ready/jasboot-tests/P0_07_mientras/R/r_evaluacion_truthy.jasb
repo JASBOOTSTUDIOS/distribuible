@@ -1,8 +1,0 @@
-principal
-    entero iter = 3
-    # Bucle usando evaluacion implicita (truthy)
-    mientras iter hacer
-        imprimir iter
-        iter = iter - 1
-    fin_mientras
-fin_principal

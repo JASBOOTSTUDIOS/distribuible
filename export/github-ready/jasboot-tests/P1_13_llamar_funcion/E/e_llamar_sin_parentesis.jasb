@@ -1,5 +1,0 @@
-// e_llamar_sin_parentesis — tras llamar debe ir nombre( ...
-// Esperado: error de sintaxis (no es NODE_CALL).
-principal
-    llamar 42
-fin_principal

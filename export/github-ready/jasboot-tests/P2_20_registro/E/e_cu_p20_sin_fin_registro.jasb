@@ -1,8 +1,0 @@
-# E: falta fin_registro — el compilador debe rechazar el archivo.
-
-registro Incompleto
-    entero n
-
-principal
-    imprimir 0
-fin_principal

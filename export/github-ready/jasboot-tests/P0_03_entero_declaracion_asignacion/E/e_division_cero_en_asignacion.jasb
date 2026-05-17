@@ -1,4 +1,0 @@
-principal
-entero x = 1 / 0
-imprimir x
-fin_principal

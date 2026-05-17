@@ -1,7 +1,0 @@
-// e15 — Bloque flecha con retornar pero ) en lugar de } antes de cerrar
-// Esperado: mismo tipo de diagnostico que e3 (bloque { sin } antes de )).
-// Mide: cuerpo => { retornar ... } debe cerrar con } no con ) de la llamada IIFE.
-principal
-    entero tmp = ((x) => { retornar x + 1 )(1)
-    imprimir tmp
-fin_principal

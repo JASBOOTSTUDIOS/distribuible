@@ -1,9 +1,0 @@
-// Pieza del grafo ciclico para e_usar_ciclo_main.jasb (carpeta E/).
-// Importa m_ciclo_a.jasb cerrando el ciclo A -> B -> A.
-// No es un test autocontenido.
-
-usar todas de "m_ciclo_a.jasb"
-
-funcion fb() retorna entero
-retornar 2
-fin_funcion

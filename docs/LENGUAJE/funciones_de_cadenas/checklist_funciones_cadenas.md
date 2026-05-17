@@ -263,6 +263,18 @@ lista palabras = dividir_texto(frase, " ")
 imprimir "Palabras: " + str_desde_numero(lista_tamano(palabras))
 ```
 
+### [ ] `reemplazar(texto, patron, por)` / `remplazar` / `reemplazar_texto`
+- **Estado**: Implementado en VM (`OP_STR_REEMPLAZAR`) y compilador (aliases).
+- **Test**: Patrón presente varias veces; patrón vacío; patrones de un carácter.
+- **Observaciones**:
+```
+texto t = reemplazar("uno,dos", ",", " | ")
+imprimir t
+
+texto t2 = remplazar("x.y.z", ".", "-")
+imprimir t2
+```
+
 ### [ ] `segmentar_palabras(texto, separador)`
 - **Estado**: Pendiente
 - **Test**: Probar con diferentes separadores

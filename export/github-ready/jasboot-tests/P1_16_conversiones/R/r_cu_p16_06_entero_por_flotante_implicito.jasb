@@ -1,8 +1,0 @@
-# 6 — entero * flotante: I2F implicito en expresion (P1_16 + convertir_*).
-# Salida: 10.0000
-
-principal
-    entero v = convertir_entero("4")
-    flotante prod = v * convertir_flotante("2.5")
-    imprimir_flotante(prod)
-fin_principal

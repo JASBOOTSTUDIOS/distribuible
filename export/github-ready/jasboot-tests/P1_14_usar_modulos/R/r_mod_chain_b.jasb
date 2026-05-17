@@ -1,9 +1,0 @@
-// Modulo intermedio en la cadena r_usar_cadena_imports.jasb.
-// Importa r_mod_chain_c.jasb (misma carpeta R/) y define paso_b que delega en paso_c.
-// No es entrypoint tipico; ejecutar solo carece de principal util.
-
-usar todas de "r_mod_chain_c.jasb"
-
-enviar funcion paso_b(entero n) retorna entero
-    retornar llamar paso_c(n) + 1
-fin_funcion

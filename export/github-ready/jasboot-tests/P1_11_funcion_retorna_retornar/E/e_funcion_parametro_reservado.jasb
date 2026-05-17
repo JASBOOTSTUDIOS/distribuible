@@ -1,8 +1,0 @@
-funcion eco(entero mientras) retorna entero
-    retornar mientras
-fin_funcion
-
-principal
-    imprimir eco(2)
-fin_principal
-

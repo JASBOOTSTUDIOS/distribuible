@@ -1,7 +1,0 @@
-// e3 — Cuerpo flecha con { } mal cerrado ( ) en vez de } )
-// Esperado: error de sintaxis explicito: bloque con { sin cerrar; aparece ) antes de la } del cuerpo.
-// Mide: parse_block esperando } para cuerpo => { ... } y mensaje util para funciones flecha multilinea.
-principal
-    entero tmp = ((x) => { x + 1 )(1)
-    imprimir tmp
-fin_principal

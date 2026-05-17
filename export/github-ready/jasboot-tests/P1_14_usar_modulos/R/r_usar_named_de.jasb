@@ -1,8 +1,0 @@
-// R — Import nominal: `usar { doble } de` solo trae el nombre listado desde r_mod_export.jasb.
-// Esperado: compila; `jbc -e` imprime 40 (doble(20)).
-
-usar {doble} de "r_mod_export.jasb"
-
-principal
-    imprimir llamar doble(20)
-fin_principal

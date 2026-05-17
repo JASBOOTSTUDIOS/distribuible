@@ -1,7 +1,0 @@
-// Intermedio: `usar todas de` alpha y reexporta logica compuesta para el main de estres.
-
-usar todas de "s_mod_estres_alpha.jasb"
-
-enviar funcion mod_chain(entero n) retorna entero
-    retornar llamar mod_sum(llamar mod_sq(n), llamar mod_seed())
-fin_funcion

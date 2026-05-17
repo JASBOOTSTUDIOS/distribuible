@@ -35,11 +35,13 @@ funcion potencia(flotante base_val, flotante exp_val) retorna flotante
 fin_funcion
 
 funcion exponencial(flotante x) retorna flotante
+    # Serie de Taylor para e^x; mas terminos = mejor precision en sigmoid/tanh (XOR estable).
     flotante res = 1.0
     flotante term = 1.0
     entero i = 1
-    mientras i < 20 hacer
-        term = term * x / i
+    mientras i < 40 hacer
+        flotante fi = i * 1.0
+        term = term * x / fi
         res = res + term
         i = i + 1
     fin_mientras

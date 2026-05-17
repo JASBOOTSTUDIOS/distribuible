@@ -1,9 +1,0 @@
-principal
-    entero condicion = 1
-    
-    # Esto deberia arrojar error porque falta 'hacer'
-    mientras condicion > 0
-        imprimir 1
-        condicion = 0
-    fin_mientras
-fin_principal

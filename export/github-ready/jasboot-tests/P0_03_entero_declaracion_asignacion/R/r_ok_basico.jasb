@@ -1,9 +1,0 @@
-principal
-entero a = 10
-entero b
-b = 3
-entero c = a + b
-imprimir c
-a = 0 - 1
-imprimir a
-fin_principal

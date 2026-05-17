@@ -1,2 +1,0 @@
-// Auxiliar: una sola constante exportada (para varias directivas `usar` a distintos archivos).
-enviar constante entero SIDE_A = 10

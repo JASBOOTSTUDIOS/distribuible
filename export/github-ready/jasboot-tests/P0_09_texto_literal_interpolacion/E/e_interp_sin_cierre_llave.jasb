@@ -1,3 +1,0 @@
-principal
-    imprimir "inicio ${ 1 + 2 "
-fin_principal

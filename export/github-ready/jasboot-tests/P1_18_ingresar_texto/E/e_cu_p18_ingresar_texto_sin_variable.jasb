@@ -1,6 +1,0 @@
-// E: falta el identificador destino; el parser toma `fin_principal` como nombre y falla (reservada).
-// Esperado: 'fin_principal' es palabra reservada... no puede usarse como nombre de variable...
-
-principal
-    ingresar_texto
-fin_principal

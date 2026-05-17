@@ -1,8 +1,0 @@
-# E (02): lista_limpiar / mem_lista_limpiar sin argumentos -> compilacion falla (aridad 1).
-#
-# Resultado esperado: `jbc` codigo distinto de 0.
-#   Mensaje de aridad: hace falta la lista (1 argumento).
-
-principal
-    lista_limpiar()
-fin_principal

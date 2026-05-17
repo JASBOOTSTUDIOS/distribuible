@@ -1,7 +1,0 @@
-// E: no hay conversion implicita texto -> entero.
-// Esperado: fallo compilacion (No hay conversion implicita de tipo 'texto' a 'entero').
-
-principal
-    entero n = "42"
-    imprimir(n)
-fin_principal

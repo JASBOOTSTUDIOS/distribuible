@@ -1,8 +1,0 @@
-# E: mem_lista_obtener solo con lista -> aridad insuficiente.
-#
-# Resultado esperado: `jbc` codigo distinto de 0 (falta indice).
-
-principal
-    lista x = crear_lista()
-    mem_lista_obtener(x)
-fin_principal

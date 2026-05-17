@@ -1,8 +1,0 @@
-# E (04): crear_lista con 2+ argumentos -> error de compilacion (aridad estricta).
-#
-# Resultado esperado: `jbc` codigo distinto de 0; mensaje sobre solo 0 o 1 argumento en crear_lista.
-
-principal
-    lista x = crear_lista(1, 2)
-    imprimir mem_lista_tamano(x)
-fin_principal

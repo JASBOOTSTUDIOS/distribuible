@@ -1,9 +1,0 @@
-// R — `usar todas de` importa simbolos del modulo marcados con `enviar`.
-// Carga r_mod_ops.jasb y llama doble(21) -> 42.
-// Esperado: compila; `jbc -e` imprime 42.
-
-usar todas de "r_mod_ops.jasb"
-
-principal
-    imprimir llamar doble(21)
-fin_principal

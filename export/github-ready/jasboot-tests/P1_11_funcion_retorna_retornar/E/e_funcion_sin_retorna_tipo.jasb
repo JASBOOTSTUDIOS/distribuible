@@ -1,8 +1,0 @@
-funcion (entero n) retorna entero
-    retornar 1
-fin_funcion
-
-principal
-    imprimir 0
-fin_principal
-

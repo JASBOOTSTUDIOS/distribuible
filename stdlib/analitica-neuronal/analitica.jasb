@@ -201,7 +201,7 @@ enviar funcion inicializar_nlp_generativo() retorna entero
     si g_analitica.nlp_gen == nulo entonces
         g_analitica.nlp_gen = ModeloLenguaje()
     fin_si
-    g_analitica.nlp_gen.inicializar(3)
+    g_analitica.nlp_gen.preparar_markov_lm(3)
     retornar 1
 fin_funcion
 

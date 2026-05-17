@@ -1,6 +1,0 @@
-// e6 — macro sin operador =>
-// Esperado: error claro: falta `=>` tras `(parametros)` (mensaje cita el operador y un ejemplo macro f = (x) => ...).
-// Mide: parse_lambda tras "macro nombre =" exige forma (params) => ...
-principal
-    macro f = (x) x + 1
-fin_principal

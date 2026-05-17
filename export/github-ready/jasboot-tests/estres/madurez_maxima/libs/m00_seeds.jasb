@@ -1,4 +1,0 @@
-# Semillas y limites de iteracion para la suite madurez_maxima (solo `enviar`).
-enviar constante entero MAD_SEED = 1597334677
-enviar constante entero MAD_CAP_LISTA = 600
-enviar constante entero MAD_CPU_OUTER = 9000

@@ -14,6 +14,16 @@ Documento de referencia para **pruebas de estrés**, **rendimiento** y **catálo
 
 ---
 
+## Estado de trabajo — JMN journal y replay (`.jwl`)
+
+- **Objetivo:** trazabilidad incremental junto al snapshot `.jmn`: archivo **`ruta.jmn.jwl`** (append-only). Permite reconstruir estado en RAM si el `.jmn` falta o está **ilegible/corrupto** (con `JASBOOT_JWL_REPLAY` activo) y **checkpoint** del journal tras guardados exitosos del `.jmn`.
+- **Código principal (`sdk-dependiente/jasboot-jmn-core`):** `memoria_neuronal_journal.c` (op 1=nodo, 2=conexión, 3=texto, `0xFF`=commit); integración en `memoria_neuronal_core.c`, `memoria_neuronal_conexiones.c`, `memoria_neuronal_nodos.c`. Texto / colisión de ids: `memoria_neuronal_texto_fix.c` y API en `memoria_neuronal.h`.
+- **VM (`sdk-dependiente/jasboot-ir`):** lecturas JMN coherentes cuando hay **varios nodos** con el mismo literal (p. ej. `buscar`, `mem_obtener_fuerza`): resolución vía lista de ids candidatos (`vm_jmn_ids_para_literal` en `vm.c`). La fuente de verdad del toolchain es **`sdk-dependiente/`**.
+- **Variables de entorno (resumen):** `JASBOOT_JWL_REPLAY` (replay al abrir; ver comentarios en `memoria_neuronal.h`); `JASBOOT_JWL_CHECKPOINT` (truncar `.jwl` tras guardar `.jmn`); `JASBOOT_JWL_STAT` / `JASBOOT_JWL_REPLAY_DBG` (diagnóstico); `JASBOOT_JMN_NO_FINAL_SAVE` (no sobrescribir `.jmn` al cerrar — útil en pruebas con archivo corrupto).
+- **Regresión automatizada:** [`tests/run_estres_jwl_replay.cjs`](../../tests/run_estres_jwl_replay.cjs) (sin `.jmn`, replay desde `.jwl`); [`tests/run_estres_jwl_corrupt_replay.cjs`](../../tests/run_estres_jwl_corrupt_replay.cjs) (`.jmn` corrupto + replay). **Paquete Fase 2.2 (MAI + ambos JWL):** [`tests/run_fase_2_2.cjs`](../../tests/run_fase_2_2.cjs). Fuentes: `tests/estres_jwl_replay_*.jasb`, `tests/estres_jwl_corrupt_*.jasb`, `tests/test_mai_contexto_sueno.jasb`. Los binarios `.jmn` / `.jwl` temporales bajo `tests/` están en [`tests/.gitignore`](../../tests/.gitignore).
+
+---
+
 ## Estado de trabajo — P3·31 (`extraer_subtexto`, `extraer_antes_de`, `extraer_despues_de`)
 
 - **Rama Git:** `feature/p3-31-cadenas-subtexto-vm` (trabajo de batería + VM/compilador asociado a esta unidad).
@@ -103,7 +113,7 @@ Cada fila es una **unidad mínima** a cubrir antes de asumir que las superiores 
 | P2 | 27 | Listas literales y `lista` tipo; `crear_lista` / `mem_lista_crear` / `lista_crear` | ✓ | ✓ | ✓ | [tests/P2_27_listas_tipo_y_crear/](../../tests/P2_27_listas_tipo_y_crear/) **E**/**R**/**S**: `[]`, APIs, aridad `crear_lista`, `imprimir lista` resumido, `lista_limpiar`; literal `[…]` no vacío aún problemático en algunos entornos (ver `README.md`). Roadmap: `CHECKLIST_ROADMAP_LISTAS.md`. |
 | P2 | 28 | `mem_lista_agregar`, `mem_lista_obtener`, `mem_lista_tamano`, `lista_limpiar` | ✓ | ✓ | ✓ | [tests/P2_28_listas_obtener_agregar/](../../tests/P2_28_listas_obtener_agregar/) **E**: índice fuera de rango (VM aborta; handle inexistente sigue dando 0) |
 | P2 | 29 | `mapa_crear`, `mapa_poner`, `mapa_obtener` | ✓ | ✓ | ✓ | [tests/P2_29_mapa_crear_poner_obtener/](../../tests/P2_29_mapa_crear_poner_obtener/) **E**/**R**/**S**: aridad; clave inexistente → error VM **capturable** (`intentar`/`atrapar`), mismo criterio que `m[clave]`; **E** ejecución sin `intentar`; **S** miles de claves; suma en **S** partida por timestamp en `imprimir`. Ver `README.md`, `NOTAS_*.md`. |
-| P3 | 30 | Cadenas: `concatenar`, `longitud` / `longitud_texto`, `dividir` / `dividir_texto`, `minusculas` / `str_minusculas`, `copiar_texto` / `str_copiar` | ✓ | ✓ | ✓ | [tests/P3_30_cadenas_utilidades/](../../tests/P3_30_cadenas_utilidades/) **E**/**R**/**S**: aridad (0/1/2+ según API; `dividir`/`dividir_texto` exactamente 2); **R**/**S** como en `README.md`. |
+| P3 | 30 | Cadenas: `concatenar`, `longitud` / `longitud_texto`, `dividir` / `dividir_texto`, `minusculas` / `str_minusculas`, `copiar_texto` / `str_copiar`, **`reemplazar` / `remplazar` / `reemplazar_texto`** (VM `OP_STR_REEMPLAZAR`) | ✓ | ✓ | ✓ | [tests/P3_30_cadenas_utilidades/](../../tests/P3_30_cadenas_utilidades/) **E**/**R**/**S**: aridad (0/1/2+ según API; `dividir`/`dividir_texto` exactamente 2); **R**/**S** como en `README.md`. Smoke adicional: [tests/neurixis_normalizador_smoke.jasb](../../tests/neurixis_normalizador_smoke.jasb). |
 | P3 | 31 | `extraer_subtexto`, `extraer_antes_de`, `extraer_despues_de` | ✓ | ✓ | ✓ | [tests/P3_31_extraer_subtexto_y_alrededor/](../../tests/P3_31_extraer_subtexto_y_alrededor/) **E**/**R**/**S**: aridad (2–3 subtexto, 2 antes/despues); VM **ANTES_REG** con caché de texto; ver `README.md`, `S/NOTAS_S.md`. **Estado implementación:** § *Estado de trabajo — P3·31* (encima de la tabla maestra). |
 | P3 | 32 | `buscar_en_texto` / `contiene_texto`, `termina_con` (expresión o sentencia según AST) | ✓ | ✓ | ✓ | [tests/P3_32_buscar_contiene_termina/](../../tests/P3_32_buscar_contiene_termina/) **E**/**R**/**S**: aridad 2 en llamadas incorporadas; sinónimos buscar/contiene; `termina_con` con sufijo; AST `NODE_CONTIENE_TEXTO` / `NODE_TERMINA_CON` (sentencia → `resultado`). Ver `README.md`, `S/NOTAS_S.md`. **Estado:** § *Estado de trabajo — P3·32* (encima de la tabla maestra). |
 | P3 | 33 | `str_a_entero`, `str_a_flotante`, `str_desde_numero` | ✓ | ✓ | | **E**: texto no numérico |
@@ -223,7 +233,8 @@ Lista tomada de `sistema_llamadas.c` (`SISTEMA_LLAMADAS[]`). **Muchas están per
 | Percepción y rastro | Sí (familia listada en Parte A) |
 | `propagar_activacion*`, `elegir_por_peso*`, `resolver_conflictos*` | Confirmar `resolver_conflictos` en codegen |
 | `segmentar_palabras`, `palabras_de` | **Sin rama en visit_call_sistema** (solo registro parser) |
-| `dividir_texto`, `minusculas`, `extraer_subtexto`, `imprimir_id`, `longitud_texto` | Sí / síntesis arriba |
+| `dividir_texto`, `minusculas`, `extraer_subtexto`, `imprimir_id`, `longitud_texto`, `reemplazar`/`remplazar`/`reemplazar_texto` | Sí / síntesis arriba |
+| `para_cada` / `para cada`, `indice`, tipo `caracter` sobre `texto` | Sí (compilador + VM; ver referencia de lenguaje y smoke neurixis) |
 | `propiedad_concepto` | **Comprobar** |
 | `reservar`, `liberar`, `ir_escribir` | `reservar`/`liberar` sí; **`ir_escribir` comprobar** |
 | `concatenar`, `longitud`, `dividir`, `buscar_en_texto`, `contiene_texto`, `termina_con` | Sí |

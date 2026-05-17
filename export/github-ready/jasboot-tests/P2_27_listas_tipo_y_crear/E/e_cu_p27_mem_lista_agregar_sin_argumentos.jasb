@@ -1,7 +1,0 @@
-# E: mem_lista_agregar sin argumentos -> llamada no resuelta.
-#
-# Resultado esperado: `jbc` codigo distinto de 0.
-
-principal
-    mem_lista_agregar()
-fin_principal

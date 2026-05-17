@@ -1,7 +1,0 @@
-# LCG y mezcla entera (importa constantes con `usar todas`).
-usar todas de "m00_seeds.jasb"
-
-enviar funcion mad_lcg(entero x, entero i) retorna entero
-    entero t = x + i + MAD_SEED % 100000
-    retornar (t * 1103515245 + 12345) % 2147483647
-fin_funcion

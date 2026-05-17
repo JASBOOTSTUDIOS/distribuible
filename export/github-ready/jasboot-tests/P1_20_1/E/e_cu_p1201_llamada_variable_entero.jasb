@@ -1,7 +1,0 @@
-# E: `x(2)` cuando `x` es variable `entero`: no existe funcion con ese nombre; error de llamada.
-
-principal
-    entero x
-    x = 1
-    entero r = x(2)
-fin_principal

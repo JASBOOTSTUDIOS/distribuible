@@ -1,4 +1,0 @@
-# E: operador compuesto no aplicable a literal.
-principal
-    1 += 2
-fin_principal

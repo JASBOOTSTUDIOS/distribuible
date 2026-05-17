@@ -1,8 +1,0 @@
-# E (03): crear_lista(0) -> error de compilacion (id 0 no usable en VM/JMN).
-#
-# Resultado esperado: `jbc` codigo distinto de 0; mensaje semantico sobre `crear_lista(0)` (no generar .jbo ejecutable).
-
-principal
-    lista x = crear_lista(0)
-    imprimir mem_lista_tamano(x)
-fin_principal

@@ -1,7 +1,0 @@
-# Import nominal `usar { ... } de`: constante + funcion.
-
-enviar constante entero DELTA_BIAS = 5
-
-enviar funcion mod_delta_fn(entero u) retorna entero
-    retornar u + DELTA_BIAS
-fin_funcion

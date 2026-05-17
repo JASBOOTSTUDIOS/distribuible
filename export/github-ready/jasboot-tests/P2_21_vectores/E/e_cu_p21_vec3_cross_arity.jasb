@@ -1,7 +1,0 @@
-# E: vec3_cross requiere tres identificadores (destino, a, b).
-
-principal
-    vec3 u
-    vec3 v
-    vec3_cross(u, v)
-fin_principal

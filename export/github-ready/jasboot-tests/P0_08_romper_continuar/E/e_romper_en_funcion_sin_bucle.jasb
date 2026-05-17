@@ -1,7 +1,0 @@
-funcion mal_romper() retorna entero
-    romper
-fin_funcion
-
-principal
-    imprimir 0
-fin_principal

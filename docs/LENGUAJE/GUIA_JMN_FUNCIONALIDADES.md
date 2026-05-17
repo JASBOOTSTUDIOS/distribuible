@@ -12,6 +12,9 @@ Esta guía está dedicada exclusivamente a la **JMN (Red de Memoria Jasboot)**: 
 - [`asociar c1 con c2`](#asociar-c1-con-c2)
 - [`asociar c1 con c2 con peso p`](#asociar-c1-con-c2-con-peso-p)
 - [`buscar_asociados consulta`](#buscar_asociados-consulta)
+- [`buscar_asociados_lista(concepto, K, tipo)`](#buscar_asociados_listaconcepto-k-tipo-nuevo)
+- [`buscar_asociados_rango(lista, min, max)`](#buscar_asociados_rangolista-min-max-nuevo)
+- [`buscar_peso(c1, c2)`](#buscar_pesoc1-c2-nuevo)
 - [`propagar_activacion(texto)`](#propagar_activaciontexto)
 - [`buscar_en_memoria(termino)`](#buscar_en_memoriatermino-funcional)
 - [`buscar_en_memoria_cs(termino, cs)`](#buscar_en_memoria_cstermino-cs-funcional)
@@ -26,9 +29,9 @@ Esta guía está dedicada exclusivamente a la **JMN (Red de Memoria Jasboot)**: 
 La JMN es la memoria asociativa de Jasboot. Permite:
 
 - Guardar datos como pares clave/valor.
-- Relacionar conceptos entre sí.
-- Recuperar información por clave o por búsqueda semántica.
-- Persistir la memoria en disco (`.jmn`) entre ejecuciones.
+- Relacionar conceptos entre sí con pesos y tipos.
+- Recuperar información por clave, por rango de fuerza o por búsqueda semántica ordenada.
+- Persistir la memoria en disco (`.jmn`) entre ejecuciones con alta precisión (16 bits).
 
 ---
 
@@ -123,16 +126,20 @@ principal
 fin_principal
 ```
 
-### `asociar c1 con c2 con peso p`
+### `asociar_relacion(c1, c2, tipo, peso)`
 
-Asociación con fuerza/peso (valor flotante).
+Crea un vínculo especializado con fuerza (peso) y tipo de relación.
+
+- **Tipos**: `1` (Similitud), `2` (Oposición), `3` (Secuencia).
+- **Peso**: `0.0` a `1.0`.
 
 ```jasb
 principal
     crear_memoria("asociaciones.jmn")
 
-    asociar "agua" con "vida" con peso 0.95
-    asociar "agua" con "lluvia" con peso 0.70
+    asociar_relacion("agua", "vida", 1, 0.95)
+    asociar_relacion("agua", "h2o", 1, 1.0)
+    asociar_relacion("fuego", "calor", 1, 0.9)
 
     cerrar_memoria()
 fin_principal
@@ -140,13 +147,58 @@ fin_principal
 
 ---
 
-## 5) Recuperación por asociación y activación
+## 5) Búsqueda Avanzada y Cognitiva (Novedades)
 
-> Estas funciones están disponibles en la VM actual y se usan en apps cognitivas.
+### `buscar_asociados_lista(concepto, K, tipo)`
+
+Retorna una lista de hasta `K` asociados **ordenados por peso descendente**.
+
+```jasb
+principal
+    crear_memoria("conocimiento.jmn")
+    # ... asociaciones pobladas ...
+
+    lista asocs = buscar_asociados_lista("inteligencia", 5)
+    para_cada texto a indice i sobre asocs hacer
+        imprimir str_desde_numero(i + 1) + ". " + a + " (Peso: " + buscar_peso("inteligencia", a) + ")"
+    fin_para_cada
+    cerrar_memoria()
+fin_principal
+```
+
+### `buscar_asociados_rango(lista_consulta, min_peso, max_peso)`
+
+Realiza una búsqueda masiva y retorna un `mapa` de resultados filtrados.
+
+```jasb
+principal
+    crear_memoria("geografia.jmn")
+    lista consulta = ["España", "Francia", "Italia"]
+    mapa fuertes = buscar_asociados_rango(consulta, 0.8, 1.0)
+    # Recorrer entradas del mapa con las primitivas de mapa (claves/valores) según tu versión de stdlib.
+
+    cerrar_memoria()
+fin_principal
+```
+
+### `buscar_peso(c1, c2)`
+
+Obtiene la fuerza de conexión exacta entre dos conceptos.
+
+```jasb
+flotante p = buscar_peso("rapido", "veloz")
+si p > 0.8 entonces
+    imprimir "Sinonimos muy fuertes"
+fin_si
+```
+
+---
+
+## 6) Recuperación por asociación y activación (Legado)
 
 ### `buscar_asociados consulta`
 
-Busca conceptos asociados al término de entrada.
+Busca un único concepto asociado (el primero o más relevante).
 
 ```jasb
 principal
@@ -165,6 +217,8 @@ fin_principal
 
 Propaga activación semántica por la red y retorna un ID relacionado.
 
+Parámetros opcionales **`d_max`** (saltos) y **`K`** (tamaño de salida ordenada), límites, auditoría y pruebas de estrés: ver **`docs/LENGUAJE/jmn/PROPAGACION_D_MAX_K_AUDITORIA_Y_ESTRES.md`**.
+
 ```jasb
 principal
     crear_memoria("asociaciones.jmn")
@@ -180,7 +234,7 @@ fin_principal
 
 ---
 
-## 6) Búsqueda introspectiva en toda la memoria
+## 7) Búsqueda introspectiva en toda la memoria
 
 La búsqueda introspectiva revisa texto tanto en claves como en valores.
 
@@ -247,8 +301,7 @@ Devuelve lista de IDs cuando el flujo de listas está habilitado/corregido.
 ```jasb
 principal
     elemento lista = buscar_en_memoria_lista("aprendizaje", 5)
-    elemento tam = mem_lista_tamano(lista)
-    imprimir "Total: " + tam
+    elemento tam = lista_tamano(lista)
 fin_principal
 ```
 
@@ -347,4 +400,3 @@ fin_principal
 - **“No recupera lo que guardé”**: verificar que la misma ruta `.jmn` se abre en lectura/escritura.
 - **“Trae datos viejos”**: estás reutilizando un `.jmn` con historial previo.
 - **“Buscar por pregunta no encuentra”**: posiblemente la clave no existe; enseñá primero con `recordar` o con una frase tipo `X es Y` en tu lógica de app.
-

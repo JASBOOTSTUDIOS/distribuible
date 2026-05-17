@@ -1,6 +1,0 @@
-# E: constructor vec2 exige exactamente 2 argumentos flotantes.
-
-principal
-    vec2 u
-    u = vec2(1.0, 2.0, 3.0)
-fin_principal

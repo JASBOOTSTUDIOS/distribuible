@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "ms-vscode.js-debug",
     "ms-vscode.vscode-json",
     "formulahendry.auto-rename-tag",
     "bradlc.vscode-tailwindcss",

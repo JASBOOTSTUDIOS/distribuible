@@ -1,6 +1,0 @@
-// E: falta expresion tras imprimir_sin_salto; el parser intenta `fin_principal` como expresion.
-// Esperado: 'fin_principal' es palabra reservada... (mensaje similar a ingresar_texto sin destino).
-
-principal
-    imprimir_sin_salto
-fin_principal

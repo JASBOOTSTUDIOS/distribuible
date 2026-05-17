@@ -1,6 +1,0 @@
-// E: imprimir_flotante() sin expresion.
-// Esperado: error semantico: 'imprimir_flotante' requiere un argumento (...). Esta llamada no tiene argumentos.
-
-principal
-    imprimir_flotante()
-fin_principal

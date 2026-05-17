@@ -1,8 +1,0 @@
-# E (ejecución): obtener índice 0 en lista existente pero sin elementos (tamano 0).
-# Esperado: código salida != 0.
-
-principal
-    lista buf = crear_lista()
-    imprimir mem_lista_obtener(buf, 0)
-    imprimir "no_deberia\n"
-fin_principal

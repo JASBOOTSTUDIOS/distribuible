@@ -1,7 +1,0 @@
-// E: str_extraer_caracter() sin argumentos (requiere texto e indice).
-// Esperado: error semantico: llamada a funcion no definida 'str_extraer_caracter' (u mensaje equivalente).
-
-principal
-    texto t = str_extraer_caracter()
-    imprimir(t)
-fin_principal

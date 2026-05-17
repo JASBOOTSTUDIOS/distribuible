@@ -1,0 +1,201 @@
+# =============================================================================
+# jasIni — runner de desarrollo (Jasboot): vigila el .jasb de entrada, recompila
+# con jbc y relanza la VM sustituyendo la instancia anterior (PID en archivo).
+# =============================================================================
+# Convencion de argv (igual que jb.jasb):
+#   sys_argv(0) = ejecutable VM
+#   sys_argv(1) = este script .jbo
+#   sys_argv(2) = raiz del repo Jasboot
+#   sys_argv(3) = ruta al programa .jasb de entrada
+#   sys_argv(4) = opcional: "once" = una sola ejecucion sin vigilar
+#   sys_argv(5) = opcional: debounce en ms (texto, ej. "400")
+# =============================================================================
+
+funcion jasini_es_windows() retorna entero
+    texto exe = sys_argv(0)
+    si contiene_texto(exe, ".exe") == 1 o contiene_texto(exe, ".EXE") == 1 entonces
+        retornar 1
+    fin_si
+    retornar 0
+fin_funcion
+
+funcion jasini_ruta_absoluta(texto raiz, texto ruta) retorna texto
+    si ruta == nulo o ruta == "" entonces retornar ruta fin_si
+    si jasini_es_windows() == 1 entonces
+        si longitud_texto(ruta) > 2 entonces
+            si extraer_subtexto(ruta, 1, 1) == ":" entonces
+                retornar ruta
+            fin_si
+        fin_si
+        retornar raiz + "\\" + ruta
+    fin_si
+    si extraer_subtexto(ruta, 0, 1) == "/" entonces
+        retornar ruta
+    fin_si
+    retornar raiz + "/" + ruta
+fin_funcion
+
+funcion jasini_jbo_desde_jasb(texto ruta_jasb) retorna texto
+    entero n = longitud_texto(ruta_jasb)
+    si n < 6 entonces retornar ruta_jasb fin_si
+    texto base = extraer_subtexto(ruta_jasb, 0, n - 5)
+    retornar base + ".jbo"
+fin_funcion
+
+funcion jasini_ruta_pid(texto raiz) retorna texto
+    si jasini_es_windows() == 1 entonces
+        retornar raiz + "\\tools\\jasIni\\jasini.pid"
+    fin_si
+    retornar raiz + "/tools/jasIni/jasini.pid"
+fin_funcion
+
+funcion jasini_matar_anterior(texto raiz) retorna entero
+    texto pidf = jasini_ruta_pid(raiz)
+    si existe_archivo(pidf) == 0 entonces retornar 0 fin_si
+    texto raw = fs_leer_texto(pidf)
+    si raw == nulo o raw == "" entonces retornar 0 fin_si
+    texto pid = raw
+    si contiene_texto(pid, "\n") == 1 entonces
+        pid = extraer_antes_de(pid, "\n")
+    fin_si
+    si contiene_texto(pid, "\r") == 1 entonces
+        pid = extraer_antes_de(pid, "\r")
+    fin_si
+    si pid == "" entonces retornar 0 fin_si
+    si jasini_es_windows() == 1 entonces
+        texto cmd_kill = "taskkill /PID " + pid + " /T /F"
+        sistema_ejecutar(cmd_kill)
+    sino
+        texto cmd_unix = "sh -c \"kill -TERM " + pid + " 2>/dev/null; kill -KILL " + pid + " 2>/dev/null\""
+        sistema_ejecutar(cmd_unix)
+    fin_si
+    retornar 1
+fin_funcion
+
+funcion jasini_compilar(texto raiz, texto jbc, texto ruta_jasb_abs) retorna entero
+    texto cmd = ""
+    si jasini_es_windows() == 1 entonces
+        cmd = "cmd /c cd /d \"" + raiz + "\" && \"" + jbc + "\" \"" + ruta_jasb_abs + "\""
+    sino
+        cmd = "sh -c \"cd \\\"" + raiz + "\\\" && \\\"" + jbc + "\\\" \\\"" + ruta_jasb_abs + "\\\"\""
+    fin_si
+    sistema_ejecutar(cmd)
+    retornar 1
+fin_funcion
+
+funcion jasini_lanzar_vm_desacoplada(texto raiz, texto vm, texto jbo, texto pidf) retorna entero
+    si jasini_es_windows() == 1 entonces
+        # PowerShell: arranca VM en segundo plano y guarda PID (evita bloquear el bucle watch).
+        texto ps = "powershell -NoProfile -Command \"$p = Start-Process -FilePath '"
+        ps = concatenar(ps, vm)
+        ps = concatenar(ps, "' -ArgumentList '--continuo','")
+        ps = concatenar(ps, jbo)
+        ps = concatenar(ps, "' -WindowStyle Hidden -PassThru; $p.Id | Set-Content -Encoding ASCII '")
+        ps = concatenar(ps, pidf)
+        ps = concatenar(ps, "'\"")
+        sistema_ejecutar(ps)
+    sino
+        texto sh = "sh -c \"nohup \\\""
+        sh = concatenar(sh, vm)
+        sh = concatenar(sh, "\\\" \\\"")
+        sh = concatenar(sh, jbo)
+        sh = concatenar(sh, "\\\" --continuo >/dev/null 2>&1 & echo $! > \\\"")
+        sh = concatenar(sh, pidf)
+        sh = concatenar(sh, "\\\"\"")
+        sistema_ejecutar(sh)
+    fin_si
+    retornar 1
+fin_funcion
+
+funcion jasini_uso() retorna entero
+    imprimir "jasIni (Jasboot) — watch + jbc + VM"
+    imprimir "Uso: <vm> tools/jasIni/jasIni.jbo <repo_root> <entrada.jasb> [once] [debounce_ms]"
+    imprimir "Ejemplo (desde raiz del repo, tras compilar jasIni.jasb):"
+    imprimir "  sdk-dependiente\\jasboot-ir\\bin\\jasboot-ir-vm.exe tools\\jasIni\\jasIni.jbo C:\\src\\jasboot apps\\ejemplo.jasb"
+    imprimir "  ... misma linea con \"once\" al final = sin vigilar (una sola compilacion y VM en primer plano abajo)"
+    retornar 0
+fin_funcion
+
+principal
+    entero narg = sys_argc()
+    si narg < 4 entonces
+        jasini_uso()
+    sino
+
+    texto raiz = sys_argv(2)
+    texto ruta_jasb = sys_argv(3)
+    entero modo_once = 0
+    entero debounce = 350
+    si narg >= 5 entonces
+        si sys_argv(4) == "once" entonces
+            modo_once = 1
+        sino
+            debounce = str_a_entero(sys_argv(4))
+            si debounce < 50 entonces debounce = 50 fin_si
+        fin_si
+    fin_si
+    si narg >= 6 entonces
+        debounce = str_a_entero(sys_argv(5))
+        si debounce < 50 entonces debounce = 50 fin_si
+    fin_si
+
+    texto jbc = ""
+    texto vm = ""
+    si jasini_es_windows() == 1 entonces
+        jbc = raiz + "\\sdk-dependiente\\jas-compiler-c\\bin\\jbc.exe"
+        vm = raiz + "\\sdk-dependiente\\jasboot-ir\\bin\\jasboot-ir-vm.exe"
+    sino
+        jbc = raiz + "/sdk-dependiente/jas-compiler-c/bin/jbc"
+        vm = raiz + "/sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm"
+    fin_si
+
+    texto ruta_jasb_abs = jasini_ruta_absoluta(raiz, ruta_jasb)
+    texto jbo = jasini_jbo_desde_jasb(ruta_jasb_abs)
+    texto pidf = jasini_ruta_pid(raiz)
+
+    si modo_once == 1 entonces
+        imprimir "[jasIni] modo once: compilar y ejecutar (VM en primer plano)"
+        jasini_compilar(raiz, jbc, ruta_jasb_abs)
+        # Sin espacios en rutas tipicas del SDK: evita comillas que rompen cmd/system().
+        texto cmd_run = vm + " --continuo " + jbo
+        sistema_ejecutar(cmd_run)
+    sino
+
+    imprimir "[jasIni] ruta_jasb=" + ruta_jasb_abs
+    imprimir "[jasIni] raiz=" + raiz
+    imprimir "[jasIni] debounce_ms=" + str_desde_numero(debounce)
+    imprimir "[jasIni] pidfile=" + pidf
+    imprimir "[jasIni] nota: solo vigila el contenido del .jasb de entrada (fs_leer_texto)."
+
+    texto snap_prev = ""
+    texto snap = fs_leer_texto(ruta_jasb_abs)
+    si snap == nulo entonces snap = "" fin_si
+    snap_prev = snap
+
+    jasini_matar_anterior(raiz)
+    jasini_compilar(raiz, jbc, ruta_jasb_abs)
+    jasini_lanzar_vm_desacoplada(raiz, vm, jbo, pidf)
+
+    mientras 1 hacer
+        pausa_milisegundos(500)
+        snap = fs_leer_texto(ruta_jasb_abs)
+        si snap == nulo entonces snap = "" fin_si
+        si snap == snap_prev entonces
+            continuar
+        fin_si
+        imprimir "[jasIni] cambio detectado en fuente, debounce..."
+        pausa_milisegundos(debounce)
+        snap = fs_leer_texto(ruta_jasb_abs)
+        si snap == nulo entonces snap = "" fin_si
+        si snap == snap_prev entonces
+            continuar
+        fin_si
+        snap_prev = snap
+        jasini_matar_anterior(raiz)
+        jasini_compilar(raiz, jbc, ruta_jasb_abs)
+        jasini_lanzar_vm_desacoplada(raiz, vm, jbo, pidf)
+    fin_mientras
+
+    fin_si
+    fin_si
+fin_principal

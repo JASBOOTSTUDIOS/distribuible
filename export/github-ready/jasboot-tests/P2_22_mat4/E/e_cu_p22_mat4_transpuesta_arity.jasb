@@ -1,8 +1,0 @@
-# E: mat4_transpuesta con un solo argumento.
-# Esperado: jbc codigo != 0 (aridad incorrecta).
-
-principal
-    mat4 m
-    mat4_identidad(m)
-    mat4_transpuesta(m)
-fin_principal

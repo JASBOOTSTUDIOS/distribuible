@@ -1,0 +1,3 @@
+1. Autonomo e integral. -> Dependiente o Dependiente.
+2. Al crear un proyecto, la version de borrador no puede ser modificada, si se remite a mejora, se crea una copia del proyecto para poder editarlo, si se asegura la integridad y el versionado, cada cambio del usuario debe de poder ser auditado, con sus datos de fecha y la modificacipon del archivo, y poder ver cada version del proyecto, manteniendo la version e identidad del proyecto original.
+ 

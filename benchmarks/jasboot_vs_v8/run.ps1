@@ -13,11 +13,7 @@ New-Item -ItemType Directory -Force $buildDir | Out-Null
 New-Item -ItemType Directory -Force $cBuildDir | Out-Null
 New-Item -ItemType Directory -Force $tmpDir | Out-Null
 
-$vm = if ((Test-Path $vmTrace) -and ((Get-Item $vmTrace).LastWriteTimeUtc -gt (Get-Item $vmMain).LastWriteTimeUtc)) {
-    $vmTrace
-} else {
-    $vmMain
-}
+$vm = $vmMain
 
 $d8 = $env:JASBOOT_D8
 if (-not $d8) {

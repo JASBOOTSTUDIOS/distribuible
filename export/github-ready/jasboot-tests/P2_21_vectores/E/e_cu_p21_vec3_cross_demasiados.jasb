@@ -1,9 +1,0 @@
-# E: vec3_cross con mas de 3 argumentos.
-
-principal
-    vec3 va
-    vec3 vb
-    vec3 vc
-    vec3 vd
-    vec3_cross(va, vb, vc, vd)
-fin_principal

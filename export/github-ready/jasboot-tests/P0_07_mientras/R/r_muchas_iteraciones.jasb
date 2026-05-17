@@ -1,7 +1,0 @@
-principal
-    entero i = 0
-    mientras i < 10000000 hacer
-        i = i + 1
-    fin_mientras
-    imprimir i
-fin_principal

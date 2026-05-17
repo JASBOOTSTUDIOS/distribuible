@@ -15,8 +15,8 @@ principal
     imprimir "=============================================================================="
     imprimir "TEST 1: CONSTRUCTOR - INICIALIZAR()"
     imprimir "=============================================================================="
-    entero de = -10 
-    imprimir de
+    entero dato = -10 
+    imprimir dato
    
     imprimir "=============================================================================="
 fin_principal

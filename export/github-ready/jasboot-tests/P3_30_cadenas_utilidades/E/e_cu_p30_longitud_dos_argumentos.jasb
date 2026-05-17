@@ -1,5 +1,0 @@
-# E: longitud con dos argumentos — jbc debe fallar (un solo texto).
-
-principal
-    imprimir longitud("ab", "cd")
-fin_principal

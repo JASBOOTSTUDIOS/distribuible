@@ -2,12 +2,12 @@
   {
     "key": "f5",
     "command": "workbench.action.debug.start",
-    "when": "editorTextFocus && editorLangId == 'jasboot'"
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
   },
   {
     "key": "ctrl+f5",
     "command": "workbench.action.debug.run",
-    "when": "editorTextFocus && editorLangId == 'jasboot'"
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
   },
   {
     "key": "ctrl+shift+j",
@@ -15,7 +15,7 @@
     "args": {
       "text": "node '${workspaceFolder}/.vscode/run-jasb.cjs' '${file}'\u000D"
     },
-    "when": "editorTextFocus && editorLangId == 'jasboot'"
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
   },
   {
     "key": "ctrl+shift+b",
@@ -30,11 +30,23 @@
   {
     "key": "ctrl+shift+l",
     "command": "jasboot.toggleLogging",
-    "when": "editorTextFocus && editorLangId == 'jasboot'"
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
+  },
+  {
+    "key": "f6",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Jasboot: ejecutar con transpilador (AOT)",
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
+  },
+  {
+    "key": "ctrl+shift+alt+s",
+    "command": "workbench.action.tasks.runTask",
+    "args": "Ejecutar con Compilador Soberano",
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
   },
   {
     "key": "ctrl+shift+d",
     "command": "jasboot.openDocumentation",
-    "when": "editorTextFocus && editorLangId == 'jasboot'"
+    "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
   }
 ]

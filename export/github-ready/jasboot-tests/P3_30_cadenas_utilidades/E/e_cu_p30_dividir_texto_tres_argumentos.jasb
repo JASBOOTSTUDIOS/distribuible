@@ -1,6 +1,0 @@
-# E: dividir_texto con tres argumentos — jbc debe fallar (solo texto y separador).
-
-principal
-    lista L = dividir_texto("a,b", ",", "extra")
-    imprimir mem_lista_tamano(L)
-fin_principal

@@ -1,7 +1,0 @@
-// e9 — Parentesis desbalanceados: falta ) antes de la llamada (1)
-// Esperado: error de sintaxis cerca de '(' de la llamada; cuerpo x+1 queda pegado mal al cerrar la flecha.
-// Mide: cierre correcto de ((...) => expr) antes de )(args).
-principal
-    entero tmp = ((x) => x + 1(1)
-    imprimir tmp
-fin_principal

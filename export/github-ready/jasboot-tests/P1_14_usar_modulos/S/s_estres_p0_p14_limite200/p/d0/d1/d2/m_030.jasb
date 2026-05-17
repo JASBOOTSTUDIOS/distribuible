@@ -1,5 +1,0 @@
-// Hoja 30 / 200 ; ruta p/d0/d1/d2/ (4 carpetas bajo la raiz del estres).
-enviar constante entero E_030 = 30
-enviar funcion g_030() retorna entero
-    retornar 30
-fin_funcion

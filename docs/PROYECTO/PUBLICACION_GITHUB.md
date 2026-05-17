@@ -5,12 +5,12 @@
 Desde la raíz del monorepo:
 
 ```powershell
-# Recomendado: borra logs/objetos sueltos en sdk-dependiente y regenera export\
+# Recomendado: borra logs/objetos sueltos en sdk-dependiente y regenera staging\
 .\scripts\limpiar-para-github.ps1
 .\scripts\limpiar-para-github.ps1 -IncludeTests -IncludeDocs
 ```
 
-Commits **Git independientes** (un `.git` por carpeta bajo `export/github-ready`):
+Commits **Git independientes** (un `.git` por carpeta bajo `staging/github-ready`):
 
 ```powershell
 .\scripts\preparar-repos-github.ps1
@@ -25,7 +25,7 @@ Solo copia sin limpiar fuentes:
 .\scripts\preparar-repos-github.ps1 -IncludeTests -IncludeDocs
 ```
 
-Se crea **`export/github-ready/`** (ignorada por git en la raíz del monorepo) con subcarpetas:
+Se crea **`staging/github-ready/`** (ignorada por git en la raíz del monorepo) con subcarpetas:
 
 | Carpeta generada | Contenido origen | Nombre sugerido en GitHub |
 |------------------|------------------|---------------------------|
@@ -54,7 +54,7 @@ Equivale a limpiar artefactos locales y ejecutar `preparar-repos-github.ps1 -Sdk
 Después, en cada clon que ya tenga `git remote` apuntando al repo correcto:
 
 ```powershell
-cd export\github-ready\sdk-dependiente
+cd staging\github-ready\sdk-dependiente
 git add -A
 git status
 git commit -m "sync: monorepo jasboot"
@@ -69,7 +69,7 @@ cd ..\jasboot-docs
 
 **JASBOOTSTUDIO** (documentación pública con otra estructura de carpetas) no se genera con estos scripts: sincronízala desde `JASBOOTSTUDIO-ws` o merge manual según vuestra política. Las carpetas `tests-ws/` y `JASBOOTSTUDIO-ws/` en el monorepo son espejos de trabajo opcionales; la fuente de verdad para tests y docs “de equipo” sigue siendo `tests/` y `docs/` en la raíz del monorepo.
 
-Para commitear el export en un solo paso (recrear copia + `git add`/`commit` en cada subcarpeta con `.git`):
+Para commitear la **copia local** (p. ej. bajo `staging/github-ready/`) en un solo paso (recrear copia + `git add`/`commit` en cada subcarpeta con `.git`):
 
 ```powershell
 .\scripts\commit-repos-independientes.ps1 -RunPreparar -PrepararIncludeTests -PrepararIncludeDocs -PrepararSdkUnificado -Message "chore: sync monorepo"
@@ -79,7 +79,7 @@ Para commitear el export en un solo paso (recrear copia + `git add`/`commit` en 
 
 ## Opción B — `git subtree` (mantener un solo repo y publicar ramas)
 
-Sin carpeta `export/`, desde la raíz del monorepo con historial unificado:
+Sin depender de una carpeta de empaquetado en el árbol Git del monorepo (la salida suele ser **local** bajo `staging/`, ver `.gitignore`), desde la raíz del monorepo con historial unificado:
 
 ```bash
 git subtree split -P sdk-dependiente/jasboot-jmn-core -b publish-jmn

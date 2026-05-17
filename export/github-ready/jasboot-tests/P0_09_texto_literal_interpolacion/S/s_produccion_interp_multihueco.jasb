@@ -1,9 +1,0 @@
-# Produccion: texto + literales con varias interpolaciones por linea (logs / correlativos).
-principal
-    entero seq = 0
-    texto etiqueta = "v"
-    mientras seq < 1200 hacer
-        imprimir "${seq}:${etiqueta}:${seq * 2 + 1}"
-        seq += 1
-    fin_mientras
-fin_principal

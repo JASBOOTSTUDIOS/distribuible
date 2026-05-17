@@ -1,7 +1,0 @@
-# E: bloque de funcion global sin `fin_funcion` antes del siguiente constructo (`principal`).
-
-funcion f(entero x) retorna entero
-    retornar x
-
-principal
-fin_principal

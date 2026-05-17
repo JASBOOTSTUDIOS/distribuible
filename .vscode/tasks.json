@@ -2,7 +2,21 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Compilar Jasboot",
+      "label": "Jasboot: suite completa (MAI+JMN+JWL)",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/tests/run_suite_completa.cjs"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
       "type": "shell",
       "command": "node",
       "args": [
@@ -29,6 +43,36 @@
         }
       },
       "identifier": "jasboot-compile"
+    },
+    {
+      "label": "Jasboot: ejecutar con transpilador (AOT)",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "${file}",
+        "--aot"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "problemMatcher": {
+        "owner": "jasboot",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        }
+      },
+      "identifier": "jasboot-aot-run"
     },
     {
       "label": "Ejecutar Jasboot",
@@ -78,6 +122,25 @@
         }
       },
       "identifier": "jasboot-build-run"
+    },
+    {
+      "label": "Ejecutar con Compilador Soberano",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "${workspaceFolder}/sdk-soberano/jasboot-compilador/compilador_soberano.jasb",
+        "--",
+        "${file}"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new"
+      },
+      "identifier": "jasboot-soberano"
     }
   ]
 }

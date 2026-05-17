@@ -1,6 +1,0 @@
-# E: str_minusculas sin argumentos — jbc debe fallar.
-
-principal
-    texto t = str_minusculas()
-    imprimir t
-fin_principal

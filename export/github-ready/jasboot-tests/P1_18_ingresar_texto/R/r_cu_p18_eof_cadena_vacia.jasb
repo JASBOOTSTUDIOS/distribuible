@@ -1,7 +1,0 @@
-# R (con VM --continuo + stdin vacio): EOF -> cadena vacia, longitud 0.
-# Sin --continuo la VM puede terminar antes de imprimir; ver README.
-
-principal
-    ingresar_texto t
-    imprimir longitud(t)
-fin_principal

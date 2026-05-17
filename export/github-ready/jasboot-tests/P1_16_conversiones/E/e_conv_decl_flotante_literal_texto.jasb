@@ -1,6 +1,0 @@
-// E: no hay conversion implicita texto -> flotante.
-
-principal
-    flotante x = "3.14"
-    imprimir_flotante(x)
-fin_principal

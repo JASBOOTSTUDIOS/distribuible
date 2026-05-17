@@ -1,6 +1,0 @@
-# E: dividir_texto con un solo argumento — jbc debe fallar (hacen falta texto y separador).
-
-principal
-    lista L = dividir_texto("solo")
-    imprimir mem_lista_tamano(L)
-fin_principal

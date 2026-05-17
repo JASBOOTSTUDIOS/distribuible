@@ -1,6 +1,0 @@
-principal
-    entero num_x = 1
-    si num_x == 1 entonces
-        romper
-    fin_si
-fin_principal

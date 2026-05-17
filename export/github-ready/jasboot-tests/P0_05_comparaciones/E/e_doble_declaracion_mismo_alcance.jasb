@@ -1,7 +1,0 @@
-principal
-    entero num = 10
-    imprimir num
-    # Intentar declarar la misma variable dos veces en el mismo nivel
-    entero num = 20
-    imprimir num
-fin_principal

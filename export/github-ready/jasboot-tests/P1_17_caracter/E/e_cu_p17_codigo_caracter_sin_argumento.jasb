@@ -1,7 +1,0 @@
-// E: codigo_caracter() sin argumento.
-// Esperado: error semantico: llamada a funcion no definida 'codigo_caracter' (u equivalente).
-
-principal
-    entero n = codigo_caracter()
-    imprimir(n)
-fin_principal

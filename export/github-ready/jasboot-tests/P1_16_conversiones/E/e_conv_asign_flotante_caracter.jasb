@@ -1,7 +1,0 @@
-// E: asignacion flotante <- literal caracter (TOK_CONCEPT de un solo caracter).
-
-principal
-    flotante x = 0.0
-    x = `Z`
-    imprimir_flotante(x)
-fin_principal

@@ -1,7 +1,0 @@
-principal
-    intentar
-        imprimir "solo_try"
-    final
-        imprimir "solo_final"
-    fin_intentar
-fin_principal

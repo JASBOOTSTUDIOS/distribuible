@@ -1,7 +1,0 @@
-// E: concatenacion texto + texto sigue siendo texto; no asignable a entero sin convertir.
-// Esperado: No hay conversion implicita de tipo 'texto' a 'entero'.
-
-principal
-    entero n = "10" + "20"
-    imprimir(n)
-fin_principal

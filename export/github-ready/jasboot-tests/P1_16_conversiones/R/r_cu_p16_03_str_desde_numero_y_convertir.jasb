@@ -1,8 +1,0 @@
-# 3 — str_desde_numero (texto) + convertir_entero: ida y vuelta conceptual.
-# Salida: 88
-
-principal
-    texto t = str_desde_numero(88)
-    entero n = convertir_entero(t)
-    imprimir(n)
-fin_principal

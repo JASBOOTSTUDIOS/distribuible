@@ -1,7 +1,0 @@
-// e10 — Doble coma en lista de parametros
-// Esperado: error de sintaxis; se esperaba ')' y aparece ','.
-// Mide: lista de parametros de flecha sin parametros vacios entre comas.
-principal
-    entero tmp = ((x,, y) => x + y)(1, 2)
-    imprimir tmp
-fin_principal

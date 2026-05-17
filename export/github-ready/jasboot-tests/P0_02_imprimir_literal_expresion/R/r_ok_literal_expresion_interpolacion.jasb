@@ -1,9 +1,0 @@
-principal
-imprimir "literal"
-imprimir 40 + 2
-imprimir "suma ${40 + 2}"
-entero n = 7
-imprimir n * 6
-imprimir_texto "alias imprimir_texto"
-imprimir (99)
-fin_principal

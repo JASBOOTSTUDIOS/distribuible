@@ -1,8 +1,0 @@
-// E — `usar` sin `todas`/`todo de` ni lista `{ } de` antes de la ruta.
-// Esperado: error de parseo con la sintaxis correcta indicada en el mensaje.
-
-usar "r_mod_ops.jasb"
-
-principal
-imprimir 0
-fin_principal

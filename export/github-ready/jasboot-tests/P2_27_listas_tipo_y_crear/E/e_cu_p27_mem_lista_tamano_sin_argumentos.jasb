@@ -1,7 +1,0 @@
-# E: mem_lista_tamano() sin lista -> error de compilacion (aridad).
-#
-# Resultado esperado: `jbc` codigo distinto de 0.
-
-principal
-    imprimir mem_lista_tamano()
-fin_principal

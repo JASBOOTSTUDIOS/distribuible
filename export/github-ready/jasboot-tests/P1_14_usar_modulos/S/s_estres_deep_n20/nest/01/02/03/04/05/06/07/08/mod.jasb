@@ -1,7 +1,0 @@
-﻿// Nivel 8 de 20: importa solo el subpaquete inmediato (cadena lineal).
-usar todas de "09/mod.jasb"
-
-enviar constante entero DEEP_L08_K = 8
-enviar funcion deep_svc_08(entero v) retorna entero
-    retornar v + DEEP_L08_K + llamar deep_svc_09(v)
-fin_funcion

@@ -8,18 +8,178 @@
 usar { AnalizadorBase } de "../base.jasb"
 usar { ProcesadorLenguajeNatural } de "./nlp_basico.jasb"
 
+# Estado Markov singleton por proceso (un solo modelo activo típico: g_analitica.nlp_gen).
+# Nota: el runtime comparte este estado vía `enviar` para evitar perdida de campos entre metodos de instancia.
+enviar lista _mlm_hist_global = crear_lista()
+enviar mapa _mlm_markov_global = mapa_crear()
+enviar entero _mlm_orden_global = 3
+enviar entero _mlm_hist_count_global = 0
+
 enviar clase ModeloLenguaje extiende AnalizadorBase
-    entero orden_n
-    mapa modelo_markov
     ProcesadorLenguajeNatural procesador
 
-    # Constructor
-    funcion inicializar(entero n)
+    # Estado interno Markov/N-gram (nombre distinto a `inicializar` para no colisionar con AnalizadorBase.inicializar(texto,texto)).
+    funcion preparar_markov_lm(entero n)
         padre.inicializar("ModeloLenguaje", "1.0.0")
-        este.modelo_markov = mapa_crear()
-        este.orden_n = n
+        _mlm_markov_global = mapa_crear()
+        _mlm_orden_global = n
         este.procesador = ProcesadorLenguajeNatural()
         este.procesador.inicializar()
+        _mlm_hist_global = crear_lista()
+        _mlm_hist_count_global = 0
+    fin_funcion
+
+    funcion elementos_historial() retorna entero
+        retornar lista_tamano(_mlm_hist_global)
+    fin_funcion
+
+    funcion orden_markov_lm() retorna entero
+        retornar _mlm_orden_global
+    fin_funcion
+
+    funcion _buscar_seguro(texto clave) retorna texto
+        intentar
+            buscar clave
+            si resultado == nulo entonces retornar "" fin_si
+            retornar resultado
+        atrapar e_err
+            si clave == "__debug__" entonces imprimir e_err fin_si
+            retornar ""
+        fin_intentar
+    fin_funcion
+
+    # Normaliza fin de linea Windows en archivos .jbr
+    funcion _jbr_quitar_cr_final(texto s) retorna texto
+        entero n = longitud_texto(s)
+        si n <= 0 entonces retornar s fin_si
+        texto tail = extraer_subtexto(s, n - 1, 1)
+        si tail == "\r" entonces
+            retornar extraer_subtexto(s, 0, n - 1)
+        fin_si
+        retornar s
+    fin_funcion
+
+    # Serializa/deserializa modelo N-gram en archivos .jbr (recurso liviano portable).
+    funcion guardar_archivo_jbr(texto ruta_archivo, texto etiqueta_parte) retorna entero
+        si ruta_archivo == nulo o ruta_archivo == "" entonces retornar 0 fin_si
+
+        entero nhist = lista_tamano(_mlm_hist_global)
+        # Sin historial no abrir en modo wb (truncaria el archivo existente a cero bytes).
+        si nhist <= 0 entonces retornar 0 fin_si
+
+        entero fh = abrir_archivo(ruta_archivo, "wb")
+        si fh == 0 entonces retornar 0 fin_si
+
+        entero orden_out = _mlm_orden_global
+        si orden_out < 2 entonces orden_out = 3 fin_si
+
+        escribir_archivo("JBR1\n", fh)
+        escribir_archivo("orden_n " + str_desde_numero(orden_out) + "\n", fh)
+        escribir_archivo("parte " + etiqueta_parte + "\n", fh)
+        escribir_archivo("historial_count " + str_desde_numero(nhist) + "\n", fh)
+
+        entero idx = 0
+        mientras idx < nhist hacer
+            escribir_archivo("INICIO_BLOQUE_JBR\n", fh)
+            texto doc = lista_obtener(_mlm_hist_global, idx)
+            si doc != nulo entonces
+                lista dlines = dividir_texto(doc, "\n")
+                entero j = 0
+                entero m = lista_tamano(dlines)
+                mientras j < m hacer
+                    escribir_archivo(lista_obtener(dlines, j) + "\n", fh)
+                    j = j + 1
+                fin_mientras
+            fin_si
+            escribir_archivo("FIN_BLOQUE_JBR\n", fh)
+            idx = idx + 1
+        fin_mientras
+
+        cerrar_archivo(fh)
+        retornar nhist
+    fin_funcion
+
+    # fusionar==0 reinicia modelo y orden_n del archivo luego reaplica corpus.
+    # fusionar==1 mantiene el modelo vigente y suma corpus (orden_n debe coincidir).
+    funcion cargar_archivo_jbr(texto ruta_archivo, entero fusionar) retorna entero
+        si ruta_archivo == nulo o ruta_archivo == "" entonces retornar 0 fin_si
+        si existe_archivo(ruta_archivo) == 0 entonces retornar 0 fin_si
+
+        texto raw = fs_leer_texto(ruta_archivo)
+        si raw == nulo o raw == "" entonces retornar 0 fin_si
+
+        lista lineas = dividir_texto(raw, "\n")
+        entero ln = lista_tamano(lineas)
+        si ln < 4 entonces retornar 0 fin_si
+
+        texto L0 = este._jbr_quitar_cr_final(lista_obtener(lineas, 0))
+        si L0 != "JBR1" entonces retornar 0 fin_si
+
+        entero orden_leido = _mlm_orden_global
+        lista docs_extraidos = crear_lista()
+
+        entero idx = 1
+        mientras idx < ln hacer
+            texto L = este._jbr_quitar_cr_final(lista_obtener(lineas, idx))
+
+            si L == "INICIO_BLOQUE_JBR" o L == "BEGIN" entonces
+                idx = idx + 1
+                texto acum = ""
+                mientras idx < ln hacer
+                    texto LX = este._jbr_quitar_cr_final(lista_obtener(lineas, idx))
+                    si LX == "FIN_BLOQUE_JBR" o LX == "#JBR.END#" entonces
+                        idx = idx + 1
+                        romper
+                    fin_si
+                    si acum != "" entonces acum = acum + "\n" fin_si
+                    acum = acum + lista_obtener(lineas, idx)
+                    idx = idx + 1
+                fin_mientras
+                lista_agregar(docs_extraidos, acum)
+                continuar
+            fin_si
+
+            si L != "" entonces
+                texto clave_h = extraer_antes_de(L, " ")
+                texto val_h = extraer_despues_de(L, " ")
+                si clave_h == "orden_n" entonces
+                    orden_leido = convertir_entero(val_h)
+                fin_si
+            fin_si
+
+            idx = idx + 1
+        fin_mientras
+
+        si orden_leido < 2 entonces orden_leido = _mlm_orden_global fin_si
+        si orden_leido < 2 entonces orden_leido = 3 fin_si
+
+        entero orden_actual = _mlm_orden_global
+        si orden_actual < 2 entonces orden_actual = 3 fin_si
+
+        si fusionar == 1 y orden_leido != orden_actual entonces
+            retornar 0
+        fin_si
+
+        si fusionar == 0 entonces
+            _mlm_orden_global = orden_leido
+            _mlm_markov_global = mapa_crear()
+            _mlm_hist_global = crear_lista()
+            _mlm_hist_count_global = 0
+        fin_si
+
+        entero docs_cargados = 0
+        entero di = 0
+        entero total_docs = lista_tamano(docs_extraidos)
+        mientras di < total_docs hacer
+            texto doc = lista_obtener(docs_extraidos, di)
+            si doc != nulo y doc != "" entonces
+                este.entrenar(doc)
+                docs_cargados = docs_cargados + 1
+            fin_si
+            di = di + 1
+        fin_mientras
+
+        retornar docs_cargados
     fin_funcion
 
     # =========================================================================
@@ -28,10 +188,14 @@ enviar clase ModeloLenguaje extiende AnalizadorBase
 
     # Entrena el modelo con un corpus de texto
     funcion entrenar(texto corpus)
+        si corpus == nulo o corpus == "" entonces retornar fin_si
+        lista_agregar(_mlm_hist_global, corpus)
+        _mlm_hist_count_global = _mlm_hist_count_global + 1
+
         lista v_tokens
         v_tokens = este.procesador.tokenizar(corpus)
         entero total = lista_tamano(v_tokens)
-        entero n = este.orden_n
+        entero n = _mlm_orden_global
 
         si total < n entonces retornar fin_si
 
@@ -52,11 +216,11 @@ enviar clase ModeloLenguaje extiende AnalizadorBase
 
             # Guardar en el mapa de probabilidades
             mapa candidatos
-            si mapa_contiene(este.modelo_markov, clave) entonces
-                candidatos = mapa_obtener(este.modelo_markov, clave)
+            si mapa_contiene(_mlm_markov_global, clave) entonces
+                candidatos = mapa_obtener(_mlm_markov_global, clave)
             sino
                 candidatos = mapa_crear()
-                mapa_poner(este.modelo_markov, clave, candidatos)
+                mapa_poner(_mlm_markov_global, clave, candidatos)
             fin_si
 
             # Incrementar contador de la palabra siguiente
@@ -79,7 +243,7 @@ enviar clase ModeloLenguaje extiende AnalizadorBase
         lista tokens_ctx
         tokens_ctx = este.procesador.tokenizar(contexto)
         entero n_ctx = lista_tamano(tokens_ctx)
-        entero n_gram = este.orden_n
+        entero n_gram = _mlm_orden_global
         entero n_req = n_gram - 1
 
         si n_ctx < n_req entonces retornar "" fin_si
@@ -94,11 +258,11 @@ enviar clase ModeloLenguaje extiende AnalizadorBase
             i = i + 1
         fin_mientras
 
-        si no mapa_contiene(este.modelo_markov, clave) entonces
+        si no mapa_contiene(_mlm_markov_global, clave) entonces
             retornar ""
         fin_si
 
-        mapa candidatos = mapa_obtener(este.modelo_markov, clave)
+        mapa candidatos = mapa_obtener(_mlm_markov_global, clave)
         
         texto mejor_palabra = ""
         entero max_cuenta = -1
@@ -128,6 +292,57 @@ enviar clase ModeloLenguaje extiende AnalizadorBase
         fin_mientras
         
         retornar resultado_gen
+    fin_funcion
+
+    funcion guardar_snapshot_jmn(texto namespace) retorna entero
+        recordar namespace + ":meta:version" con valor "1"
+        recordar namespace + ":meta:orden_n" con valor _mlm_orden_global
+        recordar namespace + ":meta:historial_count" con valor _mlm_hist_count_global
+
+        entero i = 0
+        mientras i < _mlm_hist_count_global hacer
+            texto doc = lista_obtener(_mlm_hist_global, i)
+            recordar namespace + ":hist:" + str_desde_numero(i) con valor doc
+            i = i + 1
+        fin_mientras
+        retornar _mlm_hist_count_global
+    fin_funcion
+
+    funcion cargar_snapshot_jmn(texto namespace, entero max_docs) retorna entero
+        texto raw_count = este._buscar_seguro(namespace + ":meta:historial_count")
+        si raw_count == "" entonces
+            retornar 0
+        fin_si
+
+        entero total = convertir_entero(raw_count)
+        entero limite = total
+        si max_docs > 0 y limite > max_docs entonces
+            limite = max_docs
+        fin_si
+
+        _mlm_markov_global = mapa_crear()
+        _mlm_hist_global = crear_lista()
+        _mlm_hist_count_global = 0
+
+        entero i = 0
+        mientras i < limite hacer
+            texto doc = este._buscar_seguro(namespace + ":hist:" + str_desde_numero(i))
+            si doc != "" entonces
+                este.entrenar(doc)
+            fin_si
+            i = i + 1
+        fin_mientras
+        retornar _mlm_hist_count_global
+    fin_funcion
+
+    funcion guardar_parte_cerebro(texto nombre_parte) retorna entero
+        texto ns = "brain:parte:" + nombre_parte
+        retornar este.guardar_snapshot_jmn(ns)
+    fin_funcion
+
+    funcion cargar_parte_cerebro(texto nombre_parte, entero max_docs) retorna entero
+        texto ns = "brain:parte:" + nombre_parte
+        retornar este.cargar_snapshot_jmn(ns, max_docs)
     fin_funcion
 
 fin_clase

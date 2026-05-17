@@ -1,8 +1,0 @@
-# Produccion: muchisimos imprimir con literal interpolado (presion lexer/imprimir/VM I/O).
-principal
-    entero idx = 0
-    mientras idx < 3000 hacer
-        imprimir "${idx}"
-        idx += 1
-    fin_mientras
-fin_principal

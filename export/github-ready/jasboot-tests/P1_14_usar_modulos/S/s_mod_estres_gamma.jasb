@@ -1,5 +1,0 @@
-// Modulo independiente: segundo `usar` en el main (sin solapar nombres con alpha/beta).
-
-enviar funcion mod_tag(entero x) retorna entero
-    retornar x * 100 + 7
-fin_funcion

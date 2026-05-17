@@ -40,9 +40,9 @@ clase GradientBoosting extiende AnalizadorBase
             elemento es_hoja = nulo
             es_hoja = mapa_obtener(arbol, "es_hoja")
             si es_hoja == verdadero entonces
-                flotante valor = 0.0
-                valor = mapa_obtener(arbol, "valor")
-                retornar valor
+                flotante valor_pred = 0.0
+                valor_pred = mapa_obtener(arbol, "valor")
+                retornar valor_pred
             fin_si
         fin_si
 

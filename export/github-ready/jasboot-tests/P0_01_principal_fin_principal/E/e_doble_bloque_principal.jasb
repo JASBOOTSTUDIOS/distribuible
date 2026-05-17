@@ -1,6 +1,0 @@
-principal
-    imprimir "A"
-fin_principal
-principal
-    imprimir "B"
-fin_principal

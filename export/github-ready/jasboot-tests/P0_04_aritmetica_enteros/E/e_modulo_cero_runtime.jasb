@@ -1,6 +1,0 @@
-principal
-    entero num_a = 10
-    entero cero = 0
-    entero num_b = num_a % cero
-    imprimir num_b
-fin_principal

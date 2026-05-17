@@ -1,4 +1,0 @@
-principal
-imprimir "30" + 10
-imprimir 10 + "30"
-fin_principal

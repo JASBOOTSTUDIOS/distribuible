@@ -1,6 +1,0 @@
-principal
-    entero i = 0
-    hacer 
-        imprimir "Hola, mundo!"
-        i = i + 1
-fin_principal

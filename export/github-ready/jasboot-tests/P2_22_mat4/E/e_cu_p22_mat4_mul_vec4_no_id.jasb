@@ -1,9 +1,0 @@
-# E: mat4_mul_vec4 exige identificadores; el tercer argumento no puede ser vec4(...).
-# Esperado: jbc codigo != 0 (error semantico).
-
-principal
-    mat4 m
-    vec4 d
-    mat4_identidad(m)
-    mat4_mul_vec4(d, m, vec4(1.0, 0.0, 0.0, 1.0))
-fin_principal

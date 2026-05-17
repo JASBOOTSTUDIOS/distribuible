@@ -1,7 +1,0 @@
-// e2 — IIFE: pocos argumentos
-// Esperado: error del parser; mensaje de arity; dos marcas ^ (parametros (m,n) vs argumentos (1)).
-// Mide: n_args < n_params en IIFE; nombres m, n evitan palabras reservadas (p. ej. "y").
-principal
-    entero tmp = ((m, n) => m + n)(1)
-    imprimir tmp
-fin_principal

@@ -2,7 +2,7 @@
 
 Guía para partir el ecosistema Jasboot en **repositorios independientes**, con límites claros y sin artefactos innecesarios.
 
-**Exportación automática:** `.\scripts\limpiar-para-github.ps1` (limpia y regenera `export\github-ready`) o `.\scripts\preparar-repos-github.ps1`. **Commits Git independientes** (un repo por carpeta): `.\scripts\commit-repos-independientes.ps1`. Detalle: [PUBLICACION_GITHUB.md](./PUBLICACION_GITHUB.md).
+**Exportación automática:** `.\scripts\limpiar-para-github.ps1` (limpia y regenera `staging\github-ready`) o `.\scripts\preparar-repos-github.ps1`. **Commits Git independientes** (un repo por carpeta): `.\scripts\commit-repos-independientes.ps1`. Detalle: [PUBLICACION_GITHUB.md](./PUBLICACION_GITHUB.md).
 
 ---
 

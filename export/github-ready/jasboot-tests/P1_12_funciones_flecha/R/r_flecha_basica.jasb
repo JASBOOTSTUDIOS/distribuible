@@ -1,7 +1,0 @@
-// r_flecha_basica — IIFE de una expresión
-// Esperado: compila y ejecuta; salida 6 (5+1).
-// Mide: lambda de una línea invocada inmediatamente ((x) => ...)(...).
-
-principal
-    imprimir ((x) => x + 1)(5)
-fin_principal

@@ -63,10 +63,13 @@ enviar clase SVM extiende AnalizadorBase
         lista nuevos_pesos = crear_lista()
         flotante nuevo_sesgo = sesgo
 
+        # Indice compartido por ambas ramas (evita variable solo en rama then: C AOT requiere mismo ambito)
+        entero i = 0
+
         # Si está mal clasificado o dentro del margen (y * y_pred < 1)
         si condicion < 1.0 entonces
             # Gradiente con regularización: dL/dw = -_y*x + (1/C)*w
-            entero i = 0
+            i = 0
             mientras i < n hacer
                 flotante w_i = lista_obtener(pesos, i)
                 flotante x_i = lista_obtener(x, i)

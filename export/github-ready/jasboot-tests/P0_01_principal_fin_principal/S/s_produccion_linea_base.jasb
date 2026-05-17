@@ -1,4 +1,0 @@
-# Produccion: bloque minimo con salida estable (P01 envoltorio + P02 imprimir entero).
-principal
-    imprimir 0
-fin_principal

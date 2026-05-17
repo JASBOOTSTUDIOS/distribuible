@@ -1,6 +1,0 @@
-// E: literal interpolado es texto aunque la expresion interna sea aritmetica entera.
-
-principal
-    entero n = "${1 + 2}"
-    imprimir(n)
-fin_principal

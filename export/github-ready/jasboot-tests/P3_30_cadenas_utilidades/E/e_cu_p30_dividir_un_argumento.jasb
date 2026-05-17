@@ -1,6 +1,0 @@
-# E: dividir (alias) con un solo argumento — mismo requisito que dividir_texto.
-
-principal
-    lista L = dividir("solo")
-    imprimir mem_lista_tamano(L)
-fin_principal

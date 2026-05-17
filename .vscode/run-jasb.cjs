@@ -35,6 +35,7 @@ function findJbc() {
     if (fs.existsSync(p)) return p;
   }
 
+  /* Toolchain canónico: sdk-dependiente/ (sin copia espejo bajo export/). */
   const compilerBins = [
     path.join(workspaceRoot, "sdk-dependiente", "jas-compiler-c", "bin"),
     path.join(workspaceRoot, "sdk", "jas-compiler-c", "bin"),
@@ -70,16 +71,62 @@ function findJbc() {
 }
 
 function findVm() {
+  if (process.env.JASBOOT_VM) {
+    const p = path.isAbsolute(process.env.JASBOOT_VM)
+      ? process.env.JASBOOT_VM
+      : path.join(workspaceRoot, process.env.JASBOOT_VM);
+    if (fs.existsSync(p)) return p;
+  }
+  // Por defecto: VM rapida (sin trace). Para depuracion: JASBOOT_VM_TRACE=1
+  if (process.env.JASBOOT_VM_TRACE === "1") {
+    const traceCandidates = [
+      ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-trace.exe"],
+      ["sdk", "jasboot-ir", "bin", "jasboot-ir-vm-trace.exe"],
+    ];
+    for (const parts of traceCandidates) {
+      const p = path.join(workspaceRoot, ...parts);
+      if (fs.existsSync(p)) return p;
+    }
+  }
   const rels = [
     ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm.exe"],
-    ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-trace.exe"],
     ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-net.exe"],
+    ["sdk-dependiente", "jasboot-ir", "bin", "jasboot-ir-vm-trace.exe"],
     ["sdk-dependiente", "bin", "jasboot-ir-vm.exe"],
     ["sdk", "jasboot-ir", "bin", "jasboot-ir-vm.exe"],
   ];
   for (const parts of rels) {
     const p = path.join(workspaceRoot, ...parts);
     if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+/** Transpilador Jasboot → C (AOT). Ejecutable `jbc-to-c` o variable JASBOOT_JBC_TO_C. */
+function findJbcToC() {
+  if (process.env.JASBOOT_JBC_TO_C) {
+    const p = path.isAbsolute(process.env.JASBOOT_JBC_TO_C)
+      ? process.env.JASBOOT_JBC_TO_C
+      : path.join(workspaceRoot, process.env.JASBOOT_JBC_TO_C);
+    if (fs.existsSync(p)) return p;
+  }
+  const names =
+    process.platform === "win32"
+      ? ["jbc-to-c.exe", "jbc-to-c.cmd", "jbc-to-c"]
+      : ["jbc-to-c", "jbc-to-c.exe"];
+  const dirs = [
+    path.join(workspaceRoot, "sdk-dependiente", "jasboot-to-c", "bin"),
+    path.join(workspaceRoot, "sdk-dependiente", "jasboot-to-c"),
+    path.join(workspaceRoot, "sdk-dependiente", "bin"),
+    path.join(workspaceRoot, "sdk", "jasboot-to-c", "bin"),
+  ];
+  for (const dir of dirs) {
+    const pick = newestExeInDir(dir, names);
+    if (pick) return pick;
+    for (const n of names) {
+      const p = path.join(dir, n);
+      if (fs.existsSync(p)) return p;
+    }
   }
   return null;
 }
@@ -516,22 +563,23 @@ function runLinter(filePath, source) {
       classFields.set(currentClass, new Set());
     } else if (line === "fin_clase") {
       currentClass = null;
-    } else if (line.startsWith("funcion ")) {
+    } else if (/\bfuncion\s+/.test(line)) {
       inFunction = true;
     } else if (line === "fin_funcion") {
       inFunction = false;
     } else if (
       currentClass &&
       !inFunction &&
-      (line.startsWith("entero ") ||
-        line.startsWith("texto ") ||
-        line.startsWith("lista ") ||
-        line.startsWith("mapa ") ||
-        line.startsWith("flotante "))
+      /\b(entero|texto|lista|mapa|flotante|decimal|bool|u32|u64|u8|byte|bytes|vec2|vec3|vec4|mat3|mat4)\s+/.test(
+        line,
+      )
     ) {
       const parts = line.split(/\s+/);
-      if (parts.length > 1) {
-        const field = parts[1].split("=")[0].trim();
+      // Saltar visibilidad si existe (privado/publico)
+      let nameIdx = 1;
+      if (parts[0] === "privado" || parts[0] === "publico") nameIdx = 2;
+      if (parts.length > nameIdx) {
+        const field = parts[nameIdx].split("=")[0].trim();
         classFields.get(currentClass).add(field);
       }
     }
@@ -550,7 +598,7 @@ function runLinter(filePath, source) {
       currentClass = null;
     }
 
-    if (line.startsWith("funcion ")) {
+    if (/\bfuncion\s+/.test(line)) {
       // Extraer nombres de parametros
       const paramMatch = line.match(/\(([^)]*)\)/);
       if (paramMatch) {
@@ -559,13 +607,22 @@ function runLinter(filePath, source) {
           .split(",")
           .map((p) => {
             const parts = p.trim().split(/\s+/);
-            return parts.length > 1 ? parts[1].trim() : null;
+            // Ignorar tipo, tomar nombre
+            let nIdx = 1;
+            if (
+              parts.length > 0 &&
+              (parts[0] === "privado" || parts[0] === "publico")
+            )
+              nIdx = 2; // No aplica a params pero por si acaso
+            return parts.length > nIdx ? parts[nIdx].trim() : parts[0].trim();
           })
-          .filter((p) => p !== null);
+          .filter((p) => p !== null && p !== "");
         currentFuncParams = new Set(params);
       }
+      inFunction = true;
     } else if (line === "fin_funcion") {
       currentFuncParams = new Set();
+      inFunction = false;
     }
 
     // 1. Balance de memoria JMN
@@ -644,15 +701,42 @@ function runLinter(filePath, source) {
   return errors;
 }
 
-const fileArg = process.argv[2];
+const cliArgs = process.argv.slice(2);
+/** Nivel opcional para `JASBOOT_PROPAGAR_AUDIT` al ejecutar la VM (stderr por propagación). */
+let propagarAuditCli = undefined;
+for (const a of cliArgs) {
+  const m = /^--propagar-audit=(\d+)$/.exec(a);
+  if (m) propagarAuditCli = m[1];
+}
+const aotMode = cliArgs.some((a) => a === "--aot" || a === "-aot");
+const compileOnly =
+  cliArgs.some((a) => a === "--compile-only" || a === "-c") && !aotMode;
+const fileArg = cliArgs.find(
+  (a) =>
+    a &&
+    !String(a).startsWith("-") &&
+    (String(a).toLowerCase().endsWith(".jasb") ||
+      String(a).toLowerCase().endsWith(".jd")),
+);
 if (
   !fileArg ||
   (!String(fileArg).toLowerCase().endsWith(".jasb") &&
     !String(fileArg).toLowerCase().endsWith(".jd"))
 ) {
   console.error(
-    "Abre un archivo .jasb o .jd y pulsa F5, o pasa la ruta al archivo.",
+    "Uso: node .vscode/run-jasb.cjs <archivo.jasb|archivo.jd> [--aot] [--compile-only|-c] [--propagar-audit=N]\n" +
+      "  (sin --aot) F5 / VM: compila con jbc y ejecuta .jbo con la VM.\n" +
+      "  --compile-only | -c  Solo jbc → .jbo; no ejecuta la VM (CI / chequeo rapido).\n" +
+      "  --aot  F6 / transpilador: ejecuta jbc-to-c (Jasboot→C) con -e.\n" +
+      "  --propagar-audit=N  Activa auditoria VM de propagacion (stderr); sin esto se fuerza JASBOOT_PROPAGAR_AUDIT=0\n" +
+      "    para no heredar un valor ruidoso del shell. Para heredar el entorno: JASBOOT_PROPAGAR_AUDIT_FROM_PARENT=1.\n" +
+      "  Abre un .jasb o .jd y pulsa F5, o pasa la ruta al archivo.",
   );
+  process.exit(1);
+}
+
+if (aotMode && cliArgs.some((a) => a === "--compile-only" || a === "-c")) {
+  console.error("\x1b[31mNo combine --aot con --compile-only.\x1b[0m");
   process.exit(1);
 }
 
@@ -670,6 +754,37 @@ if (runLinter(absFile, source) > 0) {
     "\x1b[31mCompilacion abortada por errores de seguridad.\x1b[0m",
   );
   process.exit(1);
+}
+
+if (aotMode) {
+  if (!String(absFile).toLowerCase().endsWith(".jasb")) {
+    console.error(
+      "\x1b[31mModo AOT (--aot): solo archivos .jasb (el transpilador no aplica a .jd).\x1b[0m",
+    );
+    process.exit(1);
+  }
+  const j2c = findJbcToC();
+  if (!j2c) {
+    console.error(
+      "No se encuentra jbc-to-c (transpilador AOT).\n" +
+        "  Construyalo en sdk-dependiente\\jasboot-to-c o defina JASBOOT_JBC_TO_C con la ruta al ejecutable.",
+    );
+    process.exit(1);
+  }
+  console.log(`\x1b[36mAOT (transpilador C):\x1b[0m ${j2c}`);
+  const aotCwd = path.dirname(absFile);
+  const aotResult = spawnSync(j2c, [absFile, "-e"], {
+    stdio: "inherit",
+    cwd: aotCwd,
+    env: childEnv,
+    shell: false,
+    windowsHide: true,
+  });
+  process.exit(
+    aotResult.status !== null && aotResult.status !== undefined
+      ? aotResult.status
+      : 1,
+  );
 }
 
 const jbc = findJbc();
@@ -700,21 +815,51 @@ if (compResult.status !== 0) {
   process.exit(compResult.status !== null ? compResult.status : 1);
 }
 
+if (compileOnly && String(absFile).toLowerCase().endsWith(".jasb")) {
+  console.log(
+    "\x1b[36mSolo compilacion (--compile-only)\x1b[0m: .jbo generado; no se ejecuta la VM.",
+  );
+  process.exit(0);
+}
+
 // 2. Ejecutar con la VM si la compilación tuvo éxito
 const jboFile = absFile.replace(/\.jasb$/i, ".jbo");
 const vm = findVm();
 
 if (vm && fs.existsSync(jboFile)) {
   console.log(`Ejecutando con VM: ${vm}`);
-  const child = spawn(vm, [jboFile], {
+  // --continuo evita terminar la VM cuando stdin reporta EOF transitorio
+  // (comun en algunas sesiones PowerShell interactivas).
+  // Con depurador JS, `stdin.isTTY` suele ser false aunque la consola sea interactiva;
+  // sin --continuo el segundo `ingresar_texto` ve EOF y la VM sale sin volver al bucle.
+  // Si stdin viene por pipe/archivo real, desactivar con JASBOOT_VM_NO_CONTINUO=1.
+  const useContinuo =
+    process.env.JASBOOT_VM_NO_CONTINUO !== "1" &&
+    (process.stdin.isTTY ||
+      process.env.JASBOOT_VM_CONTINUO === "1" ||
+      Boolean(process.env.VSCODE_INSPECTOR_OPTIONS));
+  const vmArgs = useContinuo ? ["--continuo", jboFile] : [jboFile];
+  /** cwd del proceso = carpeta del .jasb: rutas relativas (p. ej. tmp_108_fs.bin) quedan junto al fuente, no en la raíz del repo. */
+  const vmCwd = path.dirname(absFile);
+  const vmEnv = { ...childEnv };
+  if (process.env.JASBOOT_PROPAGAR_AUDIT_FROM_PARENT === "1") {
+    /* conservar JASBOOT_PROPAGAR_AUDIT del proceso padre (p. ej. shell con AUDIT=1) */
+  } else if (propagarAuditCli !== undefined) {
+    vmEnv.JASBOOT_PROPAGAR_AUDIT = propagarAuditCli;
+  } else {
+    vmEnv.JASBOOT_PROPAGAR_AUDIT = "0";
+  }
+  const child = spawn(vm, vmArgs, {
     stdio: "inherit",
-    cwd: workspaceRoot,
-    env: childEnv,
+    cwd: vmCwd,
+    env: vmEnv,
     shell: false,
     windowsHide: true,
   });
   child.on("error", (err) => {
-    console.error(`Error ejecutando VM: ${err && err.message ? err.message : err}`);
+    console.error(
+      `Error ejecutando VM: ${err && err.message ? err.message : err}`,
+    );
     process.exit(1);
   });
   child.on("exit", (code) => {

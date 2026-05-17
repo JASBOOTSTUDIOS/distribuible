@@ -1,6 +1,0 @@
-principal
-    entero num_x = 7
-    imprimir "valor: ${ num_x < 10 ? 1 : 0 }"
-    entero num_y = 12
-    imprimir "flag: ${ num_y < 10 ? 1 : 0 }"
-fin_principal

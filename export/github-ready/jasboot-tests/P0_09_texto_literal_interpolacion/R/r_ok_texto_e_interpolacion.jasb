@@ -1,7 +1,0 @@
-principal
-    texto saludo = "hola"
-    entero n = 7
-    imprimir saludo
-    imprimir " "
-    imprimir "${n}"
-fin_principal

@@ -1,6 +1,0 @@
-funcion identidad(entero n) retorna entero
-fin_funcion
-
-principal
-    imprimir identidad(4)
-

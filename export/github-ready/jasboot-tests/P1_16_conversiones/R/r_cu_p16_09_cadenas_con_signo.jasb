@@ -1,9 +1,0 @@
-# 9 — Signo negativo en cadena (comportamiento VM atoll/atof).
-# Salida: -9 y -1.2500
-
-principal
-    entero n = convertir_entero("-9")
-    flotante x = convertir_flotante("-1.25")
-    imprimir(n)
-    imprimir_flotante(x)
-fin_principal

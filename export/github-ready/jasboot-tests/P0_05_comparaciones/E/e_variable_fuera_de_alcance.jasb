@@ -1,8 +1,0 @@
-principal
-    si 1 == 1 entonces
-        entero oculta = 50
-    fin_si
-    
-    # Intentar acceder a 'oculta' desde fuera de su bloque debe dar error
-    imprimir oculta
-fin_principal

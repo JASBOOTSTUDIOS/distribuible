@@ -1,6 +1,0 @@
-# Nivel 3: importa l4.
-usar todas de "../l4/cap_l4.jasb"
-
-enviar funcion svc_cap_tres(entero k) retorna entero
-    retornar hoja_mix(k) * 3 + (SEED_L4 % 1000)
-fin_funcion

@@ -1,5 +1,0 @@
-principal
-    entero num_a = 5
-    entero num_b = num_a + variable_no_existe
-    imprimir num_b
-fin_principal

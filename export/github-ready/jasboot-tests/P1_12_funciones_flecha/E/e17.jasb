@@ -1,8 +1,0 @@
-// e17 — Llamada a macro con demasiados argumentos
-// Esperado: error en codegen: mensaje de arity (parametros vs argumentos) y pista sobran/faltan valores en la llamada.
-// Mide: arity al invocar nombre de macro almacenado; expansion/visit_call frente a definicion (x)=>...
-principal
-    macro f = (x) => x + 1
-    entero tmp = f(1, 2)
-    imprimir tmp
-fin_principal

@@ -1,6 +1,0 @@
-principal
-    entero x = 1
-    x++
-    retornar x
-fin_principal
-

@@ -228,6 +228,21 @@ texto primera = lista_obtener(frutas, 0)  # "manzana"
 texto segunda = lista_obtener(frutas, 1)   # "banana"
 ```
 
+### `reemplazar(texto, patron, por)` / `remplazar` / `reemplazar_texto`
+
+Sustituye **todas** las apariciones no solapadas de `patron` en `texto` por `por`. Si `patron` es la cadena vacía, el resultado es una copia de `texto`. Los tres nombres son alias de la misma llamada de sistema.
+
+```jasb
+texto csv = "a,b,c"
+texto espacios = reemplazar(csv, ",", " ")
+imprimir espacios   # "a b c"
+
+texto mismo = remplazar("hola", "", "x")
+imprimir mismo      # "hola" (patron vacio: sin sustituciones)
+```
+
+**IR / VM:** `OP_STR_REEMPLAZAR` (`0x72`); operandos de registro alineados con `extraer_subtexto` (tercer argumento en el registro siguiente al del patrón).
+
 ### `segmentar_palabras(texto, separador)`
 Segmenta el texto en palabras usando el separador.
 

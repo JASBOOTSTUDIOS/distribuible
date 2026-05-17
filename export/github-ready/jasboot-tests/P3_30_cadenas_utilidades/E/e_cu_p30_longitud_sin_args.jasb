@@ -1,5 +1,0 @@
-# E: longitud sin argumentos — jbc debe fallar.
-
-principal
-    imprimir longitud()
-fin_principal

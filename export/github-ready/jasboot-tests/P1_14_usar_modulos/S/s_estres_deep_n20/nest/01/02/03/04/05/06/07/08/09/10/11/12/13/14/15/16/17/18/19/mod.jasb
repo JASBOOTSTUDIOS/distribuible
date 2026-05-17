@@ -1,7 +1,0 @@
-﻿// Nivel 19 de 20: importa solo el subpaquete inmediato (cadena lineal).
-usar todas de "20/mod.jasb"
-
-enviar constante entero DEEP_L19_K = 19
-enviar funcion deep_svc_19(entero v) retorna entero
-    retornar v + DEEP_L19_K + llamar deep_svc_20(v)
-fin_funcion

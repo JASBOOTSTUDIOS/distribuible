@@ -1,5 +1,0 @@
-﻿// Capa hoja (nivel 20): sin dependencias. Paquete anidado tipo app monolitica profunda.
-enviar constante entero DEEP_L20_K = 20
-enviar funcion deep_svc_20(entero v) retorna entero
-    retornar v + DEEP_L20_K
-fin_funcion

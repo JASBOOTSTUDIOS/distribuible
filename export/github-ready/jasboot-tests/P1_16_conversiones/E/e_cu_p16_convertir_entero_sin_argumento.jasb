@@ -1,7 +1,0 @@
-// E: convertir_entero() sin argumento.
-// Esperado: error semantico: 'convertir_entero' requiere un argumento (...). Esta llamada no tiene argumentos.
-
-principal
-    entero n = convertir_entero()
-    imprimir(n)
-fin_principal

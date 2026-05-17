@@ -67,6 +67,7 @@
   },
   "extensions": {
     "recommendations": [
+      "ms-vscode.js-debug",
       "ms-vscode.vscode-json",
       "formulahendry.auto-rename-tag",
       "bradlc.vscode-tailwindcss",
@@ -83,39 +84,50 @@
     "configurations": [
       {
         "name": "Depurar Jasboot",
-        "type": "node",
+        "type": "pwa-node",
         "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "node",
         "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
-        "args": [
-          "${file}",
-          "--debug"
-        ],
+        "args": ["${file}"],
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen",
-        "skipFiles": [
-          "<node_internals>/**"
-        ],
-        "preLaunchTask": "Compilar Jasboot",
-        "sourceMaps": false,
-        "outFiles": [
-          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
-        ]
+        "skipFiles": ["<node_internals>/**"],
+        "env": {
+          "JASBOOT_REPO_ROOT": "${workspaceFolder}"
+        }
       },
       {
         "name": "Ejecutar Jasboot (sin depuración)",
-        "type": "node",
+        "type": "pwa-node",
         "request": "launch",
-        "program": "${workspaceFolder}/sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
-        "args": [
-          "${workspaceFolder}/build/${fileBasenameNoExtension}.jbo"
-        ],
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "node",
+        "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "args": ["${file}"],
         "console": "integratedTerminal",
         "internalConsoleOptions": "neverOpen",
-        "skipFiles": [
-          "<node_internals>/**"
-        ],
-        "preLaunchTask": "Compilar Jasboot",
-        "sourceMaps": false
+        "skipFiles": ["<node_internals>/**"],
+        "noDebug": true,
+        "env": {
+          "JASBOOT_REPO_ROOT": "${workspaceFolder}"
+        }
+      },
+      {
+        "name": "Ejecutar Jasboot (AOT / transpilador C)",
+        "type": "pwa-node",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "node",
+        "program": "${workspaceFolder}/.vscode/run-jasb.cjs",
+        "args": ["${file}", "--aot"],
+        "console": "integratedTerminal",
+        "internalConsoleOptions": "neverOpen",
+        "skipFiles": ["<node_internals>/**"],
+        "noDebug": true,
+        "env": {
+          "JASBOOT_REPO_ROOT": "${workspaceFolder}"
+        }
       }
     ]
   },
@@ -151,6 +163,20 @@
         }
       },
       {
+        "label": "Jasboot: suite completa (MAI+JMN+JWL)",
+        "type": "shell",
+        "command": "node",
+        "args": ["${workspaceFolder}/tests/run_suite_completa.cjs"],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
         "label": "Ejecutar Jasboot",
         "type": "shell",
         "command": "sdk-dependiente/jasboot-ir/bin/jasboot-ir-vm.exe",
@@ -165,6 +191,53 @@
           "panel": "new"
         },
         "dependsOn": "Compilar Jasboot"
+      },
+      {
+        "label": "Jasboot: ejecutar con transpilador (AOT)",
+        "type": "shell",
+        "command": "node",
+        "args": [
+          "${workspaceFolder}/.vscode/run-jasb.cjs",
+          "${file}",
+          "--aot"
+        ],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "new"
+        },
+        "problemMatcher": {
+          "owner": "jasboot",
+          "fileLocation": "absolute",
+          "pattern": {
+            "regexp": "^(.*):(\\d+):(\\d+)\\s*:\\s*(warning|error|aviso):\\s*(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        }
+      },
+      {
+        "label": "Ejecutar con Compilador Soberano",
+        "type": "shell",
+        "command": "node",
+        "args": [
+          "${workspaceFolder}/.vscode/run-jasb.cjs",
+          "${workspaceFolder}/sdk-soberano/jasboot-compilador/compilador_soberano.jasb",
+          "--",
+          "${file}"
+        ],
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": true,
+          "panel": "new"
+        }
       },
       {
         "label": "Compilar y Ejecutar",
@@ -206,7 +279,7 @@
       "args": {
         "text": "node '${workspaceFolder}/.vscode/run-jasb.cjs' '${file}'\u000D"
       },
-      "when": "editorTextFocus && editorLangId == 'jasboot'"
+      "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
     },
     {
       "key": "ctrl+shift+b",
@@ -217,6 +290,18 @@
       "key": "ctrl+shift+r",
       "command": "workbench.action.tasks.runTask",
       "args": "Ejecutar Jasboot"
+    },
+    {
+      "key": "f6",
+      "command": "workbench.action.tasks.runTask",
+      "args": "Jasboot: ejecutar con transpilador (AOT)",
+      "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
+    },
+    {
+      "key": "ctrl+shift+alt+s",
+      "command": "workbench.action.tasks.runTask",
+      "args": "Ejecutar con Compilador Soberano",
+      "when": "editorTextFocus && (editorLangId == 'jasboot' || resourceExtname == '.jasb' || resourceExtname == '.jd')"
     }
   ]
 }

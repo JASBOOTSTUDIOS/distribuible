@@ -1,5 +1,0 @@
-// Hoja 15 / 200 ; ruta p/d0/d1/d2/ (4 carpetas bajo la raiz del estres).
-enviar constante entero E_015 = 15
-enviar funcion g_015() retorna entero
-    retornar 15
-fin_funcion

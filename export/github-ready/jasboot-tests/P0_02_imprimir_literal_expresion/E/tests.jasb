@@ -1,7 +1,0 @@
-principal
-    entero i = 0
-    hacer 
-        imprimir "${i}. Hola, mundo!"
-        i += 1
-    mientras i < 10 fin_hacer
-fin_principal

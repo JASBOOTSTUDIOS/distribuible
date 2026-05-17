@@ -1,7 +1,0 @@
-usar { MetricasClustering } de "stdlib/analitica-neuronal/metricas/metricas_clustering.jasb"
-
-principal
-    imprimir "Test de metricas clustering"
-    MetricasClustering m = MetricasClustering()
-    imprimir "✅ Módulo cargado"
-fin_principal

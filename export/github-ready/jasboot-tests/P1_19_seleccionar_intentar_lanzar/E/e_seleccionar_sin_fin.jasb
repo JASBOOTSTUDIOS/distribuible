@@ -1,7 +1,0 @@
-principal
-    entero n = 1
-    seleccionar n hacer
-        caso 1
-            imprimir "ok"
-fin_principal
-

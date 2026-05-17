@@ -1,9 +1,0 @@
-// Caso: modulo intermedio con `usar { exp_fn } de` y `enviar funcion`; el main solo importa el wrap nominal.
-// wrap_dup(x) = exp_fn(x) + exp_fn(0) = (x+42) + 42 = x + 84. Para x=2 -> 86
-// Esperado: 86
-
-usar { wrap_dup } de "m_cadena_wrap.jasb"
-
-principal
-    imprimir llamar wrap_dup(2)
-fin_principal

@@ -1,8 +1,0 @@
-// Caso: `usar { EXP_C } de` — solo constante global exportada (`enviar constante`).
-// Esperado: 42
-
-usar { EXP_C } de "m_export_mix.jasb"
-
-principal
-    imprimir "${EXP_C}\n"
-fin_principal

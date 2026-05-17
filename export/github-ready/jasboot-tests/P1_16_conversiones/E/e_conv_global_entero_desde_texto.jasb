@@ -1,7 +1,0 @@
-// E: inicializacion global entero desde variable texto.
-
-texto etiqueta = "id"
-entero codigo = etiqueta
-
-principal
-fin_principal

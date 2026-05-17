@@ -8,11 +8,12 @@
 usar { MetricasClustering } de "./metricas_clustering.jasb"
 
 # Función auxiliar para crear puntos 2D (debe declararse antes de principal)
-funcion crear_punto(flotante x, flotante y) retorna lista
-    lista punto = crear_lista()
-    lista_agregar(punto, x)
-    lista_agregar(punto, y)
-    retornar punto
+# Nota: `y` y el identificador `lista` como nombre de variable son reservados en Jasboot.
+funcion crear_punto(flotante x, flotante coord_y) retorna lista
+    lista pt = crear_lista()
+    lista_agregar(pt, x)
+    lista_agregar(pt, coord_y)
+    retornar pt
 fin_funcion
 
 principal

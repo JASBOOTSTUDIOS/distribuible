@@ -1,5 +1,0 @@
-principal
-entero x = 1
-entero x = 2
-imprimir x
-fin_principal

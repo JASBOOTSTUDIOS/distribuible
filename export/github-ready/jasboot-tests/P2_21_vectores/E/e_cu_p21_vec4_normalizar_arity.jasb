@@ -1,8 +1,0 @@
-# E: vec4_normalizar sin argumento de origen (solo 1).
-
-principal
-    vec4 q
-    vec4 qn
-    q = vec4(1.0, 2.0, 3.0, 4.0)
-    vec4_normalizar(qn)
-fin_principal

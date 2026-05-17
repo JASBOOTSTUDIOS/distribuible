@@ -1,67 +1,56 @@
-# 🧠 Librería de Analítica Neuronal Jasboot (V2.1 OOP)
+# Libreria Analitica Neuronal (estado actual)
 
-## 📋 Descripción General
+## Descripcion
 
-La **Librería de Analítica Neuronal V2.1** es una suite completa y nativa de herramientas estadísticas, probabilísticas y de Machine Learning implementadas para Jasboot. Su diseño modular y orientado a objetos permite un análisis de datos preciso y escalable.
+`analitica-neuronal` es la libreria estandar de analitica, ML y NLP de Jasboot.
+El punto de entrada recomendado es `analitica.jasb`, que expone una fachada
+global `g_analitica` y funciones de inicializacion por fases.
 
----
+## Documentacion oficial (carpeta docs)
 
-## 📚 Índice de Documentación
+- [Indice](docs/README.md)
+- [Arquitectura y carga](docs/ARQUITECTURA_Y_CARGA.md)
+- [API de fachada](docs/API_FACHADA.md)
+- [Modulos y capacidades](docs/MODULOS_Y_CAPACIDADES.md)
+- [Sistema de predicciones](docs/SISTEMA_PREDICCIONES.md)
+- [Ejemplos de uso](docs/EJEMPLOS_DE_USO.md)
+- [FAQ y limitaciones](docs/FAQ_Y_LIMITACIONES.md)
 
-Para facilitar el uso y la comprensión de la librería, dispones de los siguientes recursos:
+## Importacion correcta (sintaxis actual)
 
-1.  **[Guía de Uso Completa](GUIA_USO_COMPLETA.md)**: Tutoriales detallados y ejemplos prácticos paso a paso.
-2.  **[Catálogo de Funcionalidades](CATALOGO_FUNCIONALIDADES.md)**: Referencia técnica de todas las clases y funciones públicas disponibles.
-3.  **[Guía Estructurada de Arquitectura](GUIA_ESTRUCTURADA.md)**: Explicación detallada del diseño interno y la jerarquía de módulos.
-
----
-
-## 🏗️ Estructura de la Librería
-
-```
-analitica-neuronal/
-├── analitica.jasb                 # Fachada Global y punto de entrada
-├── base.jasb                      # Clase base AnalizadorBase
-├── math_lib.jasb                  # Núcleo matemático de alta precisión
-├── estadistica/                   # Análisis descriptivo
-├── probabilidad/                  # Distribuciones y combinatoria
-├── inferencia/                    # Pruebas de hipótesis y correlación
-├── series_temporales/             # Análisis de datos secuenciales y ARIMA
-├── machine_learning/              # Árboles, Bosques, Redes Neuronales, SVM, NLP
-├── preprocesamiento/              # Escalado (Normalización), PCA, Selección de features
-├── metricas/                      # Evaluación de modelos (Regresión, Clasificación, Clustering)
-└── validación/                    # Split de datos y Validación Cruzada (K-Fold)
-```
-
----
-
-## 🚀 Inicio Rápido
-
-### 1. Inicialización
-La librería utiliza una **Fachada** para centralizar todos los módulos.
+Usa importacion explicita con llaves:
 
 ```jasboot
-usar todas de "./analitica-neuronal/analitica.jasb"
+usar { g_analitica, inicializar_fachada } de "stdlib/analitica-neuronal/analitica.jasb"
+```
 
-# Inicializar todas las instancias internas
+No usar `usar todas de ...` en codigo nuevo.
+
+## Inicializacion por fases
+
+1. Base (siempre):
+
+```jasboot
 inicializar_fachada()
-
-# Acceso a través del objeto global 'g_analitica'
-flotante media = g_analitica.estadistica.calcular_media_aritmetica(datos)
 ```
 
-### 2. Ejemplo de Machine Learning
+2. Modulos avanzados (segun necesidad):
+
 ```jasboot
-# Dividir datos
-mapa split = g_analitica.split.train_test_split(X, y, 0.2, 42)
-
-# Entrenar un Random Forest
-mapa rf = g_analitica.random_forest.random_forest_fit(split.X_train, split.y_train, 10, 5)
-
-# Evaluar
-lista predicciones = g_analitica.random_forest.random_forest_predecir_batch(rf, split.X_test)
-flotante accuracy = g_analitica.metricas_clf.calcular_accuracy(split.y_test, predicciones)
+inicializar_ml_avanzado()
+inicializar_redes_svm_clustering()
+inicializar_nlp_generativo_y_series()
+inicializar_capa_rnn()
 ```
 
----
-**🧠 Analítica Neuronal Jasboot: Tu motor inteligente de procesamiento de datos.**
+## Modulos disponibles en `g_analitica`
+
+- Core: `estadistica`, `probabilidad`, `inferencia`, `series`, `ml`, `nlp`, `prediccion`, `visualizacion`
+- Metricas/validacion: `metricas_reg`, `metricas_clf`, `metricas_cluster`, `split`, `cv`
+- Preprocesamiento: `normalizacion`, `seleccion_features`, `pca`
+- Avanzado (carga diferida): `arboles`, `random_forest`, `gradient_boosting`, `redes_neuronales`, `svm`, `clustering_avanzado`, `nlp_gen`, `embeddings`, `arima`, `rnn`
+
+## Nota de estabilidad
+
+- `rnn` se inicializa de forma separada con `inicializar_capa_rnn()` para minimizar
+  riesgos de cuelgue al crear muchos objetos pesados en la misma carga.

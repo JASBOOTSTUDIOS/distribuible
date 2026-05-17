@@ -1,5 +1,0 @@
-# E: llamada a un identificador que no es funcion conocida, macro ni variable `funcion`.
-
-principal
-    entero r = no_existe_funcion_zz(1)
-fin_principal

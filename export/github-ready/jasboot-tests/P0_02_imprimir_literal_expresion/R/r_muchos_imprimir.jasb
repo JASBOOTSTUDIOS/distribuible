@@ -1,7 +1,0 @@
-principal
-    entero i = 0
-    mientras i < 8000
-        imprimir "."
-        i = i + 1
-    fin_mientras
-fin_principal

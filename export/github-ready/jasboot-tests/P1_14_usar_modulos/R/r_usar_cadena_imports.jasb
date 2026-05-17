@@ -1,9 +1,0 @@
-// R — Cadena de modulos: este archivo usa r_mod_chain_b.jasb, que a su vez usa r_mod_chain_c.jasb.
-// Debe resolverse la ruta relativa en cada nivel y fusionar paso_c, luego paso_b, luego el main llama paso_b(10) -> 31 (10*3+1).
-// Esperado: compila; `jbc -e` imprime 31.
-
-usar todas de "r_mod_chain_b.jasb"
-
-principal
-imprimir llamar paso_b(10)
-fin_principal
